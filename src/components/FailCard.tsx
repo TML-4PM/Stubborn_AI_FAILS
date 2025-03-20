@@ -5,13 +5,39 @@ import { AIFail } from '@/data/sampleFails';
 import { toast } from '@/hooks/use-toast';
 
 interface FailCardProps {
-  fail: AIFail;
+  id?: string;
+  fail?: AIFail;
+  image?: string;
+  author?: string;
+  timestamp?: string;
+  description?: string;
+  name?: string;
+  likeCount?: number;
+  status?: string;
   delay?: number;
 }
 
-const FailCard: React.FC<FailCardProps> = ({ fail, delay = 0 }) => {
+const FailCard: React.FC<FailCardProps> = ({ 
+  fail, 
+  id,
+  image,
+  author,
+  timestamp,
+  description,
+  name,
+  likeCount,
+  status,
+  delay = 0 
+}) => {
+  // Use values from individual props if provided, otherwise use values from the fail object
+  const title = name || fail?.title || '';
+  const desc = description || fail?.description || '';
+  const imageUrl = image || fail?.imageUrl || '';
+  const username = author || fail?.username || '';
+  const likes = likeCount !== undefined ? likeCount : (fail?.likes || 0);
+  
   const [liked, setLiked] = useState(false);
-  const [likeCount, setLikeCount] = useState(fail.likes);
+  const [localLikeCount, setLocalLikeCount] = useState(likes);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -27,14 +53,14 @@ const FailCard: React.FC<FailCardProps> = ({ fail, delay = 0 }) => {
   const handleLike = () => {
     if (!liked) {
       setLiked(true);
-      setLikeCount(prev => prev + 1);
+      setLocalLikeCount(prev => prev + 1);
       toast({
         title: "Liked!",
-        description: `You liked "${fail.title}"`,
+        description: `You liked "${title}"`,
       });
     } else {
       setLiked(false);
-      setLikeCount(prev => prev - 1);
+      setLocalLikeCount(prev => prev - 1);
     }
   };
 
@@ -61,8 +87,8 @@ const FailCard: React.FC<FailCardProps> = ({ fail, delay = 0 }) => {
           <div className="absolute inset-0 bg-muted animate-pulse" />
         )}
         <img
-          src={fail.imageUrl}
-          alt={fail.title}
+          src={imageUrl}
+          alt={title}
           className={`w-full h-full object-cover transition-all duration-500 ${
             imageLoaded ? 'opacity-100' : 'opacity-0'
           } ${isHovered ? 'scale-105' : 'scale-100'}`}
@@ -85,15 +111,15 @@ const FailCard: React.FC<FailCardProps> = ({ fail, delay = 0 }) => {
         {/* Category tag */}
         <div className="absolute top-2 left-2">
           <span className="px-2 py-0.5 text-[10px] font-medium bg-fail/80 text-white rounded-full">
-            {fail.category || 'AI Fail'}
+            {status || fail?.category || 'AI Fail'}
           </span>
         </div>
       </div>
       
       <div className="p-4">
-        <h3 className="font-bold text-lg line-clamp-1">{fail.title}</h3>
+        <h3 className="font-bold text-lg line-clamp-1">{title}</h3>
         <p className="text-muted-foreground text-sm mt-1 line-clamp-2">
-          {fail.description}
+          {desc}
         </p>
         
         <div className="mt-4 flex items-center justify-between">
@@ -101,7 +127,7 @@ const FailCard: React.FC<FailCardProps> = ({ fail, delay = 0 }) => {
             <div className="w-5 h-5 rounded-full bg-muted overflow-hidden mr-1.5">
               <div className="w-full h-full bg-gradient-to-br from-fail/30 to-fail-dark/30"></div>
             </div>
-            By {fail.username}
+            By {username}
           </div>
           <div className="flex space-x-2">
             <button
@@ -128,11 +154,11 @@ const FailCard: React.FC<FailCardProps> = ({ fail, delay = 0 }) => {
         <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
           <div className="flex items-center">
             <Heart className="w-3 h-3 mr-1" />
-            <span>{likeCount} likes</span>
+            <span>{localLikeCount} likes</span>
           </div>
           <div className="flex items-center">
             <MessageCircle className="w-3 h-3 mr-1" />
-            <span>{fail.comments || 0} comments</span>
+            <span>{fail?.comments || 0} comments</span>
           </div>
         </div>
       </div>

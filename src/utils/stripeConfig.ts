@@ -1,8 +1,9 @@
 
 // This file contains Stripe-related constants and configurations
 
-// URL for Stripe API
-export const STRIPE_API_URL = 'https://api.stripe.com/v1';
+// The Stripe publishable key should start with pk_test for test mode
+// Replace this with your actual Stripe publishable key when deploying
+export const STRIPE_PUBLISHABLE_KEY = 'pk_test_51YOURKEYGOESHERE';
 
-// The Stripe publishable key is safe to be in client code
-export const STRIPE_PUBLISHABLE_KEY = 'pk_live_51QdfYbD6fFdhmypRtJIp2gp93Uti6P2snQAL40TLtAj0oMqcDrbd9MykicRoeRAXrbHXgkm9KtdRSzr1jRmF4fpO000gOvhIof';
+// Stripe API URL for use in server-side communication (when backend is added)
+export const STRIPE_API_URL = 'https://api.stripe.com/v1';

@@ -30,40 +30,43 @@ const StripeCheckout = ({ amount, onSuccess }: StripeCheckoutProps) => {
     setIsLoading(true);
 
     try {
-      // Create a checkout session
       const stripe = await stripePromise;
       
       if (!stripe) {
         throw new Error("Failed to load Stripe");
       }
 
-      // In a production environment, you would call your backend API to create a checkout session
-      // Since we don't have a backend here, we'll simulate the redirect to Stripe's hosted checkout page
-      
-      // This normally would be created on the server side
-      const sessionId = `demo_${Date.now()}`;
-      
-      console.log("Creating checkout session for amount:", amount);
-      
-      // Demo mode - show toast explaining this is a demo
-      toast({
-        title: "Demo Mode",
-        description: "In a real app, you would now be redirected to Stripe's checkout page. This is a demonstration only.",
+      // IMPORTANT: In production, you need to create a server-side API endpoint
+      // that creates a Checkout Session using your Stripe secret key
+      // The below URL should point to your backend API endpoint
+      const response = await fetch('/api/create-checkout-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          amount: Math.round(amount * 100), // Convert to cents
+          successUrl: `${window.location.origin}/donate?success=true`,
+          cancelUrl: `${window.location.origin}/donate?canceled=true`,
+        }),
       });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to create checkout session');
+      }
+
+      const session = await response.json();
+
+      // Redirect to Stripe Checkout
+      const result = await stripe.redirectToCheckout({
+        sessionId: session.id,
+      });
+
+      if (result.error) {
+        throw new Error(result.error.message);
+      }
       
-      // Wait a moment to show the demo notification
-      setTimeout(() => {
-        // Simulate successful checkout for demo purposes
-        console.log("Demo payment completed");
-        if (onSuccess) {
-          onSuccess();
-        }
-        
-        // Redirect to success page to simulate the full flow
-        window.location.href = `${window.location.origin}/donate?success=true`;
-        
-        setIsLoading(false);
-      }, 2000);
     } catch (error) {
       console.error('Payment error:', error);
       toast({

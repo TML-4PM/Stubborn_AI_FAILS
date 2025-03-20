@@ -11,3 +11,12 @@ export const CHECKOUT_API_URL = 'https://aioopsies-stripe.netlify.app/.netlify/f
 // Success and cancel return URLs - using relative paths
 export const STRIPE_SUCCESS_URL = '/donate?success=true';
 export const STRIPE_CANCEL_URL = '/donate?canceled=true';
+
+// Add environment detection for proper API endpoints
+export const getApiUrl = () => {
+  // Check if we're in a production environment
+  const isProd = import.meta.env.PROD;
+  return isProd 
+    ? 'https://aioopsies-stripe.netlify.app/.netlify/functions/create-checkout'
+    : CHECKOUT_API_URL;
+};

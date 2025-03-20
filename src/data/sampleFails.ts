@@ -1,4 +1,3 @@
-
 export interface AIFail {
   id: string;
   title: string;
@@ -8,6 +7,8 @@ export interface AIFail {
   date: string;
   likes: number;
   featured: boolean;
+  category?: string;
+  comments?: number;
 }
 
 export const sampleFails: AIFail[] = [

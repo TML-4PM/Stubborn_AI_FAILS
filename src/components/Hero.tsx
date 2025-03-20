@@ -1,6 +1,5 @@
-
 import { useEffect, useState } from 'react';
-import { ArrowRight, Robot, Sparkles } from 'lucide-react';
+import { ArrowRight, Bot, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const Hero = () => {
@@ -19,7 +18,7 @@ const Hero = () => {
     <div className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
       {/* Background pattern */}
       <div className="absolute inset-0 bg-gradient-to-b from-fail-light/50 to-transparent opacity-50"></div>
-      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiMzYjgyZjYiIGZpbGwtb3BhY2l0eT0iMC4wNCI+PHBhdGggZD0iTTM2IDM0djZoNnYtNmgtNnptNiAwaDZ2LTZoLTZ2NnptLTYtNnYtNmg2djZoLTZ6bS02IDEydjZoNnYtNmgtNnptNiAwaDZ2LTZoLTZ2NnptLTYtNnYtNmg2djZoLTZ6bS02IDEydjZoNnYtNmgtNnptNiAwaDZ2LTZoLTZ2NnptLTYtNnYtNmg2djZoLTZ6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-25"></div>
+      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiMzYjgyZjYiIGZpbGwtb3BhY2l0eT0iMC4wNCI+PHBhdGggZD0iTTM2IDM0djZoNnYtNmgtNnptNiAwaDZ2LTZoLTZ2NnptLTYtNnYtNmg2djZoLTZ6bS02IDEydjZoNnYtNmgtNnptNiAwaDZ2LTZoLTZ2NnptLTYtNnYtNmg2djZoLTZ6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-25"></div>
       
       {/* Floating elements animation */}
       <div className="absolute inset-0 pointer-events-none">
@@ -74,7 +73,7 @@ const Hero = () => {
               className="relative px-6 py-3 bg-fail hover:bg-fail-dark text-white rounded-full flex items-center justify-center font-medium transition-all duration-300 transform hover:scale-105 hover:shadow-lg w-full sm:w-auto overflow-hidden group"
             >
               <span className="absolute inset-0 w-full h-full bg-gradient-to-br from-fail-light/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-              <Robot className="mr-2 h-4 w-4 opacity-90" />
+              <Bot className="mr-2 h-4 w-4 opacity-90" />
               Submit Your AI Fail
               <ArrowRight className="ml-2 h-4 w-4" />
             </button>

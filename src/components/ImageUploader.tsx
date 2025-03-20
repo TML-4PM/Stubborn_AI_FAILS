@@ -1,7 +1,8 @@
 
 import { useState } from 'react';
-import { Upload, Info } from 'lucide-react';
+import { Upload, Info, X } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 interface ImageUploaderProps {
   onImageChange: (file: File | null) => void;
@@ -9,8 +10,40 @@ interface ImageUploaderProps {
 }
 
 const ImageUploader = ({ onImageChange, previewUrl }: ImageUploaderProps) => {
+  const [isDragging, setIsDragging] = useState(false);
+  
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+  
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+  
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+  
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    
+    const file = e.dataTransfer.files?.[0];
+    validateAndProcessFile(file);
+  };
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    validateAndProcessFile(file);
+  };
+  
+  const validateAndProcessFile = (file?: File) => {
     if (!file) return;
 
     if (file.size > 5 * 1024 * 1024) {
@@ -45,58 +78,63 @@ const ImageUploader = ({ onImageChange, previewUrl }: ImageUploaderProps) => {
           </div>
         </div>
       </label>
-      <label 
-        htmlFor="image" 
-        className={`border-2 border-dashed rounded-lg p-8 text-center block cursor-pointer transition-colors ${
-          previewUrl ? 'border-primary/50 bg-primary/5' : 'border-muted hover:border-muted-foreground/50'
-        }`}
-      >
-        {previewUrl ? (
-          <div className="relative w-full aspect-video mx-auto">
-            <img 
-              src={previewUrl} 
-              alt="Preview" 
-              className="w-full h-full object-contain rounded-lg"
-            />
-            <button
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                onImageChange(null);
-              }}
-              className="absolute top-2 right-2 p-1 bg-destructive text-white rounded-full hover:bg-destructive/90 transition-colors"
-              aria-label="Remove image"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M18 6L6 18M6 6l12 12"></path>
-              </svg>
-            </button>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-              <Upload className="w-6 h-6 text-primary" />
-            </div>
-            <div className="space-y-1">
-              <p className="text-sm font-medium">
-                Drag and drop an image, or <span className="text-primary">browse</span>
-              </p>
-              <p className="text-xs text-muted-foreground">
-                PNG, JPG or GIF, max 5MB
-              </p>
-            </div>
-          </div>
+      <div 
+        onDragEnter={handleDragEnter}
+        onDragLeave={handleDragLeave}
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
+        className={cn(
+          'border-2 border-dashed rounded-lg p-8 text-center block cursor-pointer transition-all',
+          isDragging ? 'border-primary bg-primary/10 scale-[1.01]' : 'hover:border-muted-foreground/50',
+          previewUrl ? 'border-primary/50 bg-primary/5' : 'border-muted'
         )}
-        <input
-          id="image"
-          type="file"
-          accept="image/*"
-          onChange={handleImageChange}
-          className="sr-only"
-          required={!previewUrl}
-        />
-      </label>
+      >
+        <label htmlFor="image" className="cursor-pointer block">
+          {previewUrl ? (
+            <div className="relative w-full aspect-video mx-auto">
+              <img 
+                src={previewUrl} 
+                alt="Preview" 
+                className="w-full h-full object-contain rounded-lg"
+              />
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onImageChange(null);
+                }}
+                className="absolute top-2 right-2 p-1.5 bg-destructive text-destructive-foreground rounded-full hover:bg-destructive/90 transition-colors"
+                aria-label="Remove image"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                <Upload className="w-6 h-6 text-primary" />
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm font-medium">
+                  Drag and drop an image, or <span className="text-primary">browse</span>
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  PNG, JPG or GIF, max 5MB
+                </p>
+              </div>
+            </div>
+          )}
+          <input
+            id="image"
+            type="file"
+            accept="image/*"
+            onChange={handleImageChange}
+            className="sr-only"
+            required={!previewUrl}
+          />
+        </label>
+      </div>
     </div>
   );
 };

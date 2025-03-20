@@ -53,25 +53,80 @@ const SubmissionForm = () => {
 
     setIsSubmitting(true);
 
-    // Simulate API call with timeout
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setIsSuccess(true);
-      toast({
-        title: "Submission received!",
-        description: "Your AI fail has been submitted for review.",
-      });
+    try {
+      // Create form data
+      const formData = new FormData();
+      formData.append('title', title);
+      formData.append('description', description);
+      formData.append('username', username || 'Anonymous');
+      formData.append('image', imageFile);
 
-      // Reset form after submission
-      setTimeout(() => {
-        setTitle('');
-        setDescription('');
-        setUsername('');
-        setImageFile(null);
-        setPreviewUrl(null);
-        setIsSuccess(false);
-      }, 2000);
-    }, 1500);
+      // Add recipient email to form data
+      formData.append('recipient', 'troy.latter@4pm.net.au');
+      
+      // Convert image to base64 for email attachment
+      const reader = new FileReader();
+      reader.readAsDataURL(imageFile);
+      
+      reader.onload = async () => {
+        formData.append('imageData', reader.result as string);
+        
+        // Simulate API call (in a real app, this would be an actual API call)
+        // In a production app, you might use localStorage as a simple storage solution
+        localStorage.setItem(`submission_${Date.now()}`, JSON.stringify({
+          title,
+          description,
+          username: username || 'Anonymous',
+          imageUrl: reader.result,
+          date: new Date().toISOString()
+        }));
+        
+        // Send email notification (simulated here)
+        console.log("Sending submission to: troy.latter@4pm.net.au");
+        console.log("Form data:", {
+          title,
+          description,
+          username: username || 'Anonymous',
+          imageFilename: imageFile.name
+        });
+        
+        setIsSubmitting(false);
+        setIsSuccess(true);
+        toast({
+          title: "Submission received!",
+          description: "Your AI fail has been submitted for review.",
+        });
+
+        // Reset form after submission
+        setTimeout(() => {
+          setTitle('');
+          setDescription('');
+          setUsername('');
+          setImageFile(null);
+          setPreviewUrl(null);
+          setIsSuccess(false);
+        }, 2000);
+      };
+      
+      reader.onerror = (error) => {
+        console.error("Error reading file:", error);
+        setIsSubmitting(false);
+        toast({
+          title: "Error processing image",
+          description: "There was a problem with your image. Please try again.",
+          variant: "destructive",
+        });
+      };
+      
+    } catch (error) {
+      console.error("Submission error:", error);
+      setIsSubmitting(false);
+      toast({
+        title: "Submission failed",
+        description: "There was a problem submitting your AI fail. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (

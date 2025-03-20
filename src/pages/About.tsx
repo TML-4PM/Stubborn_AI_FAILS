@@ -1,14 +1,88 @@
-
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { Mail, Github, Twitter } from 'lucide-react';
+import { Mail, Github, Twitter, Loader2, CheckCircle2 } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 
 const About = () => {
   useEffect(() => {
     // Scroll to top when component mounts
     window.scrollTo(0, 0);
   }, []);
+
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    subject: '',
+    message: ''
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { id, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [id]: value
+    }));
+  };
+
+  const handleContactSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Basic validation
+    if (!formData.name || !formData.email || !formData.message) {
+      toast({
+        title: "Missing information",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // Store in localStorage as a simple solution
+      localStorage.setItem(`contact_${Date.now()}`, JSON.stringify({
+        ...formData,
+        date: new Date().toISOString()
+      }));
+      
+      // Log the data that would be sent
+      console.log("Sending contact form to: troy.latter@4pm.net.au");
+      console.log("Form data:", formData);
+      
+      // Simulate API call with timeout
+      setTimeout(() => {
+        setIsSubmitting(false);
+        setIsSuccess(true);
+        toast({
+          title: "Message sent!",
+          description: "We've received your message and will respond soon.",
+        });
+
+        // Reset form after successful submission
+        setTimeout(() => {
+          setFormData({
+            name: '',
+            email: '',
+            subject: '',
+            message: ''
+          });
+          setIsSuccess(false);
+        }, 2000);
+      }, 1500);
+    } catch (error) {
+      console.error("Contact form error:", error);
+      setIsSubmitting(false);
+      toast({
+        title: "Message failed to send",
+        description: "There was a problem sending your message. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -133,7 +207,7 @@ const About = () => {
             <div className="glass rounded-2xl p-10 shadow-md">
               <h2 className="text-3xl font-bold mb-8">Get in Touch</h2>
               
-              <form className="space-y-8">
+              <form className="space-y-8" onSubmit={handleContactSubmit}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-3">
                     <label htmlFor="name" className="text-sm font-medium">
@@ -143,6 +217,8 @@ const About = () => {
                       id="name"
                       type="text"
                       placeholder="Your name"
+                      value={formData.name}
+                      onChange={handleInputChange}
                       className="w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
                     />
                   </div>
@@ -155,6 +231,8 @@ const About = () => {
                       id="email"
                       type="email"
                       placeholder="Your email"
+                      value={formData.email}
+                      onChange={handleInputChange}
                       className="w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
                     />
                   </div>
@@ -168,6 +246,8 @@ const About = () => {
                     id="subject"
                     type="text"
                     placeholder="Subject of your message"
+                    value={formData.subject}
+                    onChange={handleInputChange}
                     className="w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
                   />
                 </div>
@@ -179,6 +259,8 @@ const About = () => {
                   <textarea
                     id="message"
                     placeholder="Your message"
+                    value={formData.message}
+                    onChange={handleInputChange}
                     className="w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
                     rows={6}
                   />
@@ -186,9 +268,26 @@ const About = () => {
                 
                 <button 
                   type="submit"
-                  className="px-8 py-4 bg-primary text-primary-foreground rounded-lg font-medium transition-colors hover:bg-primary/90 text-lg"
+                  disabled={isSubmitting || isSuccess}
+                  className={`px-8 py-4 rounded-lg font-medium transition-colors text-lg flex items-center justify-center w-full ${
+                    isSuccess
+                      ? 'bg-green-500 text-white'
+                      : 'bg-primary text-primary-foreground hover:bg-primary/90'
+                  }`}
                 >
-                  Send Message
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="animate-spin w-5 h-5 mr-2" />
+                      Sending...
+                    </>
+                  ) : isSuccess ? (
+                    <>
+                      <CheckCircle2 className="w-5 h-5 mr-2" />
+                      Message Sent!
+                    </>
+                  ) : (
+                    'Send Message'
+                  )}
                 </button>
               </form>
             </div>

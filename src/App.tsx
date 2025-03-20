@@ -13,6 +13,7 @@ import FailDetail from "./pages/FailDetail";
 import NotFound from "./pages/NotFound";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
+import TestLauncher from "./components/TestLauncher";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +35,7 @@ const App = () => (
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
+        <TestLauncher />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

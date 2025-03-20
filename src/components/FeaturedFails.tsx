@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { getFeaturedFails, AIFail } from '@/data/sampleFails';
 import FailCard from './FailCard';
+import ImageCarousel from './ImageCarousel';
 
 const FeaturedFails = () => {
   const [featuredFails, setFeaturedFails] = useState<AIFail[]>([]);
@@ -26,26 +27,31 @@ const FeaturedFails = () => {
         </p>
       </div>
 
-      {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[...Array(4)].map((_, index) => (
-            <div
-              key={index}
-              className="rounded-xl bg-muted animate-pulse h-72"
-            />
-          ))}
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-fade-in">
-          {featuredFails.map((fail, index) => (
-            <FailCard 
-              key={fail.id} 
-              fail={fail} 
-              delay={index * 0.1}
-            />
-          ))}
-        </div>
-      )}
+      {/* Add the carousel at the top for better visual impact */}
+      {!isLoading && <ImageCarousel fails={featuredFails} />}
+
+      <div className="mt-16">
+        {isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[...Array(4)].map((_, index) => (
+              <div
+                key={index}
+                className="rounded-xl bg-muted animate-pulse h-72"
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-fade-in">
+            {featuredFails.map((fail, index) => (
+              <FailCard 
+                key={fail.id} 
+                fail={fail} 
+                delay={index * 0.1}
+              />
+            ))}
+          </div>
+        )}
+      </div>
     </section>
   );
 };

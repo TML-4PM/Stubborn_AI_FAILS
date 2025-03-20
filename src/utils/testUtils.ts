@@ -253,3 +253,45 @@ export const testUserAuth = () => {
     return false;
   }
 };
+
+// User navigation testing
+export const testUserNavigation = async (): Promise<TestResult> => {
+  try {
+    console.log('Testing user navigation...');
+    const userButton = document.querySelector('[data-testid="user-menu-button"]');
+    
+    if (!userButton) {
+      return {
+        success: false,
+        message: 'User navigation button not found'
+      };
+    }
+    
+    // Use correct typings for clicking the button
+    (userButton as HTMLElement).click();
+    
+    // Wait for menu to appear
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    const menuItems = document.querySelectorAll('[data-testid="user-menu-item"]');
+    if (menuItems.length === 0) {
+      return {
+        success: false,
+        message: 'No user menu items found'
+      };
+    }
+    
+    // Close menu by clicking button again
+    (userButton as HTMLElement).click();
+    
+    return {
+      success: true,
+      message: 'User navigation test passed'
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: `User navigation test failed: ${error}`
+    };
+  }
+};

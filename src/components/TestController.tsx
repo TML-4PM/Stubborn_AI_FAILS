@@ -1,11 +1,11 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { X, Play, Check, XCircle } from 'lucide-react';
 import { testRunner, testFormValidation, testButtonFunctionality, 
          testComponentRendering, testImageUploader, testDonationAmount,
-         testUserAuth } from '@/utils/testUtils';
+         testUserAuth, testRendering, testNavigation, testUserNavigation,
+         testSubmissionForm, testGallery } from '@/utils/testUtils';
 
 interface TestControllerProps {
   onClose: () => void;
@@ -118,6 +118,82 @@ const TestController = ({ onClose }: TestControllerProps) => {
       </div>
     </div>
   );
+};
+
+export const testSocialFeatures = async (): Promise<TestResult> => {
+  try {
+    console.log('Testing social features...');
+    
+    // Test like button
+    const likeButton = document.querySelector('[aria-label="Like"]') || 
+                     document.querySelector('button:has(.lucide-heart)');
+    
+    if (!likeButton) {
+      return {
+        success: false,
+        message: 'Like button not found'
+      };
+    }
+    
+    // Test share button
+    const shareButton = document.querySelector('[aria-label="Share"]') || 
+                      document.querySelector('button:has(.lucide-share)');
+    
+    if (!shareButton) {
+      return {
+        success: false,
+        message: 'Share button not found'
+      };
+    }
+    
+    // Test comment section (if on detail page)
+    const commentSection = document.querySelector('[data-testid="comment-section"]') || 
+                         document.querySelector('form textarea[placeholder*="comment" i]');
+    
+    // Not failing the test if comment section not found, as it might not be on all pages
+    
+    return {
+      success: true,
+      message: 'Social features test passed'
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: `Social features test failed: ${error}`
+    };
+  }
+};
+
+export const testAll = async () => {
+  const results: Record<string, TestResult> = {};
+  
+  // Test basic rendering
+  results.rendering = await testRendering();
+  
+  // Test navigation
+  results.navigation = await testNavigation();
+  
+  // Test user navigation if user is signed in
+  if (document.querySelector('[data-testid="user-menu-button"]')) {
+    results.userNavigation = await testUserNavigation();
+  }
+  
+  // Test submission form if on Submit page
+  if (window.location.pathname.includes('/submit')) {
+    results.submissionForm = await testSubmissionForm();
+  }
+  
+  // Test gallery if on Gallery page
+  if (window.location.pathname.includes('/gallery')) {
+    results.gallery = await testGallery();
+  }
+  
+  // Test social features
+  results.socialFeatures = await testSocialFeatures();
+  
+  // Add more tests based on current route...
+  
+  return results;
 };
 
 export default TestController;

@@ -5,6 +5,18 @@ import { supabase } from '@/lib/supabase';
 import { toast } from '@/hooks/use-toast';
 import { useUser } from '@/contexts/UserContext';
 
+export interface UserSubmission {
+  id: string;
+  title: string;
+  description: string;
+  username: string;
+  image_url: string;
+  created_at: string;
+  status: string;
+  user_id?: string;
+  likes?: number;
+}
+
 export const useSubmissionForm = () => {
   const { user } = useUser();
   const [title, setTitle] = useState('');

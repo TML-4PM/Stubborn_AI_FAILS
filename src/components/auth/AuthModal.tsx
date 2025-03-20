@@ -15,6 +15,14 @@ interface AuthModalProps {
 const AuthModal = ({ isOpen, onClose, defaultView = 'signIn' }: AuthModalProps) => {
   const [view, setView] = useState<'signIn' | 'signUp'>(defaultView);
   
+  const handleSuccess = () => {
+    // Close the modal and reset view to default
+    onClose();
+    setTimeout(() => {
+      setView(defaultView);
+    }, 300);
+  };
+  
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
@@ -36,9 +44,9 @@ const AuthModal = ({ isOpen, onClose, defaultView = 'signIn' }: AuthModalProps) 
         </DialogHeader>
         
         {view === 'signIn' ? (
-          <SignIn switchToSignUp={() => setView('signUp')} onSuccess={onClose} />
+          <SignIn switchToSignUp={() => setView('signUp')} onSuccess={handleSuccess} />
         ) : (
-          <SignUp switchToSignIn={() => setView('signIn')} onSuccess={onClose} />
+          <SignUp switchToSignIn={() => setView('signIn')} onSuccess={handleSuccess} />
         )}
       </DialogContent>
     </Dialog>

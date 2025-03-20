@@ -1,14 +1,20 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { X, Play, Check, XCircle } from 'lucide-react';
 import { testRunner, testFormValidation, testButtonFunctionality, 
          testComponentRendering, testImageUploader, testDonationAmount,
-         testUserAuth, testRendering, testNavigation, testUserNavigation,
-         testSubmissionForm, testGallery } from '@/utils/testUtils';
+         testUserAuth } from '@/utils/testUtils';
 
 interface TestControllerProps {
   onClose: () => void;
+}
+
+interface TestResult {
+  name: string;
+  success: boolean;
+  message: string;
 }
 
 const TestController = ({ onClose }: TestControllerProps) => {
@@ -120,7 +126,7 @@ const TestController = ({ onClose }: TestControllerProps) => {
   );
 };
 
-export const testSocialFeatures = async (): Promise<TestResult> => {
+export const testSocialFeatures = (): TestResult => {
   try {
     console.log('Testing social features...');
     
@@ -130,6 +136,7 @@ export const testSocialFeatures = async (): Promise<TestResult> => {
     
     if (!likeButton) {
       return {
+        name: "Social Features - Like Button",
         success: false,
         message: 'Like button not found'
       };
@@ -141,6 +148,7 @@ export const testSocialFeatures = async (): Promise<TestResult> => {
     
     if (!shareButton) {
       return {
+        name: "Social Features - Share Button",
         success: false,
         message: 'Share button not found'
       };
@@ -153,47 +161,17 @@ export const testSocialFeatures = async (): Promise<TestResult> => {
     // Not failing the test if comment section not found, as it might not be on all pages
     
     return {
+      name: "Social Features",
       success: true,
       message: 'Social features test passed'
     };
   } catch (error) {
     return {
+      name: "Social Features",
       success: false,
       message: `Social features test failed: ${error}`
     };
   }
-};
-
-export const testAll = async () => {
-  const results: Record<string, TestResult> = {};
-  
-  // Test basic rendering
-  results.rendering = await testRendering();
-  
-  // Test navigation
-  results.navigation = await testNavigation();
-  
-  // Test user navigation if user is signed in
-  if (document.querySelector('[data-testid="user-menu-button"]')) {
-    results.userNavigation = await testUserNavigation();
-  }
-  
-  // Test submission form if on Submit page
-  if (window.location.pathname.includes('/submit')) {
-    results.submissionForm = await testSubmissionForm();
-  }
-  
-  // Test gallery if on Gallery page
-  if (window.location.pathname.includes('/gallery')) {
-    results.gallery = await testGallery();
-  }
-  
-  // Test social features
-  results.socialFeatures = await testSocialFeatures();
-  
-  // Add more tests based on current route...
-  
-  return results;
 };
 
 export default TestController;

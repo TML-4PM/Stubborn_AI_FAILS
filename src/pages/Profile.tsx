@@ -1,206 +1,245 @@
 
 import { useState, useEffect } from 'react';
-import { useUser } from '@/contexts/UserContext';
-import { supabase } from '@/lib/supabase';
+import { useNavigate } from 'react-router-dom';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { FailCard } from '@/components/FailCard';
-import { Loader2, Settings, Camera } from 'lucide-react';
-import AuthModal from '@/components/auth/AuthModal';
-import NotFound from './NotFound';
-
-interface UserSubmission {
-  id: string;
-  title: string;
-  description: string | null;
-  image_url: string;
-  created_at: string;
-  username: string;
-  status: string;
-  likes: number;
-}
+import { supabase } from '@/lib/supabase';
+import { useUser } from '@/contexts/UserContext';
+import { toast } from '@/hooks/use-toast';
+import FailCard from '@/components/FailCard';
+import { UserSubmission } from '@/hooks/useSubmissionForm';
+import { Loader2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { format } from 'date-fns';
 
 const Profile = () => {
-  const { user, isLoading, updateProfile } = useUser();
-  const [isEditing, setIsEditing] = useState(false);
-  const [newUsername, setNewUsername] = useState('');
-  const [submissions, setSubmissions] = useState<UserSubmission[]>([]);
-  const [isSubmissionsLoading, setIsSubmissionsLoading] = useState(true);
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  
+  const navigate = useNavigate();
+  const { user, updateProfile, isLoading: authLoading, signOut } = useUser();
+  const [username, setUsername] = useState('');
+  const [bio, setBio] = useState('');
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [userSubmissions, setUserSubmissions] = useState<UserSubmission[]>([]);
+  const [isLoadingSubmissions, setIsLoadingSubmissions] = useState(false);
+
   useEffect(() => {
+    if (!user && !authLoading) {
+      navigate('/');
+    }
+
     if (user) {
-      setNewUsername(user.username || '');
+      setUsername(user.username || '');
+      setBio(user.bio || '');
       fetchUserSubmissions();
     }
-  }, [user]);
-  
+  }, [user, authLoading, navigate]);
+
   const fetchUserSubmissions = async () => {
-    if (!user) return;
+    if (!user?.id) return;
+
+    setIsLoadingSubmissions(true);
     
-    setIsSubmissionsLoading(true);
     try {
       const { data, error } = await supabase
         .from('submissions')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
-        
+
       if (error) throw error;
-      
-      // Transform the data to match the FailCard component props
-      const transformedData = data.map(item => ({
-        id: item.id,
-        title: item.title,
-        description: item.description,
-        imageUrl: item.image_url,
-        username: item.username || "Anonymous", 
-        date: new Date(item.created_at).toLocaleDateString(),
-        likes: item.likes || 0,
-        category: "general",
-        tags: [],
-        aiModel: "unknown",
-        featured: false // Add the missing property
-      }));
-      
-      setSubmissions(transformedData);
+
+      if (data) {
+        setUserSubmissions(data);
+      }
     } catch (error) {
       console.error('Error fetching submissions:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load your submissions.',
+        variant: 'destructive',
+      });
     } finally {
-      setIsSubmissionsLoading(false);
+      setIsLoadingSubmissions(false);
     }
   };
-  
-  const handleSaveProfile = async () => {
-    if (!user || !newUsername.trim()) return;
+
+  const handleUpdateProfile = async () => {
+    if (!user) return;
     
-    await updateProfile({ username: newUsername });
-    setIsEditing(false);
+    setIsUpdating(true);
+    
+    try {
+      await updateProfile({ username, bio });
+      toast({
+        title: 'Profile Updated',
+        description: 'Your profile has been successfully updated.',
+      });
+    } catch (error) {
+      console.error('Update error:', error);
+      toast({
+        title: 'Update Failed',
+        description: error instanceof Error ? error.message : 'Failed to update profile.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsUpdating(false);
+    }
   };
-  
-  if (isLoading) {
-    return (
-      <div className="container mx-auto py-16 flex justify-center items-center min-h-[60vh]">
-        <Loader2 className="h-10 w-10 animate-spin text-primary" />
-      </div>
-    );
-  }
-  
-  if (!user) {
-    return (
-      <div className="container mx-auto py-16 px-4">
-        <Card className="max-w-lg mx-auto">
-          <CardHeader>
-            <CardTitle>Profile Access</CardTitle>
-            <CardDescription>You need to sign in to view your profile.</CardDescription>
-          </CardHeader>
-          <CardFooter>
-            <Button onClick={() => setShowAuthModal(true)}>Sign In</Button>
-          </CardFooter>
-        </Card>
-        
-        <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} defaultView="signIn" />
-      </div>
-    );
-  }
-  
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      navigate('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
   return (
-    <div className="container mx-auto py-16 px-4">
-      <div className="max-w-4xl mx-auto">
-        <Card className="mb-10">
-          <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between">
-            <div className="flex items-center gap-4">
-              <Avatar className="h-20 w-20 border-2 border-primary">
-                <AvatarImage src={user.avatar_url || undefined} />
-                <AvatarFallback className="text-2xl">
-                  {user.username ? user.username.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
+    <div className="min-h-screen flex flex-col">
+      <Navbar />
+      
+      <main className="flex-grow pt-24 pb-20">
+        <div className="container mx-auto px-4">
+          {authLoading ? (
+            <div className="h-64 flex items-center justify-center">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          ) : (
+            <>
+              <div className="mb-8">
+                <h1 className="text-4xl font-bold mb-2">{user?.username}'s Profile</h1>
+                <p className="text-muted-foreground">
+                  Manage your account and view your submissions
+                </p>
+              </div>
               
-              <div>
-                {isEditing ? (
-                  <div className="space-y-2">
-                    <Input
-                      value={newUsername}
-                      onChange={(e) => setNewUsername(e.target.value)}
-                      className="max-w-[250px]"
-                      placeholder="Username"
-                    />
-                    <div className="flex gap-2">
-                      <Button size="sm" onClick={handleSaveProfile}>Save</Button>
-                      <Button size="sm" variant="ghost" onClick={() => {
-                        setIsEditing(false);
-                        setNewUsername(user.username || '');
-                      }}>Cancel</Button>
+              <Tabs defaultValue="submissions" className="space-y-6">
+                <TabsList>
+                  <TabsTrigger value="submissions">My Submissions</TabsTrigger>
+                  <TabsTrigger value="account">Account Settings</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="submissions" className="space-y-6">
+                  <h2 className="text-2xl font-semibold">My Submissions</h2>
+                  
+                  {isLoadingSubmissions ? (
+                    <div className="h-40 flex items-center justify-center">
+                      <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                    </div>
+                  ) : userSubmissions.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {userSubmissions.map((submission) => (
+                        <div key={submission.id} className="flex flex-col">
+                          <FailCard
+                            id={submission.id}
+                            title={submission.title}
+                            description={submission.description}
+                            imageUrl={submission.image_url}
+                            username={submission.username}
+                            date={format(new Date(submission.created_at), 'MMM d, yyyy')}
+                            likes={submission.likes || 0}
+                            status={submission.status}
+                          />
+                          <div className="mt-2 flex items-center gap-2">
+                            <Badge variant={submission.status === 'approved' ? 'default' : 'outline'}>
+                              {submission.status === 'approved' ? 'Published' : 'Pending Review'}
+                            </Badge>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-12 bg-muted/30 rounded-lg">
+                      <h3 className="text-xl font-medium mb-2">No submissions yet</h3>
+                      <p className="text-muted-foreground mb-4">
+                        Share your AI fail experiences with the community!
+                      </p>
+                      <Button 
+                        onClick={() => navigate('/submit')}
+                        className="px-6"
+                      >
+                        Submit an AI Fail
+                      </Button>
+                    </div>
+                  )}
+                </TabsContent>
+                
+                <TabsContent value="account" className="space-y-6">
+                  <h2 className="text-2xl font-semibold">Account Settings</h2>
+                  
+                  <div className="space-y-4 max-w-md">
+                    <div className="space-y-2">
+                      <label htmlFor="email" className="block text-sm font-medium">
+                        Email
+                      </label>
+                      <Input
+                        id="email"
+                        value={user?.email || ''}
+                        disabled
+                        className="bg-muted/50"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Your email address cannot be changed.
+                      </p>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <label htmlFor="username" className="block text-sm font-medium">
+                        Username
+                      </label>
+                      <Input
+                        id="username"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <label htmlFor="bio" className="block text-sm font-medium">
+                        Bio
+                      </label>
+                      <Input
+                        id="bio"
+                        value={bio}
+                        onChange={(e) => setBio(e.target.value)}
+                        placeholder="Tell us about yourself"
+                      />
+                    </div>
+                    
+                    <div className="pt-4 flex flex-col space-y-4">
+                      <Button 
+                        onClick={handleUpdateProfile}
+                        disabled={isUpdating}
+                      >
+                        {isUpdating ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Saving...
+                          </>
+                        ) : (
+                          'Save Changes'
+                        )}
+                      </Button>
+                      
+                      <Button 
+                        variant="outline"
+                        onClick={handleLogout}
+                      >
+                        Log Out
+                      </Button>
                     </div>
                   </div>
-                ) : (
-                  <div>
-                    <h2 className="text-2xl font-bold mb-1">{user.username || 'Anonymous User'}</h2>
-                    <p className="text-muted-foreground text-sm">{user.email}</p>
-                  </div>
-                )}
-              </div>
-            </div>
-            
-            {!isEditing && (
-              <Button onClick={() => setIsEditing(true)} variant="outline" size="sm" className="mt-4 md:mt-0">
-                <Settings className="h-4 w-4 mr-2" />
-                Edit Profile
-              </Button>
-            )}
-          </CardHeader>
-        </Card>
-        
-        <Tabs defaultValue="submissions" className="w-full">
-          <TabsList className="mb-6">
-            <TabsTrigger value="submissions">My Submissions</TabsTrigger>
-            <TabsTrigger value="liked">Liked Posts</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="submissions">
-            {isSubmissionsLoading ? (
-              <div className="flex justify-center items-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              </div>
-            ) : submissions.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {submissions.map((submission) => (
-                  <FailCard
-                    key={submission.id}
-                    id={submission.id}
-                    title={submission.title}
-                    description={submission.description || ''}
-                    imageUrl={submission.imageUrl}
-                    username={submission.username}
-                    date={submission.date}
-                    likes={submission.likes}
-                    category={submission.category}
-                    tags={submission.tags}
-                    aiModel={submission.aiModel}
-                    featured={submission.featured}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12">
-                <p className="text-lg text-muted-foreground mb-4">You haven't submitted any AI fails yet.</p>
-                <Button href="/submit">Submit Your First Fail</Button>
-              </div>
-            )}
-          </TabsContent>
-          
-          <TabsContent value="liked">
-            <div className="text-center py-12">
-              <p className="text-lg text-muted-foreground mb-4">Liked posts will appear here.</p>
-              <p className="text-sm text-muted-foreground">This feature is coming soon!</p>
-            </div>
-          </TabsContent>
-        </Tabs>
-      </div>
+                </TabsContent>
+              </Tabs>
+            </>
+          )}
+        </div>
+      </main>
+      
+      <Footer />
     </div>
   );
 };

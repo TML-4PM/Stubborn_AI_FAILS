@@ -1,25 +1,49 @@
 
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { Button } from '@/components/ui/button';
-import { Check, CreditCard, DollarSign, Heart, Loader2 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import StripeCheckout from '@/components/StripeCheckout';
+import { Input } from '@/components/ui/input';
+import { DollarSign, Heart, CreditCard, Check } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 const DONATION_AMOUNTS = [5, 10, 25, 50, 100];
 
 const Donate = () => {
-  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [selectedAmount, setSelectedAmount] = useState<number | null>(10);
   const [customAmount, setCustomAmount] = useState<string>('');
-  const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
   useEffect(() => {
     // Scroll to top when component mounts
     window.scrollTo(0, 0);
-  }, []);
+    
+    // Check for success or canceled status from URL
+    const success = searchParams.get('success');
+    const canceled = searchParams.get('canceled');
+    
+    if (success === 'true') {
+      setIsSuccess(true);
+      toast({
+        title: "Thank you for your donation!",
+        description: "Your contribution helps keep AI Oopsies running.",
+      });
+      // Reset form after a delay
+      setTimeout(() => {
+        setIsSuccess(false);
+        setSelectedAmount(10);
+        setCustomAmount('');
+      }, 3000);
+    } else if (canceled === 'true') {
+      toast({
+        title: "Donation canceled",
+        description: "Your payment was canceled. Feel free to try again!",
+        variant: "destructive"
+      });
+    }
+  }, [searchParams]);
 
   const handleCustomAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -36,40 +60,8 @@ const Donate = () => {
     return 0;
   };
 
-  const handleDonate = async () => {
-    const amount = getActualAmount();
-    
-    if (!amount || amount < 1) {
-      toast({
-        title: "Invalid amount",
-        description: "Please enter a valid donation amount (minimum $1)",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setIsProcessing(true);
-
-    // Simulate payment processing delay
-    setTimeout(() => {
-      setIsProcessing(false);
-      setIsSuccess(true);
-      
-      toast({
-        title: "Thank you for your donation!",
-        description: `Your $${amount.toFixed(2)} donation helps keep AI Oopsies running.`,
-      });
-
-      // Reset form after a delay
-      setTimeout(() => {
-        setIsSuccess(false);
-        setSelectedAmount(10);
-        setCustomAmount('');
-      }, 3000);
-    }, 2000);
-
-    // In a real implementation, you would redirect to Stripe checkout here
-    // window.location.href = `https://your-stripe-checkout-url?amount=${amount * 100}`;
+  const handleDonationSuccess = () => {
+    setIsSuccess(true);
   };
 
   return (
@@ -131,13 +123,13 @@ const Donate = () => {
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <DollarSign className="h-5 w-5 text-muted-foreground" />
                       </div>
-                      <input
+                      <Input
                         type="text"
                         value={customAmount}
                         onChange={handleCustomAmountChange}
                         placeholder="Enter amount"
-                        className={`pl-10 w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all ${
-                          customAmount ? 'border-primary' : 'border-input'
+                        className={`pl-10 ${
+                          customAmount ? 'border-primary' : ''
                         }`}
                       />
                     </div>
@@ -145,28 +137,17 @@ const Donate = () => {
                 </div>
                 
                 {/* Payment Button */}
-                <Button
-                  onClick={handleDonate}
-                  disabled={isProcessing || isSuccess || getActualAmount() <= 0}
-                  className="w-full py-6 text-lg relative"
-                >
-                  {isProcessing ? (
-                    <>
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      Processing...
-                    </>
-                  ) : isSuccess ? (
-                    <>
-                      <Check className="mr-2 h-5 w-5" />
-                      Thank You!
-                    </>
-                  ) : (
-                    <>
-                      <CreditCard className="mr-2 h-5 w-5" />
-                      Donate ${getActualAmount() ? getActualAmount().toFixed(2) : '0.00'}
-                    </>
-                  )}
-                </Button>
+                {isSuccess ? (
+                  <div className="w-full py-6 text-lg relative flex items-center justify-center bg-primary/10 text-primary rounded-lg">
+                    <Check className="mr-2 h-5 w-5" />
+                    Thank You!
+                  </div>
+                ) : (
+                  <StripeCheckout 
+                    amount={getActualAmount()} 
+                    onSuccess={handleDonationSuccess} 
+                  />
+                )}
               </div>
             </div>
             

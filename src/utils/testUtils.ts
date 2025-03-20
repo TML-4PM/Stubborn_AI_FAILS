@@ -1,7 +1,8 @@
+
 import { toast } from "@/hooks/use-toast";
 
 // Test results interface
-interface TestResult {
+export interface TestResult {
   name: string;
   success: boolean;
   message: string;
@@ -209,8 +210,8 @@ export const testDonationAmount = (amountButtons: string, customAmountInput: str
 export const testUserAuth = () => {
   try {
     // Check if auth components exist
-    const signInButton = document.querySelector('button:contains("Sign In")');
-    const signUpButton = document.querySelector('button:contains("Sign Up")');
+    const signInButton = document.querySelector('button:contains("Sign In")') as HTMLButtonElement | null;
+    const signUpButton = document.querySelector('button:contains("Sign Up")') as HTMLButtonElement | null;
     
     if (!signInButton && !signUpButton) {
       // Check if user is already logged in
@@ -237,7 +238,7 @@ export const testUserAuth = () => {
           testRunner.addResult("Auth modal", true, "Authentication modal opens correctly");
           
           // Close modal
-          const closeButton = document.querySelector('button[aria-label="Close"]');
+          const closeButton = document.querySelector('button[aria-label="Close"]') as HTMLButtonElement | null;
           if (closeButton) {
             closeButton.click();
           }
@@ -262,6 +263,7 @@ export const testUserNavigation = async (): Promise<TestResult> => {
     
     if (!userButton) {
       return {
+        name: "User navigation test",
         success: false,
         message: 'User navigation button not found'
       };
@@ -276,6 +278,7 @@ export const testUserNavigation = async (): Promise<TestResult> => {
     const menuItems = document.querySelectorAll('[data-testid="user-menu-item"]');
     if (menuItems.length === 0) {
       return {
+        name: "User navigation test",
         success: false,
         message: 'No user menu items found'
       };
@@ -285,13 +288,64 @@ export const testUserNavigation = async (): Promise<TestResult> => {
     (userButton as HTMLElement).click();
     
     return {
+      name: "User navigation test",
       success: true,
       message: 'User navigation test passed'
     };
   } catch (error) {
     return {
+      name: "User navigation test",
       success: false,
       message: `User navigation test failed: ${error}`
+    };
+  }
+};
+
+// Add testSocialFeatures function with proper type
+export const testSocialFeatures = (): TestResult => {
+  try {
+    console.log('Testing social features...');
+    
+    // Test like button
+    const likeButton = document.querySelector('[aria-label="Like"]') || 
+                     document.querySelector('button:has(.lucide-heart)');
+    
+    if (!likeButton) {
+      return {
+        name: "Social Features - Like Button",
+        success: false,
+        message: 'Like button not found'
+      };
+    }
+    
+    // Test share button
+    const shareButton = document.querySelector('[aria-label="Share"]') || 
+                      document.querySelector('button:has(.lucide-share)');
+    
+    if (!shareButton) {
+      return {
+        name: "Social Features - Share Button",
+        success: false,
+        message: 'Share button not found'
+      };
+    }
+    
+    // Test comment section (if on detail page)
+    const commentSection = document.querySelector('[data-testid="comment-section"]') || 
+                         document.querySelector('form textarea[placeholder*="comment" i]');
+    
+    // Not failing the test if comment section not found, as it might not be on all pages
+    
+    return {
+      name: "Social Features",
+      success: true,
+      message: 'Social features test passed'
+    };
+  } catch (error) {
+    return {
+      name: "Social Features",
+      success: false,
+      message: `Social features test failed: ${error}`
     };
   }
 };

@@ -31,7 +31,8 @@ const Profile = () => {
 
     if (user) {
       setUsername(user.username || '');
-      setBio(user.bio || '');
+      // Only set bio if it exists in the user object
+      setBio(user.metadata?.bio || '');
       fetchUserSubmissions();
     }
   }, [user, authLoading, navigate]);
@@ -71,7 +72,11 @@ const Profile = () => {
     setIsUpdating(true);
     
     try {
-      await updateProfile({ username, bio });
+      // Update profile with metadata containing bio
+      await updateProfile({ 
+        username, 
+        metadata: { bio } 
+      });
       toast({
         title: 'Profile Updated',
         description: 'Your profile has been successfully updated.',
@@ -134,7 +139,6 @@ const Profile = () => {
                       {userSubmissions.map((submission) => (
                         <div key={submission.id} className="flex flex-col">
                           <FailCard
-                            id={submission.id}
                             title={submission.title}
                             description={submission.description}
                             imageUrl={submission.image_url}

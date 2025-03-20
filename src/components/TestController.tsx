@@ -5,21 +5,15 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { X, Play, Check, XCircle } from 'lucide-react';
 import { testRunner, testFormValidation, testButtonFunctionality, 
          testComponentRendering, testImageUploader, testDonationAmount,
-         testUserAuth } from '@/utils/testUtils';
+         testUserAuth, TestResult } from '@/utils/testUtils';
 
 interface TestControllerProps {
   onClose: () => void;
 }
 
-interface TestResult {
-  name: string;
-  success: boolean;
-  message: string;
-}
-
 const TestController = ({ onClose }: TestControllerProps) => {
   const [isRunning, setIsRunning] = useState(false);
-  const [testResults, setTestResults] = useState<Array<{name: string, success: boolean, message: string}>>([]);
+  const [testResults, setTestResults] = useState<TestResult[]>([]);
   
   const runAllTests = async () => {
     setIsRunning(true);
@@ -124,54 +118,6 @@ const TestController = ({ onClose }: TestControllerProps) => {
       </div>
     </div>
   );
-};
-
-export const testSocialFeatures = (): TestResult => {
-  try {
-    console.log('Testing social features...');
-    
-    // Test like button
-    const likeButton = document.querySelector('[aria-label="Like"]') || 
-                     document.querySelector('button:has(.lucide-heart)');
-    
-    if (!likeButton) {
-      return {
-        name: "Social Features - Like Button",
-        success: false,
-        message: 'Like button not found'
-      };
-    }
-    
-    // Test share button
-    const shareButton = document.querySelector('[aria-label="Share"]') || 
-                      document.querySelector('button:has(.lucide-share)');
-    
-    if (!shareButton) {
-      return {
-        name: "Social Features - Share Button",
-        success: false,
-        message: 'Share button not found'
-      };
-    }
-    
-    // Test comment section (if on detail page)
-    const commentSection = document.querySelector('[data-testid="comment-section"]') || 
-                         document.querySelector('form textarea[placeholder*="comment" i]');
-    
-    // Not failing the test if comment section not found, as it might not be on all pages
-    
-    return {
-      name: "Social Features",
-      success: true,
-      message: 'Social features test passed'
-    };
-  } catch (error) {
-    return {
-      name: "Social Features",
-      success: false,
-      message: `Social features test failed: ${error}`
-    };
-  }
 };
 
 export default TestController;

@@ -19,7 +19,7 @@ const SubmissionGuidelines = () => {
         </AlertDescription>
       </Alert>
       
-      <BannerAds />
+      <BannerAds maxAds={2} />
     </>
   );
 };

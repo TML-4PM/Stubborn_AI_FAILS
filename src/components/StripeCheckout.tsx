@@ -30,9 +30,40 @@ const StripeCheckout = ({ amount, onSuccess }: StripeCheckoutProps) => {
     setIsLoading(true);
 
     try {
-      // Direct to Stripe Checkout
-      window.location.href = `https://checkout.stripe.com/pay/${STRIPE_PUBLISHABLE_KEY}?amount=${Math.round(amount * 100)}&currency=usd&description=Donation%20to%20AI%20Oopsies&success_url=${encodeURIComponent(window.location.origin + '/donate?success=true')}&cancel_url=${encodeURIComponent(window.location.origin + '/donate?canceled=true')}`;
+      // Create a checkout session
+      const stripe = await stripePromise;
       
+      if (!stripe) {
+        throw new Error("Failed to load Stripe");
+      }
+
+      // In a production environment, you would call your backend API to create a checkout session
+      // Since we don't have a backend here, we'll simulate the redirect to Stripe's hosted checkout page
+      
+      // This normally would be created on the server side
+      const sessionId = `demo_${Date.now()}`;
+      
+      console.log("Creating checkout session for amount:", amount);
+      
+      // Demo mode - show toast explaining this is a demo
+      toast({
+        title: "Demo Mode",
+        description: "In a real app, you would now be redirected to Stripe's checkout page. This is a demonstration only.",
+      });
+      
+      // Wait a moment to show the demo notification
+      setTimeout(() => {
+        // Simulate successful checkout for demo purposes
+        console.log("Demo payment completed");
+        if (onSuccess) {
+          onSuccess();
+        }
+        
+        // Redirect to success page to simulate the full flow
+        window.location.href = `${window.location.origin}/donate?success=true`;
+        
+        setIsLoading(false);
+      }, 2000);
     } catch (error) {
       console.error('Payment error:', error);
       toast({

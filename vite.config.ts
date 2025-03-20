@@ -9,7 +9,9 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
-    https: true,
+    https: {
+      // Enable HTTPS with default settings
+    },
     cors: true,
   },
   plugins: [

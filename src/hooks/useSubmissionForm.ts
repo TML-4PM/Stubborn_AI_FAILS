@@ -1,10 +1,12 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/lib/supabase';
 import { toast } from '@/hooks/use-toast';
+import { useUser } from '@/contexts/UserContext';
 
 export const useSubmissionForm = () => {
+  const { user } = useUser();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [username, setUsername] = useState('');
@@ -13,6 +15,13 @@ export const useSubmissionForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+
+  // Set username from user if available
+  useEffect(() => {
+    if (user?.username) {
+      setUsername(user.username);
+    }
+  }, [user]);
 
   const handleImageChange = (file: File | null) => {
     setImageFile(file);
@@ -95,7 +104,8 @@ export const useSubmissionForm = () => {
           username: username || 'Anonymous',
           image_url: publicUrl,
           created_at: new Date().toISOString(),
-          status: 'pending' // For moderation purposes
+          status: 'pending', // For moderation purposes
+          user_id: user?.id // Link to user if logged in
         });
 
       if (insertError) {
@@ -116,7 +126,9 @@ export const useSubmissionForm = () => {
       setTimeout(() => {
         setTitle('');
         setDescription('');
-        setUsername('');
+        if (!user?.username) {
+          setUsername('');
+        }
         setImageFile(null);
         setPreviewUrl(null);
         setIsSuccess(false);
@@ -148,6 +160,7 @@ export const useSubmissionForm = () => {
     isSuccess,
     uploadProgress,
     handleImageChange,
-    handleSubmit
+    handleSubmit,
+    isUserLoggedIn: !!user
   };
 };

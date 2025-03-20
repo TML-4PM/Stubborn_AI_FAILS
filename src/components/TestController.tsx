@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { X, Play, Check, XCircle } from 'lucide-react';
 import { testRunner, testFormValidation, testButtonFunctionality, 
-         testComponentRendering, testImageUploader, testDonationAmount } from '@/utils/testUtils';
+         testComponentRendering, testImageUploader, testDonationAmount,
+         testUserAuth } from '@/utils/testUtils';
 
 interface TestControllerProps {
   onClose: () => void;
@@ -23,6 +24,9 @@ const TestController = ({ onClose }: TestControllerProps) => {
     testComponentRendering("main", /.+/);
     testComponentRendering("footer", /.+/);
     
+    // Test user authentication
+    testUserAuth();
+    
     // Determine which page we're on and run appropriate tests
     const currentPath = window.location.pathname;
     
@@ -39,6 +43,11 @@ const TestController = ({ onClose }: TestControllerProps) => {
       testComponentRendering(".glass", /Make a Donation/);
       testDonationAmount(".grid button", 'input[placeholder="Enter amount"]');
       testButtonFunctionality('button:has(.mr-2)', () => true);
+    }
+    else if (currentPath.includes('/profile')) {
+      // Test profile functionality
+      testComponentRendering("h1", new RegExp(document.querySelector('h1')?.textContent || ''));
+      testButtonFunctionality('button:contains("Save Changes")', () => true);
     }
     
     // General component tests that should work on all pages

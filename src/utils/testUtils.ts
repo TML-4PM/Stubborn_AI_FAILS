@@ -1,4 +1,3 @@
-
 import { toast } from "@/hooks/use-toast";
 
 // Test results interface
@@ -202,6 +201,55 @@ export const testDonationAmount = (amountButtons: string, customAmountInput: str
     return buttonTestPassed;
   } catch (error) {
     testRunner.addResult("Donation testing", false, `Error: ${error instanceof Error ? error.message : String(error)}`);
+    return false;
+  }
+};
+
+// User authentication testing
+export const testUserAuth = () => {
+  try {
+    // Check if auth components exist
+    const signInButton = document.querySelector('button:contains("Sign In")');
+    const signUpButton = document.querySelector('button:contains("Sign Up")');
+    
+    if (!signInButton && !signUpButton) {
+      // Check if user is already logged in
+      const userMenu = document.querySelector('[aria-haspopup="menu"]');
+      
+      if (userMenu) {
+        testRunner.addResult("User authentication UI", true, "User is logged in and user menu is visible");
+        return true;
+      } else {
+        testRunner.addResult("User authentication UI", false, "No authentication UI found");
+        return false;
+      }
+    }
+    
+    // Test opening auth modal
+    if (signInButton) {
+      signInButton.click();
+      
+      // Check if modal opened
+      setTimeout(() => {
+        const authForm = document.querySelector('form:has(input[type="email"])');
+        
+        if (authForm) {
+          testRunner.addResult("Auth modal", true, "Authentication modal opens correctly");
+          
+          // Close modal
+          const closeButton = document.querySelector('button[aria-label="Close"]');
+          if (closeButton) {
+            closeButton.click();
+          }
+        } else {
+          testRunner.addResult("Auth modal", false, "Authentication modal failed to open");
+        }
+      }, 500);
+    }
+    
+    return true;
+  } catch (error) {
+    testRunner.addResult("User authentication test", false, `Error: ${error instanceof Error ? error.message : String(error)}`);
     return false;
   }
 };

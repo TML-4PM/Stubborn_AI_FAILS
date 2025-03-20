@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/lib/supabase';
 import { toast } from '@/hooks/use-toast';
@@ -8,6 +7,10 @@ export interface User {
   email: string;
   username: string | null;
   avatar_url: string | null;
+  metadata?: {
+    bio?: string;
+    [key: string]: any;
+  };
 }
 
 interface UserContextType {

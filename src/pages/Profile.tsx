@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -31,7 +30,6 @@ const Profile = () => {
 
     if (user) {
       setUsername(user.username || '');
-      // Only set bio if it exists in the user object
       setBio(user.metadata?.bio || '');
       fetchUserSubmissions();
     }
@@ -72,7 +70,6 @@ const Profile = () => {
     setIsUpdating(true);
     
     try {
-      // Update profile with metadata containing bio
       await updateProfile({ 
         username, 
         metadata: { bio } 
@@ -139,12 +136,13 @@ const Profile = () => {
                       {userSubmissions.map((submission) => (
                         <div key={submission.id} className="flex flex-col">
                           <FailCard
-                            title={submission.title}
+                            id={submission.id}
+                            image={submission.image_url}
+                            author={submission.username}
+                            timestamp={new Date(submission.created_at).toISOString()}
                             description={submission.description}
-                            imageUrl={submission.image_url}
-                            username={submission.username}
-                            date={format(new Date(submission.created_at), 'MMM d, yyyy')}
-                            likes={submission.likes || 0}
+                            name={submission.title}
+                            likeCount={submission.likes || 0}
                             status={submission.status}
                           />
                           <div className="mt-2 flex items-center gap-2">

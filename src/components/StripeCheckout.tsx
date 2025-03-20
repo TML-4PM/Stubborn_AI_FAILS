@@ -1,10 +1,10 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Button } from '@/components/ui/button';
 import { CreditCard, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { STRIPE_PUBLISHABLE_KEY, STRIPE_SUCCESS_URL, STRIPE_CANCEL_URL } from '@/utils/stripeConfig';
+import { STRIPE_PUBLISHABLE_KEY } from '@/utils/stripeConfig';
 
 // Initialize Stripe with your publishable key
 const stripePromise = loadStripe(STRIPE_PUBLISHABLE_KEY);
@@ -16,18 +16,7 @@ interface StripeCheckoutProps {
 
 const StripeCheckout = ({ amount, onSuccess }: StripeCheckoutProps) => {
   const [isLoading, setIsLoading] = useState(false);
-  const [stripe, setStripe] = useState<any>(null);
   
-  useEffect(() => {
-    // Load Stripe on component mount
-    const loadStripeInstance = async () => {
-      const stripeInstance = await stripePromise;
-      setStripe(stripeInstance);
-    };
-    
-    loadStripeInstance();
-  }, []);
-
   const handleCheckout = async () => {
     if (amount <= 0) {
       toast({
@@ -41,28 +30,36 @@ const StripeCheckout = ({ amount, onSuccess }: StripeCheckoutProps) => {
     setIsLoading(true);
 
     try {
+      // Load Stripe
+      const stripe = await stripePromise;
       if (!stripe) {
-        throw new Error("Stripe hasn't loaded yet");
+        throw new Error("Failed to load Stripe");
       }
 
-      // Create a Checkout Session by redirecting to Stripe's hosted page
+      // Create a checkout session
+      const response = await fetch('https://aioopsies-stripe.netlify.app/.netlify/functions/create-checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          amount: Math.round(amount * 100), // Convert to cents
+          mode: 'payment',
+          successUrl: window.location.origin + '/donate?success=true',
+          cancelUrl: window.location.origin + '/donate?canceled=true',
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to create checkout session');
+      }
+
+      const { sessionId } = await response.json();
+
+      // Redirect to checkout
       const { error } = await stripe.redirectToCheckout({
-        lineItems: [
-          {
-            price_data: {
-              currency: 'usd',
-              product_data: {
-                name: 'Donation to AI Oopsies',
-                description: 'Thank you for supporting our site!',
-              },
-              unit_amount: Math.round(amount * 100), // Convert to cents
-            },
-            quantity: 1,
-          },
-        ],
-        mode: 'payment',
-        successUrl: STRIPE_SUCCESS_URL,
-        cancelUrl: STRIPE_CANCEL_URL,
+        sessionId,
       });
 
       if (error) {
@@ -88,7 +85,7 @@ const StripeCheckout = ({ amount, onSuccess }: StripeCheckoutProps) => {
   return (
     <Button
       onClick={handleCheckout}
-      disabled={isLoading || amount <= 0 || !stripe}
+      disabled={isLoading || amount <= 0}
       className="w-full py-6 text-lg relative"
     >
       {isLoading ? (

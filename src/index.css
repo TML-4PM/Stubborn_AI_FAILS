@@ -144,4 +144,120 @@
   ::-webkit-scrollbar-thumb:hover {
     @apply bg-muted-foreground/50;
   }
+  
+  /* Floating animation keyframes */
+  @keyframes float1 {
+    0%, 100% { transform: translateY(0) rotate(0); }
+    50% { transform: translateY(-10px) rotate(2deg); }
+  }
+  
+  @keyframes float2 {
+    0%, 100% { transform: translateY(0) rotate(0); }
+    50% { transform: translateY(-15px) rotate(-2deg); }
+  }
+  
+  @keyframes float3 {
+    0%, 100% { transform: translateY(0) rotate(0); }
+    50% { transform: translateY(-8px) rotate(1deg); }
+  }
+  
+  /* Particle animations */
+  .particle {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(74, 144, 226, 0.1);
+  }
+  
+  .particle-1 {
+    width: 15px;
+    height: 15px;
+    left: 15%;
+    top: 20%;
+    animation: moveParticle1 15s linear infinite;
+  }
+  
+  .particle-2 {
+    width: 20px;
+    height: 20px;
+    right: 25%;
+    top: 30%;
+    animation: moveParticle2 20s linear infinite;
+  }
+  
+  .particle-3 {
+    width: 10px;
+    height: 10px;
+    left: 30%;
+    bottom: 20%;
+    animation: moveParticle3 18s linear infinite;
+  }
+  
+  .particle-4 {
+    width: 25px;
+    height: 25px;
+    right: 10%;
+    bottom: 30%;
+    animation: moveParticle4 22s linear infinite;
+  }
+  
+  .particle-5 {
+    width: 15px;
+    height: 15px;
+    left: 50%;
+    top: 50%;
+    animation: moveParticle5 25s linear infinite;
+  }
+  
+  @keyframes moveParticle1 {
+    0% { transform: translate(0, 0); }
+    25% { transform: translate(100px, 50px); }
+    50% { transform: translate(50px, 100px); }
+    75% { transform: translate(-50px, 50px); }
+    100% { transform: translate(0, 0); }
+  }
+  
+  @keyframes moveParticle2 {
+    0% { transform: translate(0, 0); }
+    33% { transform: translate(-80px, 40px); }
+    66% { transform: translate(-40px, -80px); }
+    100% { transform: translate(0, 0); }
+  }
+  
+  @keyframes moveParticle3 {
+    0% { transform: translate(0, 0); }
+    25% { transform: translate(-70px, -30px); }
+    50% { transform: translate(-30px, -70px); }
+    75% { transform: translate(70px, -30px); }
+    100% { transform: translate(0, 0); }
+  }
+  
+  @keyframes moveParticle4 {
+    0% { transform: translate(0, 0); }
+    20% { transform: translate(50px, -50px); }
+    40% { transform: translate(100px, 0); }
+    60% { transform: translate(50px, 50px); }
+    80% { transform: translate(-50px, 0); }
+    100% { transform: translate(0, 0); }
+  }
+  
+  @keyframes moveParticle5 {
+    0% { transform: translate(0, 0); }
+    20% { transform: translate(-60px, 60px); }
+    40% { transform: translate(-120px, 0); }
+    60% { transform: translate(-60px, -60px); }
+    80% { transform: translate(60px, 0); }
+    100% { transform: translate(0, 0); }
+  }
+  
+  .animate-float1 {
+    animation: float1 8s ease-in-out infinite;
+  }
+  
+  .animate-float2 {
+    animation: float2 10s ease-in-out infinite;
+  }
+  
+  .animate-float3 {
+    animation: float3 12s ease-in-out infinite;
+  }
 }

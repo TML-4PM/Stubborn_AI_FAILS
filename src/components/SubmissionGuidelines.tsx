@@ -5,8 +5,8 @@ import BannerAds from './BannerAds';
 
 const SubmissionGuidelines = () => {
   return (
-    <>
-      <Alert className="mt-8 bg-amber-50 border-amber-200 text-amber-800">
+    <div className="space-y-6">
+      <Alert className="bg-amber-50 border-amber-200 text-amber-800">
         <AlertCircle className="w-4 h-4 text-amber-500" />
         <AlertTitle>Submission Guidelines</AlertTitle>
         <AlertDescription>
@@ -15,12 +15,13 @@ const SubmissionGuidelines = () => {
             <li>No personal information should be visible in screenshots.</li>
             <li>Make sure you have the right to share the content.</li>
             <li>All submissions are moderated before appearing on the site.</li>
+            <li>By submitting, you agree to our <a href="/terms" className="underline hover:text-amber-900">Terms of Service</a>.</li>
           </ul>
         </AlertDescription>
       </Alert>
       
-      <BannerAds maxAds={2} />
-    </>
+      <BannerAds maxAds={2} className="pt-2" />
+    </div>
   );
 };
 

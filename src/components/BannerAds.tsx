@@ -44,7 +44,7 @@ const BannerAd = ({ company, onDismiss }: BannerAdProps) => {
   const content = adContent[company];
 
   return (
-    <div className={`relative rounded-lg p-4 ${content.bgColor} border shadow-sm transition-all duration-300 hover:shadow-md`}>
+    <div className={`relative rounded-lg p-4 ${content.bgColor} border shadow-sm transition-all duration-300 hover:shadow-md animate-fade-in`}>
       {onDismiss && (
         <button 
           onClick={() => onDismiss(company)}
@@ -76,9 +76,10 @@ const BannerAd = ({ company, onDismiss }: BannerAdProps) => {
 type BannerAdsProps = {
   maxAds?: number;
   allowDismiss?: boolean;
+  className?: string;
 };
 
-const BannerAds = ({ maxAds = 3, allowDismiss = true }: BannerAdsProps) => {
+const BannerAds = ({ maxAds = 3, allowDismiss = true, className = "" }: BannerAdsProps) => {
   const [visibleAds, setVisibleAds] = useState<CompanyId[]>([]);
   
   useEffect(() => {
@@ -101,9 +102,9 @@ const BannerAds = ({ maxAds = 3, allowDismiss = true }: BannerAdsProps) => {
   if (visibleAds.length === 0) return null;
   
   return (
-    <div className="space-y-3 my-6">
+    <div className={`space-y-3 my-6 ${className}`}>
       <h3 className="text-sm font-medium text-muted-foreground mb-3">Sponsored</h3>
-      {visibleAds.map(company => (
+      {visibleAds.map((company, index) => (
         <BannerAd 
           key={company} 
           company={company} 

@@ -148,6 +148,12 @@ const Donate = () => {
                     onSuccess={handleDonationSuccess} 
                   />
                 )}
+
+                {/* Payment Security Notice */}
+                <p className="text-xs text-center text-muted-foreground">
+                  All payments are securely processed through Stripe. 
+                  Your payment information is never stored on our servers.
+                </p>
               </div>
             </div>
             

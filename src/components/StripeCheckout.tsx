@@ -1,10 +1,10 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Button } from '@/components/ui/button';
 import { CreditCard, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { STRIPE_PUBLISHABLE_KEY } from '@/utils/stripeConfig';
+import { STRIPE_PUBLISHABLE_KEY, STRIPE_SUCCESS_URL, STRIPE_CANCEL_URL } from '@/utils/stripeConfig';
 
 // Initialize Stripe with your publishable key
 const stripePromise = loadStripe(STRIPE_PUBLISHABLE_KEY);
@@ -16,6 +16,17 @@ interface StripeCheckoutProps {
 
 const StripeCheckout = ({ amount, onSuccess }: StripeCheckoutProps) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [stripe, setStripe] = useState<any>(null);
+  
+  useEffect(() => {
+    // Load Stripe on component mount
+    const loadStripeInstance = async () => {
+      const stripeInstance = await stripePromise;
+      setStripe(stripeInstance);
+    };
+    
+    loadStripeInstance();
+  }, []);
 
   const handleCheckout = async () => {
     if (amount <= 0) {
@@ -30,41 +41,37 @@ const StripeCheckout = ({ amount, onSuccess }: StripeCheckoutProps) => {
     setIsLoading(true);
 
     try {
-      const stripe = await stripePromise;
-      
       if (!stripe) {
-        throw new Error("Failed to load Stripe");
+        throw new Error("Stripe hasn't loaded yet");
       }
 
-      // IMPORTANT: In production, you need to create a server-side API endpoint
-      // that creates a Checkout Session using your Stripe secret key
-      // The below URL should point to your backend API endpoint
-      const response = await fetch('/api/create-checkout-session', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          amount: Math.round(amount * 100), // Convert to cents
-          successUrl: `${window.location.origin}/donate?success=true`,
-          cancelUrl: `${window.location.origin}/donate?canceled=true`,
-        }),
+      // Create a Checkout Session by redirecting to Stripe's hosted page
+      const { error } = await stripe.redirectToCheckout({
+        lineItems: [
+          {
+            price_data: {
+              currency: 'usd',
+              product_data: {
+                name: 'Donation to AI Oopsies',
+                description: 'Thank you for supporting our site!',
+              },
+              unit_amount: Math.round(amount * 100), // Convert to cents
+            },
+            quantity: 1,
+          },
+        ],
+        mode: 'payment',
+        successUrl: STRIPE_SUCCESS_URL,
+        cancelUrl: STRIPE_CANCEL_URL,
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to create checkout session');
+      if (error) {
+        throw error;
       }
-
-      const session = await response.json();
-
-      // Redirect to Stripe Checkout
-      const result = await stripe.redirectToCheckout({
-        sessionId: session.id,
-      });
-
-      if (result.error) {
-        throw new Error(result.error.message);
+      
+      // If onSuccess is provided, call it
+      if (onSuccess) {
+        onSuccess();
       }
       
     } catch (error) {
@@ -81,7 +88,7 @@ const StripeCheckout = ({ amount, onSuccess }: StripeCheckoutProps) => {
   return (
     <Button
       onClick={handleCheckout}
-      disabled={isLoading || amount <= 0}
+      disabled={isLoading || amount <= 0 || !stripe}
       className="w-full py-6 text-lg relative"
     >
       {isLoading ? (

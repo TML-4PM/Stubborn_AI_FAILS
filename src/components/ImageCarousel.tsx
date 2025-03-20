@@ -56,8 +56,10 @@ const ImageCarousel = ({ fails }: ImageCarouselProps) => {
           loop: true,
         }}
         className="w-full max-w-5xl mx-auto"
-        onSelect={(api) => {
-          if (api) setActiveIndex(api.selectedScrollSnap());
+        onSelect={(index) => {
+          if (typeof index === "number") {
+            setActiveIndex(index);
+          }
         }}
       >
         <CarouselContent>

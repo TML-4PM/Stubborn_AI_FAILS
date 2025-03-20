@@ -1,7 +1,8 @@
-
 import { useState } from 'react';
 import { Upload, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/lib/supabase';
+import { v4 as uuidv4 } from 'uuid';
 
 const SubmissionForm = () => {
   const [title, setTitle] = useState('');
@@ -54,76 +55,65 @@ const SubmissionForm = () => {
     setIsSubmitting(true);
 
     try {
-      // Create form data
-      const formData = new FormData();
-      formData.append('title', title);
-      formData.append('description', description);
-      formData.append('username', username || 'Anonymous');
-      formData.append('image', imageFile);
+      // Generate a unique file name for the image
+      const fileExt = imageFile.name.split('.').pop();
+      const fileName = `${uuidv4()}.${fileExt}`;
+      const filePath = `fails/${fileName}`;
 
-      // Add recipient email to form data
-      formData.append('recipient', 'troy.latter@4pm.net.au');
-      
-      // Convert image to base64 for email attachment
-      const reader = new FileReader();
-      reader.readAsDataURL(imageFile);
-      
-      reader.onload = async () => {
-        formData.append('imageData', reader.result as string);
-        
-        // Simulate API call (in a real app, this would be an actual API call)
-        // In a production app, you might use localStorage as a simple storage solution
-        localStorage.setItem(`submission_${Date.now()}`, JSON.stringify({
+      // Upload image to Supabase Storage
+      const { error: uploadError, data: uploadData } = await supabase.storage
+        .from('ai-fails')
+        .upload(filePath, imageFile);
+
+      if (uploadError) {
+        throw new Error(`Error uploading image: ${uploadError.message}`);
+      }
+
+      // Get the public URL of the uploaded image
+      const { data: { publicUrl } } = supabase.storage
+        .from('ai-fails')
+        .getPublicUrl(filePath);
+
+      // Save submission data to Supabase database
+      const { error: insertError } = await supabase
+        .from('submissions')
+        .insert({
           title,
           description,
           username: username || 'Anonymous',
-          imageUrl: reader.result,
-          date: new Date().toISOString()
-        }));
-        
-        // Send email notification (simulated here)
-        console.log("Sending submission to: troy.latter@4pm.net.au");
-        console.log("Form data:", {
-          title,
-          description,
-          username: username || 'Anonymous',
-          imageFilename: imageFile.name
-        });
-        
-        setIsSubmitting(false);
-        setIsSuccess(true);
-        toast({
-          title: "Submission received!",
-          description: "Your AI fail has been submitted for review.",
+          image_url: publicUrl,
+          created_at: new Date().toISOString(),
+          status: 'pending' // For moderation purposes
         });
 
-        // Reset form after submission
-        setTimeout(() => {
-          setTitle('');
-          setDescription('');
-          setUsername('');
-          setImageFile(null);
-          setPreviewUrl(null);
-          setIsSuccess(false);
-        }, 2000);
-      };
-      
-      reader.onerror = (error) => {
-        console.error("Error reading file:", error);
-        setIsSubmitting(false);
-        toast({
-          title: "Error processing image",
-          description: "There was a problem with your image. Please try again.",
-          variant: "destructive",
-        });
-      };
+      if (insertError) {
+        throw new Error(`Error saving submission: ${insertError.message}`);
+      }
+
+      // Submission was successful
+      setIsSubmitting(false);
+      setIsSuccess(true);
+      toast({
+        title: "Submission received!",
+        description: "Your AI fail has been submitted for review.",
+      });
+
+      // Reset form after submission
+      setTimeout(() => {
+        setTitle('');
+        setDescription('');
+        setUsername('');
+        setImageFile(null);
+        setPreviewUrl(null);
+        setIsSuccess(false);
+      }, 2000);
       
     } catch (error) {
       console.error("Submission error:", error);
       setIsSubmitting(false);
       toast({
         title: "Submission failed",
-        description: "There was a problem submitting your AI fail. Please try again.",
+        description: error instanceof Error ? error.message : "There was a problem submitting your AI fail. Please try again.",
         variant: "destructive",
       });
     }

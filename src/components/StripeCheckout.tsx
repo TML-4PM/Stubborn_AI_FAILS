@@ -4,7 +4,7 @@ import { loadStripe } from '@stripe/stripe-js';
 import { Button } from '@/components/ui/button';
 import { CreditCard, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { STRIPE_PUBLISHABLE_KEY } from '@/utils/stripeConfig';
+import { STRIPE_PUBLISHABLE_KEY, CHECKOUT_API_URL, STRIPE_SUCCESS_URL, STRIPE_CANCEL_URL } from '@/utils/stripeConfig';
 
 // Initialize Stripe with your publishable key
 const stripePromise = loadStripe(STRIPE_PUBLISHABLE_KEY);
@@ -37,7 +37,7 @@ const StripeCheckout = ({ amount, onSuccess }: StripeCheckoutProps) => {
       }
 
       // Create a checkout session
-      const response = await fetch('https://aioopsies-stripe.netlify.app/.netlify/functions/create-checkout', {
+      const response = await fetch(CHECKOUT_API_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -45,8 +45,8 @@ const StripeCheckout = ({ amount, onSuccess }: StripeCheckoutProps) => {
         body: JSON.stringify({
           amount: Math.round(amount * 100), // Convert to cents
           mode: 'payment',
-          successUrl: window.location.origin + '/donate?success=true',
-          cancelUrl: window.location.origin + '/donate?canceled=true',
+          successUrl: window.location.origin + STRIPE_SUCCESS_URL,
+          cancelUrl: window.location.origin + STRIPE_CANCEL_URL,
         }),
       });
 

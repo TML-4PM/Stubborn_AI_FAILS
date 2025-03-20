@@ -2,6 +2,7 @@
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import LikeButton from '@/components/social/LikeButton';
 import ShareButton from '@/components/social/ShareButton';
 import { formatDistanceToNow } from 'date-fns';
@@ -21,7 +22,7 @@ interface FailCardSocialProps {
 }
 
 const FailCardSocial = (props: FailCardSocialProps) => {
-  const { id, title, imageUrl, username, date, likes } = props;
+  const { id, title, imageUrl, username, date, likes, category, tags, aiModel } = props;
   
   return (
     <Card className="overflow-hidden transition-all hover:shadow-md">
@@ -32,9 +33,31 @@ const FailCardSocial = (props: FailCardSocialProps) => {
             alt={title} 
             className="w-full h-full object-cover transition-transform hover:scale-105"
           />
+          {category && (
+            <Badge className="absolute top-2 left-2 bg-primary/80 hover:bg-primary/80">
+              {category}
+            </Badge>
+          )}
         </div>
         <CardContent className="p-4">
           <h3 className="font-bold text-lg line-clamp-2 mb-2">{title}</h3>
+          {aiModel && (
+            <Badge variant="outline" className="mb-2">
+              {aiModel}
+            </Badge>
+          )}
+          {tags && tags.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-2">
+              {tags.slice(0, 3).map((tag, index) => (
+                <Badge key={index} variant="secondary" className="text-xs">
+                  {tag}
+                </Badge>
+              ))}
+              {tags.length > 3 && (
+                <span className="text-xs text-muted-foreground">+{tags.length - 3} more</span>
+              )}
+            </div>
+          )}
         </CardContent>
       </Link>
       

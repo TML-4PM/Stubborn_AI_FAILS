@@ -5,9 +5,11 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger 
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel
 } from '@/components/ui/dropdown-menu';
-import { Share, Copy, Facebook, Twitter, Linkedin } from 'lucide-react';
+import { Share, Copy, Facebook, Twitter, Linkedin, Mail, Link as LinkIcon } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 interface ShareButtonProps {
@@ -41,7 +43,7 @@ const ShareButton = ({ failId, title }: ShareButtonProps) => {
     setIsOpen(false);
   };
   
-  const handleShareToSocial = (platform: 'facebook' | 'twitter' | 'linkedin') => {
+  const handleShareToSocial = (platform: 'facebook' | 'twitter' | 'linkedin' | 'email') => {
     const url = getShareUrl();
     const encodedUrl = encodeURIComponent(url);
     const encodedTitle = encodeURIComponent(`Check out this AI fail: ${title}`);
@@ -58,36 +60,49 @@ const ShareButton = ({ failId, title }: ShareButtonProps) => {
       case 'linkedin':
         shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`;
         break;
+      case 'email':
+        shareUrl = `mailto:?subject=${encodedTitle}&body=${encodedUrl}`;
+        break;
     }
     
-    window.open(shareUrl, '_blank', 'noopener,noreferrer');
+    if (platform !== 'email') {
+      window.open(shareUrl, '_blank', 'noopener,noreferrer');
+    } else {
+      window.location.href = shareUrl;
+    }
     setIsOpen(false);
   };
   
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm">
+        <Button variant="ghost" size="sm" aria-label="Share this AI fail">
           <Share className="h-5 w-5" />
           <span className="sr-only">Share</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuItem onClick={handleCopyLink}>
-          <Copy className="mr-2 h-4 w-4" />
+        <DropdownMenuLabel>Share this fail</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={handleCopyLink} className="flex cursor-pointer items-center">
+          <LinkIcon className="mr-2 h-4 w-4" />
           <span>Copy link</span>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => handleShareToSocial('facebook')}>
+        <DropdownMenuItem onClick={() => handleShareToSocial('facebook')} className="flex cursor-pointer items-center">
           <Facebook className="mr-2 h-4 w-4" />
           <span>Share to Facebook</span>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => handleShareToSocial('twitter')}>
+        <DropdownMenuItem onClick={() => handleShareToSocial('twitter')} className="flex cursor-pointer items-center">
           <Twitter className="mr-2 h-4 w-4" />
           <span>Share to Twitter</span>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => handleShareToSocial('linkedin')}>
+        <DropdownMenuItem onClick={() => handleShareToSocial('linkedin')} className="flex cursor-pointer items-center">
           <Linkedin className="mr-2 h-4 w-4" />
           <span>Share to LinkedIn</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => handleShareToSocial('email')} className="flex cursor-pointer items-center">
+          <Mail className="mr-2 h-4 w-4" />
+          <span>Share via Email</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

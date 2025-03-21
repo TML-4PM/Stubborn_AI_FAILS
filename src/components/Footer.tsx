@@ -1,5 +1,5 @@
 
-import { Heart, X, Instagram, TikTok, MessageSquare } from 'lucide-react';
+import { Heart, X, Instagram, MessageSquare, Phone } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Footer = () => {
@@ -55,7 +55,14 @@ const Footer = () => {
               className="inline-flex items-center justify-center p-2 rounded-full bg-secondary hover:bg-secondary/80 transition-colors"
               aria-label="TikTok"
             >
-              <TikTok className="h-5 w-5" />
+              {/* Custom TikTok SVG icon */}
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+                <path d="M9 12a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"></path>
+                <path d="M15 8c0 4.008-4.554 8-8 8"></path>
+                <path d="M15 8h4V4"></path>
+                <path d="M19 4v4"></path>
+                <path d="M19 8C8.5 7.5 11 0 11 0h4s-.5 8 4 8z"></path>
+              </svg>
             </a>
             <a 
               href="https://twitter.com" 
@@ -65,6 +72,15 @@ const Footer = () => {
               aria-label="X (Twitter)"
             >
               <X className="h-5 w-5" />
+            </a>
+            <a 
+              href="https://whatsapp.com" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center p-2 rounded-full bg-secondary hover:bg-secondary/80 transition-colors"
+              aria-label="WhatsApp"
+            >
+              <Phone className="h-5 w-5" />
             </a>
             <a 
               href="https://wechat.com" 

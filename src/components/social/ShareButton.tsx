@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel
 } from '@/components/ui/dropdown-menu';
-import { Share, Copy, Instagram, Phone, Link as LinkIcon, Mail, X, TikTok, MessageSquare } from 'lucide-react';
+import { Share, Copy, Instagram, Phone, Link as LinkIcon, Mail, X, MessageSquare } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 interface ShareButtonProps {
@@ -125,7 +125,14 @@ const ShareButton = ({ failId, title }: ShareButtonProps) => {
           <span>Share to X</span>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => handleShareToSocial('tiktok')} className="flex cursor-pointer items-center">
-          <TikTok className="mr-2 h-4 w-4" />
+          {/* Custom TikTok SVG icon */}
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 h-4 w-4">
+            <path d="M9 12a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"></path>
+            <path d="M15 8c0 4.008-4.554 8-8 8"></path>
+            <path d="M15 8h4V4"></path>
+            <path d="M19 4v4"></path>
+            <path d="M19 8C8.5 7.5 11 0 11 0h4s-.5 8 4 8z"></path>
+          </svg>
           <span>Share to TikTok</span>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => handleShareToSocial('wechat')} className="flex cursor-pointer items-center">
@@ -136,7 +143,7 @@ const ShareButton = ({ failId, title }: ShareButtonProps) => {
           <Phone className="mr-2 h-4 w-4" />
           <span>Share to WhatsApp</span>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => handleShareToSocial('linkedin')} className="flex cursor-pointer items-center">
+        <DropdownMenuItem onClick={() => handleShareToSocial('email')} className="flex cursor-pointer items-center">
           <Mail className="mr-2 h-4 w-4" />
           <span>Share via Email</span>
         </DropdownMenuItem>

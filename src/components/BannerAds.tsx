@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { ExternalLink, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-type CompanyId = 'tech4humanity' | 'apexpredator' | 'aquea';
+type CompanyId = 'tech4humanity' | 'apexpredator' | 'aquame';
 
 type BannerAdProps = {
   company: CompanyId;
@@ -29,9 +29,9 @@ const adContent = {
     textColor: 'text-amber-800',
     buttonColor: 'bg-amber-600 hover:bg-amber-700',
   },
-  aquea: {
-    name: 'AqueaME',
-    domain: 'aqueaME.com.au',
+  aquame: {
+    name: 'Aquame',
+    domain: 'aquame.com.au',
     tagline: 'Hydration reimagined',
     description: 'Smart water solutions for Australian businesses',
     bgColor: 'bg-gradient-to-r from-blue-100 to-cyan-100 border-blue-200',
@@ -84,7 +84,7 @@ const BannerAds = ({ maxAds = 3, allowDismiss = true, className = "" }: BannerAd
   
   useEffect(() => {
     // All available ads
-    const allAds: CompanyId[] = ['tech4humanity', 'apexpredator', 'aquea'];
+    const allAds: CompanyId[] = ['tech4humanity', 'apexpredator', 'aquame'];
     
     // Randomly select up to maxAds ads
     if (maxAds >= allAds.length) {

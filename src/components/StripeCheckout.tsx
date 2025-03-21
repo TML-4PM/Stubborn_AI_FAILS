@@ -4,7 +4,7 @@ import { loadStripe } from '@stripe/stripe-js';
 import { Button } from '@/components/ui/button';
 import { CreditCard, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { STRIPE_PUBLISHABLE_KEY, CHECKOUT_API_URL, STRIPE_SUCCESS_URL, STRIPE_CANCEL_URL } from '@/utils/stripeConfig';
+import { STRIPE_PUBLISHABLE_KEY, STRIPE_SUCCESS_URL, STRIPE_CANCEL_URL, getApiUrl } from '@/utils/stripeConfig';
 
 // Initialize Stripe with your publishable key
 const stripePromise = loadStripe(STRIPE_PUBLISHABLE_KEY);
@@ -36,8 +36,11 @@ const StripeCheckout = ({ amount, onSuccess }: StripeCheckoutProps) => {
         throw new Error("Failed to load Stripe");
       }
 
+      // Get the appropriate API URL
+      const checkoutApiUrl = getApiUrl();
+
       // Create a checkout session
-      const response = await fetch(CHECKOUT_API_URL, {
+      const response = await fetch(checkoutApiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

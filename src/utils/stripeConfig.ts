@@ -6,7 +6,7 @@
 export const STRIPE_PUBLISHABLE_KEY = 'pk_test_51QdfYbD6fFdhmypR798NoSCJ4G9TGCkqw9QTuiDTkyvmn9tSrhey2n3cTHxjFG6GYDlcoBClLWsDN5Mgjb0tIfII00oVKQ67in'; 
 
 // API endpoint for creating checkout sessions
-export const CHECKOUT_API_URL = 'https://aioopsies-stripe.netlify.app/.netlify/functions/create-checkout';
+export const CHECKOUT_API_URL = 'https://api.aioopsies.com/create-checkout';
 
 // Success and cancel return URLs - using relative paths
 export const STRIPE_SUCCESS_URL = '/donate?success=true';
@@ -17,6 +17,7 @@ export const getApiUrl = () => {
   // Check if we're in a production environment
   const isProd = import.meta.env.PROD;
   return isProd 
-    ? 'https://aioopsies-stripe.netlify.app/.netlify/functions/create-checkout'
-    : CHECKOUT_API_URL;
+    ? 'https://api.aioopsies.com/create-checkout'
+    : 'http://localhost:3000/create-checkout';
 };
+

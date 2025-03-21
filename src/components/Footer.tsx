@@ -1,5 +1,5 @@
 
-import { Heart, Github } from 'lucide-react';
+import { Heart, X, Instagram, TikTok, MessageSquare } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Footer = () => {
@@ -38,15 +38,44 @@ const Footer = () => {
             </Link>
           </div>
           
-          <a 
-            href="https://github.com/ai-oopsies/website" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="inline-flex items-center justify-center p-2 rounded-full bg-secondary hover:bg-secondary/80 transition-colors"
-            aria-label="GitHub Repository"
-          >
-            <Github className="h-5 w-5" />
-          </a>
+          <div className="flex items-center space-x-3">
+            <a 
+              href="https://instagram.com" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center p-2 rounded-full bg-secondary hover:bg-secondary/80 transition-colors"
+              aria-label="Instagram"
+            >
+              <Instagram className="h-5 w-5" />
+            </a>
+            <a 
+              href="https://tiktok.com" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center p-2 rounded-full bg-secondary hover:bg-secondary/80 transition-colors"
+              aria-label="TikTok"
+            >
+              <TikTok className="h-5 w-5" />
+            </a>
+            <a 
+              href="https://twitter.com" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center p-2 rounded-full bg-secondary hover:bg-secondary/80 transition-colors"
+              aria-label="X (Twitter)"
+            >
+              <X className="h-5 w-5" />
+            </a>
+            <a 
+              href="https://wechat.com" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center p-2 rounded-full bg-secondary hover:bg-secondary/80 transition-colors"
+              aria-label="WeChat"
+            >
+              <MessageSquare className="h-5 w-5" />
+            </a>
+          </div>
         </div>
         
         <div className="text-center mt-8 text-sm text-muted-foreground">

@@ -89,8 +89,7 @@ const SubmissionForm = () => {
             <Button
               type="submit"
               disabled={isSubmitting || isSuccess || !title.trim()}
-              className="w-full h-11 relative overflow-hidden"
-              variant={isSuccess ? "default" : "default"}
+              className="w-full h-12 relative overflow-hidden bg-blue-500 hover:bg-blue-600 text-white"
             >
               {isSubmitting && uploadProgress < 100 && (
                 <div 
@@ -110,7 +109,7 @@ const SubmissionForm = () => {
                   Submitted Successfully!
                 </>
               ) : (
-                'Submit AI Fail'
+                <span className="text-lg font-medium">Submit AI Fail</span>
               )}
             </Button>
             

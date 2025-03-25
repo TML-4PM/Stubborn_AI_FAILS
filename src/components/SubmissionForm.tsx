@@ -1,13 +1,17 @@
 
-import { Loader2, CheckCircle2, Info } from 'lucide-react';
+import { useState } from 'react';
+import { Loader2, CheckCircle2, Info, Link as LinkIcon, Image } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import ImageUploader from '@/components/ImageUploader';
 import SubmissionGuidelines from '@/components/SubmissionGuidelines';
 import { useSubmissionForm } from '@/hooks/useSubmissionForm';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const SubmissionForm = () => {
+  const [activeTab, setActiveTab] = useState<'image' | 'url'>('image');
+  
   const {
     title,
     setTitle,
@@ -16,10 +20,13 @@ const SubmissionForm = () => {
     username,
     setUsername,
     previewUrl,
+    imageUrl,
+    setImageUrl,
     isSubmitting,
     isSuccess,
     uploadProgress,
     handleImageChange,
+    handleUrlChange,
     handleSubmit
   } = useSubmissionForm();
 
@@ -80,15 +87,72 @@ const SubmissionForm = () => {
             />
           </div>
           
-          <ImageUploader 
-            onImageChange={handleImageChange}
-            previewUrl={previewUrl}
-          />
+          <Tabs defaultValue="image" onValueChange={(value) => setActiveTab(value as 'image' | 'url')}>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="image" className="flex items-center justify-center">
+                <Image className="w-4 h-4 mr-2" />
+                <span>Upload Image</span>
+              </TabsTrigger>
+              <TabsTrigger value="url" className="flex items-center justify-center">
+                <LinkIcon className="w-4 h-4 mr-2" />
+                <span>Submit URL</span>
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="image" className="pt-4">
+              <ImageUploader 
+                onImageChange={handleImageChange}
+                previewUrl={activeTab === 'image' ? previewUrl : null}
+              />
+            </TabsContent>
+            <TabsContent value="url" className="pt-4">
+              <div className="space-y-2">
+                <label htmlFor="image-url" className="text-sm font-medium flex items-center">
+                  Enter URL <span className="text-red-500 ml-1">*</span>
+                  <div className="ml-2 cursor-help group relative">
+                    <Info className="h-4 w-4 text-muted-foreground" />
+                    <div className="absolute left-full ml-2 top-0 w-48 p-2 bg-popover rounded-md shadow-md text-xs text-popover-foreground opacity-0 group-hover:opacity-100 transition-opacity z-50">
+                      Paste a direct link to an image, screenshot, or webpage
+                    </div>
+                  </div>
+                </label>
+                <Input
+                  id="image-url"
+                  type="url"
+                  value={imageUrl}
+                  onChange={(e) => {
+                    setImageUrl(e.target.value);
+                    handleUrlChange(e.target.value);
+                  }}
+                  placeholder="https://example.com/your-ai-fail.jpg"
+                  className="w-full"
+                />
+                {previewUrl && activeTab === 'url' && (
+                  <div className="mt-4 border border-border rounded-lg overflow-hidden">
+                    <div className="aspect-video w-full relative">
+                      <img 
+                        src={previewUrl} 
+                        alt="URL Preview" 
+                        className="w-full h-full object-contain"
+                        onError={() => {
+                          // If image fails to load, show a placeholder
+                          const img = document.getElementById("url-preview") as HTMLImageElement;
+                          if (img) {
+                            img.src = "/placeholder.svg";
+                          }
+                        }}
+                        id="url-preview"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+          </Tabs>
           
           <div className="pt-4">
             <Button
               type="submit"
-              disabled={isSubmitting || isSuccess || !title.trim()}
+              disabled={isSubmitting || isSuccess || !title.trim() || (activeTab === 'image' && !previewUrl) || (activeTab === 'url' && !imageUrl)}
               className="w-full h-12 relative overflow-hidden bg-blue-500 hover:bg-blue-600 text-white"
             >
               {isSubmitting && uploadProgress < 100 && (

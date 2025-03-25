@@ -1,24 +1,10 @@
 
 import { useState, useEffect } from 'react';
-import { v4 as uuidv4 } from 'uuid';
-import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { storage, db } from '@/lib/firebase';
 import { toast } from '@/hooks/use-toast';
 import { useUser } from '@/contexts/UserContext';
-
-export interface UserSubmission {
-  id: string;
-  title: string;
-  description: string;
-  username: string;
-  image_url: string;
-  created_at: string;
-  status: string;
-  user_id?: string;
-  likes?: number;
-  is_url?: boolean;
-}
+import { validateSubmissionForm } from '@/utils/validationUtils';
+import { uploadFileToStorage } from '@/utils/uploadUtils';
+import { saveSubmissionToFirestore, UserSubmission } from '@/utils/submissionUtils';
 
 export const useSubmissionForm = () => {
   const { user } = useUser();
@@ -72,48 +58,12 @@ export const useSubmissionForm = () => {
     setUploadProgress(0);
   };
 
-  const validateForm = (): boolean => {
-    if (!title.trim()) {
-      setErrorMessage("Please provide a title for your submission");
-      toast({
-        title: "Title required",
-        description: "Please provide a title for your submission",
-        variant: "destructive",
-      });
-      return false;
-    }
-
-    if (!imageFile && !imageUrl) {
-      setErrorMessage("Please upload an image or provide a URL of your AI fail");
-      toast({
-        title: "Image or URL required",
-        description: "Please upload an image or provide a URL of your AI fail",
-        variant: "destructive",
-      });
-      return false;
-    }
-
-    if (imageUrl && !isValidUrl(imageUrl)) {
-      setErrorMessage("Please provide a valid URL");
-      toast({
-        title: "Invalid URL",
-        description: "Please provide a valid URL",
-        variant: "destructive",
-      });
-      return false;
-    }
-
-    setErrorMessage(null);
-    return true;
-  };
-
-  const isValidUrl = (url: string): boolean => {
-    try {
-      new URL(url);
-      return true;
-    } catch (e) {
-      return false;
-    }
+  const showToast = (title: string, description: string, variant: "default" | "destructive" = "default") => {
+    toast({
+      title,
+      description,
+      variant,
+    });
   };
 
   const resetForm = () => {
@@ -134,7 +84,7 @@ export const useSubmissionForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validateForm()) return;
+    if (!validateSubmissionForm(title, imageFile, imageUrl, setErrorMessage, showToast)) return;
 
     setIsSubmitting(true);
     setUploadProgress(10);
@@ -148,63 +98,30 @@ export const useSubmissionForm = () => {
         setUploadProgress(60);
       } else if (imageFile) {
         // Upload image to Firebase Storage
-        const fileName = `${uuidv4()}.${imageFile.name.split('.').pop()}`;
-        const storageRef = ref(storage, `fails/${fileName}`);
-        
-        const uploadTask = uploadBytesResumable(storageRef, imageFile);
-        
-        // Monitor upload progress
-        await new Promise<void>((resolve, reject) => {
-          uploadTask.on(
-            'state_changed',
-            (snapshot) => {
-              const progress = Math.round(
-                (snapshot.bytesTransferred / snapshot.totalBytes) * 100
-              );
-              setUploadProgress(Math.min(60, 10 + progress / 2)); // Cap at 60% for upload
-            },
-            (error) => {
-              console.error('Upload error:', error);
-              setErrorMessage(`Upload failed: ${error.message || 'Please try again'}`);
-              reject(error);
-            },
-            () => {
-              resolve();
-            }
-          );
-        });
-        
-        // Get download URL after upload completes
-        finalImageUrl = await getDownloadURL(uploadTask.snapshot.ref);
+        finalImageUrl = await uploadFileToStorage(imageFile, setUploadProgress);
       }
 
       setUploadProgress(80);
 
       // Save submission data to Firestore
-      const submissionData = {
+      await saveSubmissionToFirestore(
         title,
         description,
-        username: username || 'Anonymous',
-        image_url: finalImageUrl,
-        is_url: isUrl,
-        created_at: new Date().toISOString(),
-        timestamp: serverTimestamp(), // Server timestamp for accurate sorting
-        status: 'pending', // For moderation purposes
-        user_id: user?.id, // Link to user if logged in
-        likes: 0
-      };
-
-      await addDoc(collection(db, 'submissions'), submissionData);
+        username,
+        finalImageUrl,
+        isUrl,
+        user?.id
+      );
 
       setUploadProgress(100);
       
       // Submission was successful
       setIsSubmitting(false);
       setIsSuccess(true);
-      toast({
-        title: "Submission received!",
-        description: "Your AI fail has been submitted for review.",
-      });
+      showToast(
+        "Submission received!",
+        "Your AI fail has been submitted for review."
+      );
 
       // Reset form after submission
       setTimeout(() => {
@@ -219,11 +136,11 @@ export const useSubmissionForm = () => {
       const errorMsg = error instanceof Error ? error.message : "There was a problem submitting your AI fail. Please try again.";
       setErrorMessage(errorMsg);
       
-      toast({
-        title: "Submission failed",
-        description: errorMsg,
-        variant: "destructive",
-      });
+      showToast(
+        "Submission failed",
+        errorMsg,
+        "destructive"
+      );
     }
   };
 

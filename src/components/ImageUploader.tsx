@@ -1,9 +1,11 @@
 
 import { useState, useEffect } from 'react';
-import { Upload, Info, X, AlertCircle } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
+import { Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
+import { validateImageFile } from '@/utils/imageUtils';
+import ImageDropzone from '@/components/image/ImageDropzone';
+import ImagePreview from '@/components/image/ImagePreview';
+import ImageUploadEmpty from '@/components/image/ImageUploadEmpty';
 
 interface ImageUploaderProps {
   onImageChange: (file: File | null) => void;
@@ -19,80 +21,31 @@ const ImageUploader = ({
   errorMessage = null
 }: ImageUploaderProps) => {
   const [isDragging, setIsDragging] = useState(false);
-  const [imageError, setImageError] = useState(false);
   
-  // Reset image error state when preview changes
-  useEffect(() => {
-    setImageError(false);
-  }, [previewUrl]);
-  
-  const handleDragEnter = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(true);
-  };
-  
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-  };
-  
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
-  
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-    
-    const file = e.dataTransfer.files?.[0];
-    validateAndProcessFile(file);
-  };
-
+  // Handle file selection from input
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     validateAndProcessFile(file);
   };
-
-  const handleImageError = () => {
-    setImageError(true);
-    toast({
-      title: "Image preview failed",
-      description: "We couldn't preview this image. Please try a different one or check the URL.",
-      variant: "destructive",
-    });
+  
+  // Process dropped file
+  const handleFileDrop = (file: File) => {
+    validateAndProcessFile(file);
   };
   
+  // Common validation and processing for both drag-drop and file input
   const validateAndProcessFile = (file?: File) => {
     if (!file) return;
 
-    if (file.size > 5 * 1024 * 1024) {
-      toast({
-        title: "File too large",
-        description: "Please select an image smaller than 5MB",
-        variant: "destructive",
-      });
-      return;
+    if (validateImageFile(file)) {
+      onImageChange(file);
     }
-
-    if (!file.type.startsWith('image/')) {
-      toast({
-        title: "Invalid file type",
-        description: "Please select an image file",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    onImageChange(file);
   };
 
+  // Handle retry for image preview errors
   const retryUpload = () => {
     if (previewUrl) {
-      setImageError(false);
+      // Force preview refresh
     }
   };
 
@@ -107,85 +60,31 @@ const ImageUploader = ({
           </div>
         </div>
       </label>
-      <div 
-        onDragEnter={handleDragEnter}
-        onDragLeave={handleDragLeave}
-        onDragOver={handleDragOver}
-        onDrop={handleDrop}
+      
+      <ImageDropzone 
+        onDrop={handleFileDrop}
+        isDragging={isDragging}
+        disabled={isSubmitting}
         className={cn(
           'border-2 border-dashed rounded-lg p-8 text-center block cursor-pointer transition-all',
           isDragging ? 'border-primary bg-primary/10 scale-[1.01]' : 'hover:border-muted-foreground/50',
           previewUrl ? 'border-primary/50 bg-primary/5' : 'border-muted',
           errorMessage ? 'border-destructive/50 bg-destructive/5' : '',
-          isSubmitting ? 'pointer-events-none opacity-70' : ''
+          isSubmitting ? 'opacity-70' : ''
         )}
       >
         <label htmlFor="image" className={cn("cursor-pointer block", isSubmitting ? "pointer-events-none" : "")}>
           {previewUrl ? (
-            <div className="relative w-full aspect-video mx-auto">
-              {imageError ? (
-                <div className="w-full h-full flex flex-col items-center justify-center space-y-2 text-destructive">
-                  <AlertCircle className="w-12 h-12" />
-                  <p className="text-sm font-medium">Failed to load image</p>
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    size="sm"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      retryUpload();
-                    }}
-                  >
-                    Retry
-                  </Button>
-                </div>
-              ) : (
-                <img 
-                  src={previewUrl} 
-                  alt="Preview" 
-                  className="w-full h-full object-contain rounded-lg"
-                  onError={handleImageError}
-                />
-              )}
-              
-              {!isSubmitting && (
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    onImageChange(null);
-                  }}
-                  className="absolute top-2 right-2 p-1.5 bg-destructive text-destructive-foreground rounded-full hover:bg-destructive/90 transition-colors"
-                  aria-label="Remove image"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              )}
-            </div>
+            <ImagePreview 
+              previewUrl={previewUrl}
+              onRemove={() => onImageChange(null)}
+              onRetry={retryUpload}
+              isSubmitting={isSubmitting}
+            />
           ) : (
-            <div className="space-y-4">
-              <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                <Upload className="w-6 h-6 text-primary" />
-              </div>
-              <div className="space-y-1">
-                <p className="text-sm font-medium">
-                  Drag and drop an image, or <span className="text-primary">browse</span>
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  PNG, JPG or GIF, max 5MB
-                </p>
-              </div>
-              
-              {errorMessage && (
-                <div className="mt-4 text-sm text-destructive flex items-center justify-center">
-                  <AlertCircle className="w-4 h-4 mr-1" />
-                  {errorMessage}
-                </div>
-              )}
-            </div>
+            <ImageUploadEmpty errorMessage={errorMessage} />
           )}
+          
           <input
             id="image"
             type="file"
@@ -195,7 +94,7 @@ const ImageUploader = ({
             disabled={isSubmitting}
           />
         </label>
-      </div>
+      </ImageDropzone>
     </div>
   );
 };

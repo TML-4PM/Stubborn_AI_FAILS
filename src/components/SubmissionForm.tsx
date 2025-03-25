@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Loader2, CheckCircle2, Info, Link as LinkIcon, Image, AlertCircle } from 'lucide-react';
+import { Loader2, CheckCircle2, Info, Link as LinkIcon, Image, AlertCircle, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
@@ -132,7 +132,6 @@ const SubmissionForm = () => {
             defaultValue="image" 
             value={activeTab}
             onValueChange={(value) => setActiveTab(value as 'image' | 'url')}
-            disabled={isSubmitting || isSuccess}
           >
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="image" className="flex items-center justify-center" disabled={isSubmitting || isSuccess}>

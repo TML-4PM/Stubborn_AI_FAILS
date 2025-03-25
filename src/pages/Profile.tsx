@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -9,7 +10,7 @@ import { supabase } from '@/lib/supabase';
 import { useUser } from '@/contexts/UserContext';
 import { toast } from '@/hooks/use-toast';
 import FailCard from '@/components/FailCard';
-import { UserSubmission } from '@/hooks/useSubmissionForm';
+import { UserSubmission } from '@/utils/submissionUtils';
 import { Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';

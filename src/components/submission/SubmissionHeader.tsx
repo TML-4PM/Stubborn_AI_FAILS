@@ -1,7 +1,12 @@
 
 import { Info } from 'lucide-react';
 
-const SubmissionHeader = () => {
+interface SubmissionHeaderProps {
+  isSubmitting: boolean;
+  isSuccess: boolean;
+}
+
+const SubmissionHeader = ({ isSubmitting, isSuccess }: SubmissionHeaderProps) => {
   return (
     <div className="max-w-3xl mx-auto text-center mb-6">
       <h2 className="text-2xl font-bold mb-2">Submit Your AI Fail</h2>

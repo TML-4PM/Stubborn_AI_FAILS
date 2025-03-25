@@ -1,12 +1,12 @@
 
 import { useState } from 'react';
-import { Info } from 'lucide-react';
 import SubmissionGuidelines from '@/components/SubmissionGuidelines';
 import { useSubmissionForm } from '@/hooks/useSubmissionForm';
 import ErrorDisplay from '@/components/submission/ErrorDisplay';
 import BasicInfoFields from '@/components/submission/BasicInfoFields';
 import MediaUploadTabs from '@/components/submission/MediaUploadTabs';
 import SubmitButton from '@/components/submission/SubmitButton';
+import SubmissionHeader from '@/components/submission/SubmissionHeader';
 
 const SubmissionForm = () => {
   const [activeTab, setActiveTab] = useState<'image' | 'url'>('image');
@@ -50,7 +50,10 @@ const SubmissionForm = () => {
   return (
     <div className="max-w-2xl mx-auto">
       <div className="glass rounded-2xl p-6 md:p-8 shadow-sm">
-        <h2 className="text-2xl font-bold mb-6">Submit Your AI Fail</h2>
+        <SubmissionHeader 
+          isSubmitting={isSubmitting}
+          isSuccess={isSuccess}
+        />
         
         <ErrorDisplay 
           errorMessage={errorMessage} 
@@ -89,13 +92,6 @@ const SubmissionForm = () => {
               uploadProgress={uploadProgress}
               isFormValid={isFormValid()}
             />
-            
-            {!isSubmitting && !isSuccess && (
-              <p className="text-xs text-center mt-2 text-muted-foreground flex items-center justify-center">
-                <Info className="w-3 h-3 mr-1" />
-                Your submission will be reviewed before appearing in the gallery
-              </p>
-            )}
           </div>
         </form>
       </div>

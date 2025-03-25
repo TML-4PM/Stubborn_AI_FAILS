@@ -32,8 +32,8 @@ const SubmissionForm = () => {
   } = useSubmissionForm();
 
   // Function to determine if form is valid for submission
-  const isFormValid = () => {
-    return (
+  const isFormValid = (): boolean => {
+    return !!(
       title.trim() && 
       ((activeTab === 'image' && previewUrl) || 
        (activeTab === 'url' && imageUrl))

@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-import { collection, addDoc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { storage, db } from '@/lib/firebase';
 import { toast } from '@/hooks/use-toast';
 import { useUser } from '@/contexts/UserContext';
@@ -32,6 +32,7 @@ export const useSubmissionForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Set username from user if available
   useEffect(() => {
@@ -43,6 +44,7 @@ export const useSubmissionForm = () => {
   const handleImageChange = (file: File | null) => {
     setImageFile(file);
     setIsUrl(false);
+    setErrorMessage(null);
     
     if (file) {
       const url = URL.createObjectURL(file);
@@ -59,6 +61,7 @@ export const useSubmissionForm = () => {
     setImageUrl(url);
     setIsUrl(true);
     setImageFile(null);
+    setErrorMessage(null);
     
     if (url) {
       setPreviewUrl(url);
@@ -71,6 +74,7 @@ export const useSubmissionForm = () => {
 
   const validateForm = (): boolean => {
     if (!title.trim()) {
+      setErrorMessage("Please provide a title for your submission");
       toast({
         title: "Title required",
         description: "Please provide a title for your submission",
@@ -80,6 +84,7 @@ export const useSubmissionForm = () => {
     }
 
     if (!imageFile && !imageUrl) {
+      setErrorMessage("Please upload an image or provide a URL of your AI fail");
       toast({
         title: "Image or URL required",
         description: "Please upload an image or provide a URL of your AI fail",
@@ -89,6 +94,7 @@ export const useSubmissionForm = () => {
     }
 
     if (imageUrl && !isValidUrl(imageUrl)) {
+      setErrorMessage("Please provide a valid URL");
       toast({
         title: "Invalid URL",
         description: "Please provide a valid URL",
@@ -97,6 +103,7 @@ export const useSubmissionForm = () => {
       return false;
     }
 
+    setErrorMessage(null);
     return true;
   };
 
@@ -107,6 +114,21 @@ export const useSubmissionForm = () => {
     } catch (e) {
       return false;
     }
+  };
+
+  const resetForm = () => {
+    setTitle('');
+    setDescription('');
+    if (!user?.username) {
+      setUsername('');
+    }
+    setImageFile(null);
+    setImageUrl('');
+    setIsUrl(false);
+    setPreviewUrl(null);
+    setIsSuccess(false);
+    setUploadProgress(0);
+    setErrorMessage(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -143,6 +165,7 @@ export const useSubmissionForm = () => {
             },
             (error) => {
               console.error('Upload error:', error);
+              setErrorMessage(`Upload failed: ${error.message || 'Please try again'}`);
               reject(error);
             },
             () => {
@@ -165,6 +188,7 @@ export const useSubmissionForm = () => {
         image_url: finalImageUrl,
         is_url: isUrl,
         created_at: new Date().toISOString(),
+        timestamp: serverTimestamp(), // Server timestamp for accurate sorting
         status: 'pending', // For moderation purposes
         user_id: user?.id, // Link to user if logged in
         likes: 0
@@ -184,26 +208,20 @@ export const useSubmissionForm = () => {
 
       // Reset form after submission
       setTimeout(() => {
-        setTitle('');
-        setDescription('');
-        if (!user?.username) {
-          setUsername('');
-        }
-        setImageFile(null);
-        setImageUrl('');
-        setIsUrl(false);
-        setPreviewUrl(null);
-        setIsSuccess(false);
-        setUploadProgress(0);
+        resetForm();
       }, 2000);
       
     } catch (error) {
       console.error("Submission error:", error);
       setIsSubmitting(false);
       setUploadProgress(0);
+      
+      const errorMsg = error instanceof Error ? error.message : "There was a problem submitting your AI fail. Please try again.";
+      setErrorMessage(errorMsg);
+      
       toast({
         title: "Submission failed",
-        description: error instanceof Error ? error.message : "There was a problem submitting your AI fail. Please try again.",
+        description: errorMsg,
         variant: "destructive",
       });
     }
@@ -225,9 +243,11 @@ export const useSubmissionForm = () => {
     isSubmitting,
     isSuccess,
     uploadProgress,
+    errorMessage,
     handleImageChange,
     handleUrlChange,
     handleSubmit,
+    resetForm,
     isUserLoggedIn: !!user
   };
 };

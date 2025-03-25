@@ -1,16 +1,30 @@
 
-import { useState } from 'react';
-import { Upload, Info, X } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Upload, Info, X, AlertCircle } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 interface ImageUploaderProps {
   onImageChange: (file: File | null) => void;
   previewUrl: string | null;
+  isSubmitting?: boolean;
+  errorMessage?: string | null;
 }
 
-const ImageUploader = ({ onImageChange, previewUrl }: ImageUploaderProps) => {
+const ImageUploader = ({ 
+  onImageChange, 
+  previewUrl, 
+  isSubmitting = false,
+  errorMessage = null
+}: ImageUploaderProps) => {
   const [isDragging, setIsDragging] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  
+  // Reset image error state when preview changes
+  useEffect(() => {
+    setImageError(false);
+  }, [previewUrl]);
   
   const handleDragEnter = (e: React.DragEvent) => {
     e.preventDefault();
@@ -42,6 +56,15 @@ const ImageUploader = ({ onImageChange, previewUrl }: ImageUploaderProps) => {
     const file = e.target.files?.[0];
     validateAndProcessFile(file);
   };
+
+  const handleImageError = () => {
+    setImageError(true);
+    toast({
+      title: "Image preview failed",
+      description: "We couldn't preview this image. Please try a different one or check the URL.",
+      variant: "destructive",
+    });
+  };
   
   const validateAndProcessFile = (file?: File) => {
     if (!file) return;
@@ -67,6 +90,12 @@ const ImageUploader = ({ onImageChange, previewUrl }: ImageUploaderProps) => {
     onImageChange(file);
   };
 
+  const retryUpload = () => {
+    if (previewUrl) {
+      setImageError(false);
+    }
+  };
+
   return (
     <div className="space-y-2">
       <label htmlFor="image" className="text-sm font-medium flex items-center">
@@ -86,29 +115,54 @@ const ImageUploader = ({ onImageChange, previewUrl }: ImageUploaderProps) => {
         className={cn(
           'border-2 border-dashed rounded-lg p-8 text-center block cursor-pointer transition-all',
           isDragging ? 'border-primary bg-primary/10 scale-[1.01]' : 'hover:border-muted-foreground/50',
-          previewUrl ? 'border-primary/50 bg-primary/5' : 'border-muted'
+          previewUrl ? 'border-primary/50 bg-primary/5' : 'border-muted',
+          errorMessage ? 'border-destructive/50 bg-destructive/5' : '',
+          isSubmitting ? 'pointer-events-none opacity-70' : ''
         )}
       >
-        <label htmlFor="image" className="cursor-pointer block">
+        <label htmlFor="image" className={cn("cursor-pointer block", isSubmitting ? "pointer-events-none" : "")}>
           {previewUrl ? (
             <div className="relative w-full aspect-video mx-auto">
-              <img 
-                src={previewUrl} 
-                alt="Preview" 
-                className="w-full h-full object-contain rounded-lg"
-              />
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  onImageChange(null);
-                }}
-                className="absolute top-2 right-2 p-1.5 bg-destructive text-destructive-foreground rounded-full hover:bg-destructive/90 transition-colors"
-                aria-label="Remove image"
-              >
-                <X className="w-4 h-4" />
-              </button>
+              {imageError ? (
+                <div className="w-full h-full flex flex-col items-center justify-center space-y-2 text-destructive">
+                  <AlertCircle className="w-12 h-12" />
+                  <p className="text-sm font-medium">Failed to load image</p>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      retryUpload();
+                    }}
+                  >
+                    Retry
+                  </Button>
+                </div>
+              ) : (
+                <img 
+                  src={previewUrl} 
+                  alt="Preview" 
+                  className="w-full h-full object-contain rounded-lg"
+                  onError={handleImageError}
+                />
+              )}
+              
+              {!isSubmitting && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onImageChange(null);
+                  }}
+                  className="absolute top-2 right-2 p-1.5 bg-destructive text-destructive-foreground rounded-full hover:bg-destructive/90 transition-colors"
+                  aria-label="Remove image"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
             </div>
           ) : (
             <div className="space-y-4">
@@ -123,6 +177,13 @@ const ImageUploader = ({ onImageChange, previewUrl }: ImageUploaderProps) => {
                   PNG, JPG or GIF, max 5MB
                 </p>
               </div>
+              
+              {errorMessage && (
+                <div className="mt-4 text-sm text-destructive flex items-center justify-center">
+                  <AlertCircle className="w-4 h-4 mr-1" />
+                  {errorMessage}
+                </div>
+              )}
             </div>
           )}
           <input
@@ -131,7 +192,7 @@ const ImageUploader = ({ onImageChange, previewUrl }: ImageUploaderProps) => {
             accept="image/*"
             onChange={handleImageChange}
             className="sr-only"
-            required={!previewUrl}
+            disabled={isSubmitting}
           />
         </label>
       </div>

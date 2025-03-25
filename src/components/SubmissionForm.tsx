@@ -1,16 +1,19 @@
 
 import { useState } from 'react';
-import { Loader2, CheckCircle2, Info, Link as LinkIcon, Image } from 'lucide-react';
+import { Loader2, CheckCircle2, Info, Link as LinkIcon, Image, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import ImageUploader from '@/components/ImageUploader';
 import SubmissionGuidelines from '@/components/SubmissionGuidelines';
 import { useSubmissionForm } from '@/hooks/useSubmissionForm';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useTransitionNavigation } from '@/hooks/useTransitionNavigation';
 
 const SubmissionForm = () => {
   const [activeTab, setActiveTab] = useState<'image' | 'url'>('image');
+  const { showNotification } = useTransitionNavigation();
   
   const {
     title,
@@ -25,15 +28,50 @@ const SubmissionForm = () => {
     isSubmitting,
     isSuccess,
     uploadProgress,
+    errorMessage,
     handleImageChange,
     handleUrlChange,
-    handleSubmit
+    handleSubmit,
+    resetForm
   } = useSubmissionForm();
+
+  // Function to determine if form is valid for submission
+  const isFormValid = () => {
+    return (
+      title.trim() && 
+      ((activeTab === 'image' && previewUrl) || 
+       (activeTab === 'url' && imageUrl))
+    );
+  };
+
+  // Handle "Try Again" after error
+  const handleTryAgain = () => {
+    if (errorMessage) {
+      resetForm();
+    }
+  };
 
   return (
     <div className="max-w-2xl mx-auto">
       <div className="glass rounded-2xl p-6 md:p-8 shadow-sm">
         <h2 className="text-2xl font-bold mb-6">Submit Your AI Fail</h2>
+        
+        {errorMessage && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription className="ml-2">
+              {errorMessage}
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="ml-2"
+                onClick={handleTryAgain}
+              >
+                Try Again
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
         
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
@@ -52,6 +90,7 @@ const SubmissionForm = () => {
               maxLength={100}
               required
               className="w-full"
+              disabled={isSubmitting || isSuccess}
             />
           </div>
           
@@ -68,6 +107,7 @@ const SubmissionForm = () => {
               rows={3}
               maxLength={500}
               className="w-full"
+              disabled={isSubmitting || isSuccess}
             />
           </div>
           
@@ -84,16 +124,22 @@ const SubmissionForm = () => {
               placeholder="Anonymous"
               maxLength={50}
               className="w-full"
+              disabled={isSubmitting || isSuccess}
             />
           </div>
           
-          <Tabs defaultValue="image" onValueChange={(value) => setActiveTab(value as 'image' | 'url')}>
+          <Tabs 
+            defaultValue="image" 
+            value={activeTab}
+            onValueChange={(value) => setActiveTab(value as 'image' | 'url')}
+            disabled={isSubmitting || isSuccess}
+          >
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="image" className="flex items-center justify-center">
+              <TabsTrigger value="image" className="flex items-center justify-center" disabled={isSubmitting || isSuccess}>
                 <Image className="w-4 h-4 mr-2" />
                 <span>Upload Image</span>
               </TabsTrigger>
-              <TabsTrigger value="url" className="flex items-center justify-center">
+              <TabsTrigger value="url" className="flex items-center justify-center" disabled={isSubmitting || isSuccess}>
                 <LinkIcon className="w-4 h-4 mr-2" />
                 <span>Submit URL</span>
               </TabsTrigger>
@@ -102,6 +148,8 @@ const SubmissionForm = () => {
               <ImageUploader 
                 onImageChange={handleImageChange}
                 previewUrl={activeTab === 'image' ? previewUrl : null}
+                isSubmitting={isSubmitting}
+                errorMessage={activeTab === 'image' ? errorMessage : null}
               />
             </TabsContent>
             <TabsContent value="url" className="pt-4">
@@ -125,7 +173,14 @@ const SubmissionForm = () => {
                   }}
                   placeholder="https://example.com/your-ai-fail.jpg"
                   className="w-full"
+                  disabled={isSubmitting || isSuccess}
                 />
+                {errorMessage && activeTab === 'url' && (
+                  <div className="text-sm text-destructive flex items-center mt-1">
+                    <AlertCircle className="w-4 h-4 mr-1 flex-shrink-0" />
+                    <span>{errorMessage}</span>
+                  </div>
+                )}
                 {previewUrl && activeTab === 'url' && (
                   <div className="mt-4 border border-border rounded-lg overflow-hidden">
                     <div className="aspect-video w-full relative">
@@ -134,14 +189,24 @@ const SubmissionForm = () => {
                         alt="URL Preview" 
                         className="w-full h-full object-contain"
                         onError={() => {
-                          // If image fails to load, show a placeholder
-                          const img = document.getElementById("url-preview") as HTMLImageElement;
-                          if (img) {
-                            img.src = "/placeholder.svg";
-                          }
+                          showNotification("Failed to load image from URL. Please check the URL and try again.", "error");
                         }}
                         id="url-preview"
                       />
+                      {!isSubmitting && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setImageUrl('');
+                            handleUrlChange('');
+                          }}
+                          className="absolute top-2 right-2 p-1.5 bg-destructive text-destructive-foreground rounded-full hover:bg-destructive/90 transition-colors"
+                          aria-label="Remove image"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      )}
                     </div>
                   </div>
                 )}
@@ -152,8 +217,9 @@ const SubmissionForm = () => {
           <div className="pt-4">
             <Button
               type="submit"
-              disabled={isSubmitting || isSuccess || !title.trim() || (activeTab === 'image' && !previewUrl) || (activeTab === 'url' && !imageUrl)}
-              className="w-full h-12 relative overflow-hidden bg-blue-500 hover:bg-blue-600 text-white"
+              disabled={isSubmitting || isSuccess || !isFormValid()}
+              className="w-full h-12 relative overflow-hidden"
+              variant={isSuccess ? "secondary" : "default"}
             >
               {isSubmitting && uploadProgress < 100 && (
                 <div 

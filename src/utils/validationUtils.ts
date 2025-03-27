@@ -16,6 +16,16 @@ export const isValidUrl = (url: string): boolean => {
 };
 
 /**
+ * Checks if a URL is pointing to an image by its extension
+ * This is a simple check and not foolproof
+ */
+export const isImageUrl = (url: string): boolean => {
+  const lowerUrl = url.toLowerCase();
+  const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg'];
+  return imageExtensions.some(ext => lowerUrl.endsWith(ext));
+};
+
+/**
  * Validates submission form data
  * @returns True if valid, false otherwise
  */
@@ -46,14 +56,27 @@ export const validateSubmissionForm = (
     return false;
   }
 
-  if (imageUrl && !isValidUrl(imageUrl)) {
-    setErrorMessage("Please provide a valid URL");
-    showToast(
-      "Invalid URL",
-      "Please provide a valid URL",
-      "destructive"
-    );
-    return false;
+  if (imageUrl) {
+    if (!isValidUrl(imageUrl)) {
+      setErrorMessage("Please provide a valid URL");
+      showToast(
+        "Invalid URL",
+        "Please provide a valid URL",
+        "destructive"
+      );
+      return false;
+    }
+    
+    // Optional: Consider if the URL looks like an image URL
+    // if (!isImageUrl(imageUrl)) {
+    //   setErrorMessage("URL doesn't appear to be an image. Please check if it's a direct link to an image file.");
+    //   showToast(
+    //     "Invalid image URL",
+    //     "URL doesn't appear to be an image. Please check if it's a direct link to an image file.",
+    //     "destructive"
+    //   );
+    //   return false;
+    // }
   }
 
   setErrorMessage(null);

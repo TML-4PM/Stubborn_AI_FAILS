@@ -1,7 +1,7 @@
 
 import { initializeApp } from "firebase/app";
 import { getStorage } from "firebase/storage";
-import { getFirestore, serverTimestamp as firestoreTimestamp } from "firebase/firestore";
+import { getFirestore, serverTimestamp as firestoreTimestamp, enableIndexedDbPersistence } from "firebase/firestore";
 
 // Firebase configuration
 const firebaseConfig = {
@@ -19,11 +19,16 @@ export const storage = getStorage(app);
 export const db = getFirestore(app);
 export const serverTimestamp = firestoreTimestamp;
 
-// Enable offline persistence if the app needs to work offline
-// enableIndexedDbPersistence(db).catch((err) => {
-//   if (err.code === 'failed-precondition') {
-//     console.warn('Persistence failed - multiple tabs open');
-//   } else if (err.code === 'unimplemented') {
-//     console.warn('Persistence not available in this browser');
-//   }
-// });
+// Enable offline persistence for better user experience
+// This helps handle intermittent connectivity issues
+try {
+  enableIndexedDbPersistence(db).catch((err) => {
+    if (err.code === 'failed-precondition') {
+      console.warn('Persistence failed - multiple tabs open');
+    } else if (err.code === 'unimplemented') {
+      console.warn('Persistence not available in this browser');
+    }
+  });
+} catch (error) {
+  console.warn('Error enabling offline persistence:', error);
+}

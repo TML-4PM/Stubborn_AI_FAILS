@@ -28,7 +28,14 @@ export const uploadFileToStorage = async (
       },
       (error) => {
         console.error('Upload error:', error);
-        reject(error);
+        // Add more specific error handling for permission issues
+        if (error.code === 'storage/unauthorized') {
+          reject(new Error('Permission denied. Please check your Firebase Storage rules.'));
+        } else if (error.code === 'storage/canceled') {
+          reject(new Error('Upload was canceled.'));
+        } else {
+          reject(error);
+        }
       },
       () => {
         resolve();
@@ -36,6 +43,13 @@ export const uploadFileToStorage = async (
     );
   });
   
-  // Get download URL after upload completes
-  return await getDownloadURL(uploadTask.snapshot.ref);
+  try {
+    // Get download URL after upload completes
+    return await getDownloadURL(uploadTask.snapshot.ref);
+  } catch (error: any) {
+    if (error.code === 'storage/object-not-found') {
+      throw new Error('The uploaded file could not be accessed. Please try again.');
+    }
+    throw error;
+  }
 };

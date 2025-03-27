@@ -39,5 +39,17 @@ export const saveSubmissionToFirestore = async (
     likes: 0
   };
 
-  await addDoc(collection(db, 'submissions'), submissionData);
+  try {
+    await addDoc(collection(db, 'submissions'), submissionData);
+  } catch (error: any) {
+    console.error("Firestore error:", error);
+    
+    if (error.code === 'permission-denied') {
+      throw new Error('Permission denied. Please check your Firestore security rules.');
+    } else if (error.code === 'unavailable') {
+      throw new Error('Firebase service is currently unavailable. Please try again later.');
+    } else {
+      throw error;
+    }
+  }
 };

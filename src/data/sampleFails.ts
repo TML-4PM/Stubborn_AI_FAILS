@@ -1,4 +1,3 @@
-
 export interface AIFail {
   id: string;
   title: string;
@@ -183,3 +182,8 @@ export function getTopTags(): string[] {
     .slice(0, 10)
     .map(entry => entry[0]);
 }
+
+export const addNewFail = (newFail: AIFail): void => {
+  const fails = getAllFails();
+  fails.unshift(newFail);
+};

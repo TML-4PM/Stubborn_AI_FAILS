@@ -1,6 +1,5 @@
 
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { getAllFails, AIFail, addNewFail } from '@/data/sampleFails';
 
 export interface UserSubmission {
   id: string;
@@ -16,9 +15,9 @@ export interface UserSubmission {
 }
 
 /**
- * Saves submission data to Firestore
+ * Saves submission data to local storage and sample data
  */
-export const saveSubmissionToFirestore = async (
+export const saveSubmissionToStorage = async (
   title: string,
   description: string,
   username: string,
@@ -26,30 +25,30 @@ export const saveSubmissionToFirestore = async (
   isUrl: boolean,
   userId?: string
 ): Promise<void> => {
-  const submissionData = {
+  const submissionData: AIFail = {
+    id: crypto.randomUUID(),
     title,
     description,
     username: username || 'Anonymous',
-    image_url: imageUrl,
-    is_url: isUrl,
-    created_at: new Date().toISOString(),
-    timestamp: serverTimestamp(), // Server timestamp for accurate sorting
-    status: 'pending', // For moderation purposes
-    user_id: userId, // Link to user if logged in
-    likes: 0
+    image: imageUrl,
+    timestamp: new Date().toISOString(),
+    likes: 0,
+    category: 'User Submitted',
+    tags: ['user-submitted'],
+    status: 'pending'
   };
 
   try {
-    await addDoc(collection(db, 'submissions'), submissionData);
-  } catch (error: any) {
-    console.error("Firestore error:", error);
+    // Add to sample data (in a real app, this would be a backend API call)
+    addNewFail(submissionData);
     
-    if (error.code === 'permission-denied') {
-      throw new Error('Permission denied. Please check your Firestore security rules.');
-    } else if (error.code === 'unavailable') {
-      throw new Error('Firebase service is currently unavailable. Please try again later.');
-    } else {
-      throw error;
-    }
+    // Also save to localStorage for persistence
+    const existingSubmissions = JSON.parse(localStorage.getItem('userSubmissions') || '[]');
+    existingSubmissions.push(submissionData);
+    localStorage.setItem('userSubmissions', JSON.stringify(existingSubmissions));
+    
+  } catch (error: any) {
+    console.error("Submission error:", error);
+    throw new Error("Failed to save submission. Please try again.");
   }
 };

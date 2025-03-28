@@ -4,7 +4,7 @@ import { toast } from '@/hooks/use-toast';
 import { useUser } from '@/contexts/UserContext';
 import { validateSubmissionForm } from '@/utils/validationUtils';
 import { uploadFileToStorage } from '@/utils/uploadUtils';
-import { saveSubmissionToFirestore, UserSubmission } from '@/utils/submissionUtils';
+import { saveSubmissionToStorage, UserSubmission } from '@/utils/submissionUtils';
 
 export const useSubmissionForm = () => {
   const { user } = useUser();
@@ -103,8 +103,8 @@ export const useSubmissionForm = () => {
 
       setUploadProgress(80);
 
-      // Save submission data to Firestore
-      await saveSubmissionToFirestore(
+      // Save submission data
+      await saveSubmissionToStorage(
         title,
         description,
         username,

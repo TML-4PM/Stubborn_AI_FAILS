@@ -1,3 +1,4 @@
+
 export interface AIFail {
   id: string;
   title: string;
@@ -7,6 +8,7 @@ export interface AIFail {
   date: string;
   likes: number;
   featured: boolean;
+  status?: string;  // Added optional status property
   category?: string;
   comments?: number;
   tags?: string[];

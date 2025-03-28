@@ -68,5 +68,16 @@
       "destination": "https://$host/$1",
       "permanent": true
     }
+  ],
+  "routes": [
+    {
+      "src": "/[^.]+",
+      "dest": "/",
+      "status": 200
+    }
+  ],
+  "domains": [
+    "aioopsies.com",
+    "www.aioopsies.com"
   ]
 }

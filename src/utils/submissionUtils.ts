@@ -30,9 +30,10 @@ export const saveSubmissionToStorage = async (
     title,
     description,
     username: username || 'Anonymous',
-    image: imageUrl,
-    timestamp: new Date().toISOString(),
+    imageUrl: imageUrl, // Fixed property name to match AIFail interface
+    date: new Date().toISOString(),
     likes: 0,
+    featured: false,
     category: 'User Submitted',
     tags: ['user-submitted'],
     status: 'pending'

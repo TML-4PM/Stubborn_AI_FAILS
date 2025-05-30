@@ -2,14 +2,14 @@
 import { initializeApp } from "firebase/app";
 import { getStorage } from "firebase/storage";
 
-// Firebase configuration
+// Firebase configuration using environment variables
 const firebaseConfig = {
-  apiKey: "AIzaSyBD-70n16eYzmTuXGB7VBKv7lyPxH2JXpw",
-  authDomain: "ai-oopsies.firebaseapp.com",
-  projectId: "ai-oopsies",
-  storageBucket: "ai-oopsies.appspot.com",
-  messagingSenderId: "123456789012",
-  appId: "1:123456789012:web:abcdef1234567890abcdef"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyBD-70n16eYzmTuXGB7VBKv7lyPxH2JXpw",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "ai-oopsies.firebaseapp.com",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "ai-oopsies",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "ai-oopsies.appspot.com",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "123456789012",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:123456789012:web:abcdef1234567890abcdef"
 };
 
 // Initialize Firebase

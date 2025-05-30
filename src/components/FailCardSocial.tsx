@@ -6,6 +6,8 @@ import { Badge } from '@/components/ui/badge';
 import LikeButton from '@/components/social/LikeButton';
 import ShareButton from '@/components/social/ShareButton';
 import { formatDistanceToNow } from 'date-fns';
+import { useState } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface FailCardSocialProps {
   id: string;
@@ -23,16 +25,41 @@ interface FailCardSocialProps {
 
 const FailCardSocial = (props: FailCardSocialProps) => {
   const { id, title, imageUrl, username, date, likes, category, tags, aiModel } = props;
+  const [imageLoading, setImageLoading] = useState(true);
+  const [imageError, setImageError] = useState(false);
+  
+  const handleImageLoad = () => {
+    setImageLoading(false);
+  };
+  
+  const handleImageError = () => {
+    setImageLoading(false);
+    setImageError(true);
+  };
   
   return (
     <Card className="overflow-hidden transition-all hover:shadow-md">
       <Link to={`/fail/${id}`} className="block">
         <div className="aspect-[4/3] overflow-hidden relative">
-          <img 
-            src={imageUrl} 
-            alt={title} 
-            className="w-full h-full object-cover transition-transform hover:scale-105"
-          />
+          {imageLoading && (
+            <Skeleton className="w-full h-full absolute inset-0" />
+          )}
+          {!imageError ? (
+            <img 
+              src={imageUrl} 
+              alt={title} 
+              className={`w-full h-full object-cover transition-transform hover:scale-105 ${
+                imageLoading ? 'opacity-0' : 'opacity-100'
+              }`}
+              onLoad={handleImageLoad}
+              onError={handleImageError}
+              loading="lazy"
+            />
+          ) : (
+            <div className="w-full h-full bg-muted flex items-center justify-center">
+              <span className="text-muted-foreground text-sm">Image not available</span>
+            </div>
+          )}
           {category && (
             <Badge className="absolute top-2 left-2 bg-primary/80 hover:bg-primary/80">
               {category}
@@ -40,7 +67,9 @@ const FailCardSocial = (props: FailCardSocialProps) => {
           )}
         </div>
         <CardContent className="p-4">
-          <h3 className="font-bold text-lg line-clamp-2 mb-2">{title}</h3>
+          <h3 className="font-bold text-lg line-clamp-2 mb-2" title={title}>
+            {title}
+          </h3>
           {aiModel && (
             <Badge variant="outline" className="mb-2">
               {aiModel}
@@ -69,7 +98,9 @@ const FailCardSocial = (props: FailCardSocialProps) => {
           </Avatar>
           <div className="text-xs text-muted-foreground">
             <span className="font-medium">{username}</span>
-            <span className="ml-2">{formatDistanceToNow(new Date(date), { addSuffix: true })}</span>
+            <span className="ml-2">
+              {formatDistanceToNow(new Date(date), { addSuffix: true })}
+            </span>
           </div>
         </div>
         

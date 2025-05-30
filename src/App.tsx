@@ -7,6 +7,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { UserProvider } from "@/contexts/UserContext";
 import { initLocalization } from "@/utils/localization";
+import { register as registerSW, setupInstallPrompt } from "@/utils/serviceWorker";
+import { preloadCriticalResources } from "@/utils/seoUtils";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
 import Gallery from "./pages/Gallery";
@@ -35,6 +37,36 @@ const App = () => {
   useEffect(() => {
     // Initialize localization
     initLocalization();
+
+    // Register service worker for offline capabilities
+    registerSW({
+      onSuccess: () => {
+        console.log('Service worker registered successfully');
+      },
+      onUpdate: () => {
+        console.log('New content available, please refresh');
+        // Could show a toast notification here
+      }
+    });
+
+    // Setup PWA install prompt
+    setupInstallPrompt();
+
+    // Preload critical resources for better performance
+    preloadCriticalResources([
+      '/placeholder.svg', // Critical images
+      // Add other critical assets here
+    ]);
+
+    // Performance monitoring
+    if ('performance' in window) {
+      window.addEventListener('load', () => {
+        setTimeout(() => {
+          const perfData = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
+          console.log('Page load time:', perfData.loadEventEnd - perfData.fetchStart, 'ms');
+        }, 0);
+      });
+    }
   }, []);
 
   return (

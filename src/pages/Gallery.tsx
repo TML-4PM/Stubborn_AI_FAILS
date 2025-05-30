@@ -1,13 +1,16 @@
-
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { getAllFails, AIFail } from '@/data/sampleFails';
 import FailCard from '@/components/FailCard';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { Search, Filter, Tag, X } from 'lucide-react';
+import { Filter, Tag, X } from 'lucide-react';
 import { useTransitionNavigation } from '@/hooks/useTransitionNavigation';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { GallerySkeleton } from '@/components/ui/loading-skeleton';
+import EnhancedSearch from '@/components/search/EnhancedSearch';
+import { useDebounce, usePerformanceMonitor } from '@/hooks/usePerformanceOptimization';
+import { updateSEOMetadata, generateStructuredData } from '@/utils/seoUtils';
 
 const Gallery = () => {
   const [allFails, setAllFails] = useState<AIFail[]>([]);
@@ -19,19 +22,35 @@ const Gallery = () => {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [availableTags, setAvailableTags] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
+  const [searchHistory, setSearchHistory] = useState<string[]>([]);
+  
   const { showNotification } = useTransitionNavigation();
+  const { start: startPerf, end: endPerf } = usePerformanceMonitor('gallery-filter');
+
+  // SEO setup
+  useEffect(() => {
+    updateSEOMetadata({
+      title: 'AI Fails Gallery - Hilarious AI Mishaps & Funny AI Responses',
+      description: 'Browse our collection of hilarious AI fails, unexpected responses, and funny AI-generated content. Discover the lighter side of artificial intelligence.',
+      type: 'website',
+      url: window.location.href
+    });
+
+    generateStructuredData('ImageGallery', {
+      name: 'AI Oopsies Gallery',
+      description: 'A collection of hilarious AI fails and unexpected responses',
+      url: window.location.href
+    });
+  }, []);
 
   useEffect(() => {
-    // Scroll to top when component mounts
     window.scrollTo(0, 0);
     
-    // Simulate loading data
     const timer = setTimeout(() => {
       const fails = getAllFails();
       setAllFails(fails);
       setFilteredFails(fails);
       
-      // Extract all unique categories and tags
       const categories = Array.from(new Set(fails.map(fail => fail.category).filter(Boolean) as string[]));
       const tags = Array.from(new Set(fails.flatMap(fail => fail.tags || []).filter(Boolean)));
       
@@ -43,26 +62,54 @@ const Gallery = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  useEffect(() => {
+  // Memoized search suggestions
+  const searchSuggestions = useMemo(() => {
+    if (!searchTerm || searchTerm.length < 2) return [];
+    
+    const suggestions = [
+      ...availableCategories
+        .filter(cat => cat.toLowerCase().includes(searchTerm.toLowerCase()))
+        .map(cat => ({
+          id: `category-${cat}`,
+          text: cat,
+          type: 'suggestion' as const,
+          count: allFails.filter(fail => fail.category === cat).length
+        })),
+      ...availableTags
+        .filter(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
+        .map(tag => ({
+          id: `tag-${tag}`,
+          text: tag,
+          type: 'suggestion' as const,
+          count: allFails.filter(fail => fail.tags?.includes(tag)).length
+        }))
+    ].slice(0, 5);
+
+    return suggestions;
+  }, [searchTerm, availableCategories, availableTags, allFails]);
+
+  const debouncedFilter = useDebounce(() => {
+    startPerf();
+    
     let filtered = [...allFails];
     
-    // Filter by search term
     if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
       filtered = filtered.filter(fail => 
-        fail.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-        fail.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        fail.username.toLowerCase().includes(searchTerm.toLowerCase())
+        fail.title.toLowerCase().includes(searchLower) || 
+        fail.description.toLowerCase().includes(searchLower) ||
+        fail.username.toLowerCase().includes(searchLower) ||
+        fail.tags?.some(tag => tag.toLowerCase().includes(searchLower)) ||
+        fail.category?.toLowerCase().includes(searchLower)
       );
     }
     
-    // Filter by selected categories
     if (selectedCategories.length > 0) {
       filtered = filtered.filter(fail => 
         fail.category && selectedCategories.includes(fail.category)
       );
     }
     
-    // Filter by selected tags
     if (selectedTags.length > 0) {
       filtered = filtered.filter(fail => 
         fail.tags && fail.tags.some(tag => selectedTags.includes(tag))
@@ -70,15 +117,23 @@ const Gallery = () => {
     }
     
     setFilteredFails(filtered);
+    endPerf();
     
     if (filtered.length === 0 && allFails.length > 0) {
       showNotification("No results match your filters", "error");
     }
-  }, [searchTerm, selectedCategories, selectedTags, allFails, showNotification]);
+  }, 300);
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Already handled by the useEffect
+  useEffect(() => {
+    debouncedFilter();
+  }, [searchTerm, selectedCategories, selectedTags, allFails, debouncedFilter]);
+
+  const handleSearch = (query: string) => {
+    setSearchTerm(query);
+    
+    if (query.trim() && !searchHistory.includes(query)) {
+      setSearchHistory(prev => [query, ...prev.slice(0, 4)]);
+    }
   };
 
   const toggleCategory = (category: string) => {
@@ -119,25 +174,14 @@ const Gallery = () => {
           
           <div className="mb-8">
             <div className="flex flex-col md:flex-row gap-4 max-w-4xl mx-auto">
-              <form onSubmit={handleSearch} className="relative flex-grow">
-                <input
-                  type="text"
-                  placeholder="Search by title, description or username..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full px-4 py-3 pl-10 rounded-full border focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
-                />
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
-                {searchTerm && (
-                  <button 
-                    type="button" 
-                    onClick={() => setSearchTerm('')}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground p-1"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                )}
-              </form>
+              <EnhancedSearch
+                value={searchTerm}
+                onChange={setSearchTerm}
+                onSearch={handleSearch}
+                suggestions={searchSuggestions}
+                searchHistory={searchHistory}
+                className="flex-grow"
+              />
               
               <Button 
                 variant="outline"
@@ -211,14 +255,7 @@ const Gallery = () => {
           )}
           
           {isLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {[...Array(8)].map((_, index) => (
-                <div
-                  key={index}
-                  className="rounded-xl bg-muted animate-pulse h-72"
-                />
-              ))}
-            </div>
+            <GallerySkeleton />
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 animate-fade-in">
               {filteredFails.map((fail, index) => (

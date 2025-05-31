@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,6 +6,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useContentDiscovery } from '@/hooks/useContentDiscovery';
 import { Bot, Search, Clock, CheckCircle, XCircle, ExternalLink, AlertTriangle, Loader2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import ScheduleManager from './ScheduleManager';
 
 interface PendingContent {
   id: string;
@@ -126,6 +126,8 @@ const ContentDiscoveryPanel = () => {
 
   return (
     <div className="space-y-6">
+      <ScheduleManager />
+      
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">

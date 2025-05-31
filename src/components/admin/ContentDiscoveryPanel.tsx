@@ -3,9 +3,9 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useContentDiscovery } from '@/hooks/useContentDiscovery';
-import { Bot, Search, Clock, CheckCircle, XCircle, ExternalLink } from 'lucide-react';
+import { Bot, Search, Clock, CheckCircle, XCircle, ExternalLink, AlertTriangle, Loader2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 interface PendingContent {
@@ -24,6 +24,9 @@ interface PendingContent {
 const ContentDiscoveryPanel = () => {
   const [pendingContent, setPendingContent] = useState<PendingContent[]>([]);
   const [selectedPlatform, setSelectedPlatform] = useState('reddit');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
   
   const {
     isDiscovering,
@@ -32,12 +35,23 @@ const ContentDiscoveryPanel = () => {
     scheduleDiscovery,
     getPendingContent,
     approveContent,
-    rejectContent
+    rejectContent,
+    getDiscoveryMetrics
   } = useContentDiscovery();
 
   const loadPendingContent = async () => {
-    const content = await getPendingContent();
-    setPendingContent(content || []);
+    try {
+      setIsLoading(true);
+      setError(null);
+      const content = await getPendingContent();
+      setPendingContent(content || []);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load pending content';
+      setError(errorMessage);
+      console.error('Error loading pending content:', err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -45,18 +59,69 @@ const ContentDiscoveryPanel = () => {
   }, []);
 
   const handleApprove = async (id: string) => {
-    await approveContent(id);
-    await loadPendingContent();
+    try {
+      setProcessingIds(prev => new Set(prev).add(id));
+      await approveContent(id);
+      await loadPendingContent();
+    } catch (err) {
+      console.error('Error approving content:', err);
+    } finally {
+      setProcessingIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(id);
+        return newSet;
+      });
+    }
   };
 
   const handleReject = async (id: string) => {
-    await rejectContent(id);
-    await loadPendingContent();
+    try {
+      setProcessingIds(prev => new Set(prev).add(id));
+      await rejectContent(id);
+      await loadPendingContent();
+    } catch (err) {
+      console.error('Error rejecting content:', err);
+    } finally {
+      setProcessingIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(id);
+        return newSet;
+      });
+    }
   };
 
   const handleDiscover = async () => {
-    await triggerDiscovery(selectedPlatform);
-    setTimeout(loadPendingContent, 2000); // Refresh after 2 seconds
+    try {
+      setError(null);
+      const result = await triggerDiscovery(selectedPlatform);
+      if (result) {
+        console.log('Discovery completed:', result);
+        // Refresh pending content after a short delay
+        setTimeout(loadPendingContent, 2000);
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Discovery failed';
+      setError(errorMessage);
+      console.error('Discovery error:', err);
+    }
+  };
+
+  const handleScheduleDiscovery = async () => {
+    try {
+      setError(null);
+      await scheduleDiscovery();
+      setTimeout(loadPendingContent, 3000);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to schedule discovery';
+      setError(errorMessage);
+      console.error('Schedule error:', err);
+    }
+  };
+
+  const getConfidenceBadgeVariant = (score: number) => {
+    if (score >= 0.8) return "default";
+    if (score >= 0.6) return "secondary";
+    return "outline";
   };
 
   return (
@@ -69,11 +134,19 @@ const ContentDiscoveryPanel = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center gap-4">
+          {error && (
+            <Alert variant="destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+          
+          <div className="flex items-center gap-4 flex-wrap">
             <select
               value={selectedPlatform}
               onChange={(e) => setSelectedPlatform(e.target.value)}
-              className="px-3 py-2 border rounded-lg"
+              className="px-3 py-2 border rounded-lg min-w-[120px]"
+              disabled={isDiscovering}
             >
               <option value="reddit">Reddit</option>
               <option value="hackernews">Hacker News</option>
@@ -84,17 +157,35 @@ const ContentDiscoveryPanel = () => {
               disabled={isDiscovering}
               className="flex items-center"
             >
-              <Search className="w-4 h-4 mr-2" />
+              {isDiscovering ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Search className="w-4 h-4 mr-2" />
+              )}
               {isDiscovering ? 'Discovering...' : 'Discover Content'}
             </Button>
             
             <Button 
-              onClick={scheduleDiscovery}
+              onClick={handleScheduleDiscovery}
               variant="outline"
               className="flex items-center"
+              disabled={isDiscovering}
             >
               <Clock className="w-4 h-4 mr-2" />
               Schedule Discovery
+            </Button>
+
+            <Button 
+              onClick={loadPendingContent}
+              variant="ghost"
+              className="flex items-center"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                'Refresh'
+              )}
             </Button>
           </div>
           
@@ -108,10 +199,18 @@ const ContentDiscoveryPanel = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Pending Content Review ({pendingContent.length})</CardTitle>
+          <CardTitle className="flex items-center justify-between">
+            <span>Pending Content Review</span>
+            <Badge variant="secondary">{pendingContent.length}</Badge>
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          {pendingContent.length === 0 ? (
+          {isLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="w-6 h-6 animate-spin mr-2" />
+              Loading pending content...
+            </div>
+          ) : pendingContent.length === 0 ? (
             <p className="text-muted-foreground text-center py-8">
               No pending content to review
             </p>
@@ -120,9 +219,9 @@ const ContentDiscoveryPanel = () => {
               {pendingContent.map((item) => (
                 <div key={item.id} className="border rounded-lg p-4 space-y-3">
                   <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <h3 className="font-semibold line-clamp-2">{item.title}</h3>
-                      <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold line-clamp-2 break-words">{item.title}</h3>
+                      <p className="text-sm text-muted-foreground line-clamp-2 mt-1 break-words">
                         {item.description}
                       </p>
                     </div>
@@ -130,17 +229,20 @@ const ContentDiscoveryPanel = () => {
                       <img 
                         src={item.image_url} 
                         alt="Preview"
-                        className="w-16 h-16 object-cover rounded ml-4"
+                        className="w-16 h-16 object-cover rounded ml-4 flex-shrink-0"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                        }}
                       />
                     )}
                   </div>
                   
                   <div className="flex items-center gap-2 flex-wrap">
-                    <Badge variant="outline">{item.source_platform}</Badge>
+                    <Badge variant="outline" className="capitalize">
+                      {item.source_platform}
+                    </Badge>
                     <Badge variant="secondary">{item.category}</Badge>
-                    <Badge 
-                      variant={item.confidence_score > 0.7 ? "default" : "secondary"}
-                    >
+                    <Badge variant={getConfidenceBadgeVariant(item.confidence_score)}>
                       {Math.round(item.confidence_score * 100)}% confidence
                     </Badge>
                     <Badge variant="outline">
@@ -149,7 +251,7 @@ const ContentDiscoveryPanel = () => {
                   </div>
                   
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-4">
                       <a 
                         href={item.source_url} 
                         target="_blank" 
@@ -167,18 +269,28 @@ const ContentDiscoveryPanel = () => {
                       <Button
                         size="sm"
                         onClick={() => handleApprove(item.id)}
+                        disabled={processingIds.has(item.id)}
                         className="flex items-center"
                       >
-                        <CheckCircle className="w-4 h-4 mr-1" />
+                        {processingIds.has(item.id) ? (
+                          <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                        ) : (
+                          <CheckCircle className="w-4 h-4 mr-1" />
+                        )}
                         Approve
                       </Button>
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => handleReject(item.id)}
+                        disabled={processingIds.has(item.id)}
                         className="flex items-center"
                       >
-                        <XCircle className="w-4 h-4 mr-1" />
+                        {processingIds.has(item.id) ? (
+                          <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                        ) : (
+                          <XCircle className="w-4 h-4 mr-1" />
+                        )}
                         Reject
                       </Button>
                     </div>

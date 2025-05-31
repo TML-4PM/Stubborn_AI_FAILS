@@ -7,6 +7,9 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// System user ID - should be created in profiles table
+const SYSTEM_USER_ID = '00000000-0000-0000-0000-000000000000';
+
 interface RedditPost {
   id: string;
   title: string;
@@ -30,6 +33,7 @@ interface DiscoveredContent {
   confidence_score: number;
   category: string;
   viral_score: number;
+  keywords: string[];
 }
 
 serve(async (req) => {
@@ -45,7 +49,16 @@ serve(async (req) => {
 
     const { platform = 'reddit' } = await req.json().catch(() => ({}))
 
+    // Validate platform
+    const validPlatforms = ['reddit', 'hackernews'];
+    if (!validPlatforms.includes(platform)) {
+      throw new Error(`Invalid platform: ${platform}. Must be one of: ${validPlatforms.join(', ')}`);
+    }
+
     console.log(`Starting content discovery for platform: ${platform}`)
+
+    // Ensure system user exists
+    await ensureSystemUserExists(supabase);
 
     let discoveredContent: DiscoveredContent[] = []
 
@@ -55,16 +68,25 @@ serve(async (req) => {
       discoveredContent = await discoverFromHackerNews()
     }
 
-    // Process and store discovered content
+    // Validate and store discovered content
+    let storedCount = 0;
     for (const content of discoveredContent) {
-      await storeDiscoveredContent(supabase, content)
+      const validationResult = validateDiscoveredContent(content);
+      if (validationResult.isValid) {
+        const stored = await storeDiscoveredContent(supabase, content);
+        if (stored) storedCount++;
+      } else {
+        console.warn('Invalid content skipped:', validationResult.errors);
+      }
     }
 
     return new Response(
       JSON.stringify({ 
         success: true, 
         discovered: discoveredContent.length,
-        platform 
+        stored: storedCount,
+        platform,
+        timestamp: new Date().toISOString()
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -74,24 +96,87 @@ serve(async (req) => {
   } catch (error) {
     console.error('Discovery error:', error)
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message,
+        code: error.code || 'UNKNOWN_ERROR',
+        timestamp: new Date().toISOString()
+      }),
       { 
-        status: 500,
+        status: error.status || 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       }
     )
   }
 })
 
+async function ensureSystemUserExists(supabase: any): Promise<void> {
+  const { data: existingProfile } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('user_id', SYSTEM_USER_ID)
+    .single();
+
+  if (!existingProfile) {
+    const { error } = await supabase
+      .from('profiles')
+      .insert({
+        user_id: SYSTEM_USER_ID,
+        username: 'ai_discovery_system',
+        full_name: 'AI Discovery System',
+        bio: 'Automated content discovery system'
+      });
+
+    if (error) {
+      console.error('Error creating system user:', error);
+    } else {
+      console.log('System user profile created successfully');
+    }
+  }
+}
+
+function validateDiscoveredContent(content: DiscoveredContent): { isValid: boolean; errors: string[] } {
+  const errors: string[] = [];
+
+  if (!content.title || content.title.length < 5 || content.title.length > 300) {
+    errors.push('Title must be between 5 and 300 characters');
+  }
+
+  if (!content.description || content.description.length < 10 || content.description.length > 1000) {
+    errors.push('Description must be between 10 and 1000 characters');
+  }
+
+  if (!content.source_url || !isValidUrl(content.source_url)) {
+    errors.push('Valid source URL is required');
+  }
+
+  if (!['reddit', 'hackernews', 'twitter', 'github'].includes(content.source_platform)) {
+    errors.push('Invalid source platform');
+  }
+
+  if (content.confidence_score < 0 || content.confidence_score > 1) {
+    errors.push('Confidence score must be between 0 and 1');
+  }
+
+  if (content.viral_score < 0 || content.viral_score > 100) {
+    errors.push('Viral score must be between 0 and 100');
+  }
+
+  return { isValid: errors.length === 0, errors };
+}
+
+function isValidUrl(url: string): boolean {
+  try {
+    new URL(url);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function discoverFromReddit(): Promise<DiscoveredContent[]> {
   const subreddits = [
-    'ChatGPTfails',
-    'weirddalle', 
-    'MediaSynthesis',
-    'artificial',
-    'ChatGPT',
-    'OpenAI',
-    'MachineLearning'
+    'ChatGPTfails', 'weirddalle', 'MediaSynthesis', 'artificial',
+    'ChatGPT', 'OpenAI', 'MachineLearning', 'deeplearning'
   ]
 
   const discoveries: DiscoveredContent[] = []
@@ -104,12 +189,15 @@ async function discoverFromReddit(): Promise<DiscoveredContent[]> {
         `https://www.reddit.com/r/${subreddit}/hot.json?limit=25`,
         {
           headers: {
-            'User-Agent': 'AI-Fail-Discovery-Bot/1.0'
+            'User-Agent': 'AI-Fail-Discovery-Bot/2.0 (Content Discovery)'
           }
         }
       )
 
-      if (!response.ok) continue
+      if (!response.ok) {
+        console.warn(`Failed to fetch r/${subreddit}: ${response.status}`);
+        continue;
+      }
 
       const data = await response.json()
       const posts = data.data?.children || []
@@ -117,17 +205,17 @@ async function discoverFromReddit(): Promise<DiscoveredContent[]> {
       for (const postWrapper of posts) {
         const post: RedditPost = postWrapper.data
         
-        // Filter for potential AI fails
-        if (await isLikelyAIFail(post)) {
-          const content = await processRedditPost(post)
+        const analysis = analyzePostForAIFails(post);
+        if (analysis.isLikelyAIFail && analysis.confidence > 0.6) {
+          const content = await processRedditPost(post, analysis);
           if (content) {
-            discoveries.push(content)
+            discoveries.push(content);
           }
         }
       }
 
-      // Rate limiting - wait between subreddit requests
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      // Rate limiting
+      await new Promise(resolve => setTimeout(resolve, 1500))
       
     } catch (error) {
       console.error(`Error fetching from r/${subreddit}:`, error)
@@ -137,169 +225,173 @@ async function discoverFromReddit(): Promise<DiscoveredContent[]> {
   return discoveries
 }
 
-async function discoverFromHackerNews(): Promise<DiscoveredContent[]> {
-  const discoveries: DiscoveredContent[] = []
+function analyzePostForAIFails(post: RedditPost): { isLikelyAIFail: boolean; confidence: number; keywords: string[]; category: string } {
+  const combined = (post.title + ' ' + post.selftext).toLowerCase();
+  const keywords: string[] = [];
+  let confidence = 0.1;
 
-  try {
-    // Get recent stories
-    const response = await fetch('https://hacker-news.firebaseio.com/v0/newstories.json')
-    const storyIds = await response.json()
-    
-    // Check first 50 recent stories
-    for (const id of storyIds.slice(0, 50)) {
-      const storyResponse = await fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`)
-      const story = await storyResponse.json()
-      
-      if (story && await isLikelyAIFailHN(story)) {
-        const content = await processHNStory(story)
-        if (content) {
-          discoveries.push(content)
-        }
-      }
-      
-      // Rate limiting
-      await new Promise(resolve => setTimeout(resolve, 100))
-    }
-  } catch (error) {
-    console.error('Error fetching from HackerNews:', error)
+  // AI keywords
+  const aiKeywords = ['chatgpt', 'gpt', 'dalle', 'midjourney', 'ai', 'artificial intelligence'];
+  const foundAI = aiKeywords.filter(k => combined.includes(k));
+  if (foundAI.length > 0) {
+    confidence += 0.3;
+    keywords.push(...foundAI);
   }
 
-  return discoveries
+  // Fail keywords  
+  const failKeywords = ['fail', 'wrong', 'mistake', 'error', 'weird', 'broken'];
+  const foundFail = failKeywords.filter(k => combined.includes(k));
+  if (foundFail.length > 0) {
+    confidence += 0.25;
+    keywords.push(...foundFail);
+  }
+
+  // Engagement
+  if (post.ups > 50) confidence += 0.15;
+  if (post.num_comments > 20) confidence += 0.1;
+
+  // Subreddit relevance
+  const relevantSubs = ['chatgptfails', 'weirddalle', 'mediasynthesis'];
+  if (relevantSubs.includes(post.subreddit.toLowerCase())) {
+    confidence += 0.2;
+  }
+
+  const category = determineCategory(combined);
+  const isLikelyAIFail = confidence > 0.6 && foundAI.length > 0;
+
+  return { isLikelyAIFail, confidence, keywords, category };
 }
 
-async function isLikelyAIFail(post: RedditPost): Promise<boolean> {
-  const failKeywords = [
-    'fail', 'wrong', 'mistake', 'error', 'bug', 'glitch',
-    'weird', 'strange', 'broken', 'wtf', 'hilarious',
-    'chatgpt', 'gpt', 'dalle', 'midjourney', 'ai', 'artificial intelligence'
-  ]
-
-  const title = post.title.toLowerCase()
-  const text = post.selftext.toLowerCase()
-  const combined = title + ' ' + text
-
-  const hasFailKeywords = failKeywords.some(keyword => combined.includes(keyword))
-  const hasGoodEngagement = post.ups > 5 || post.num_comments > 2
-  const isNotTooOld = (Date.now() / 1000 - post.created_utc) < (7 * 24 * 60 * 60) // Within a week
-
-  return hasFailKeywords && hasGoodEngagement && isNotTooOld
+function determineCategory(text: string): string {
+  if (text.includes('dalle') || text.includes('midjourney')) return 'Image Generation';
+  if (text.includes('chatgpt') || text.includes('gpt')) return 'Chat AI';
+  if (text.includes('code') || text.includes('programming')) return 'Code Generation';
+  if (text.includes('video') || text.includes('music')) return 'Media Generation';
+  return 'General AI';
 }
 
-async function isLikelyAIFailHN(story: any): Promise<boolean> {
-  if (!story.title) return false
-  
-  const title = story.title.toLowerCase()
-  const hasAI = title.includes('ai ') || title.includes('gpt') || title.includes('artificial intelligence')
-  const hasFail = title.includes('fail') || title.includes('wrong') || title.includes('mistake')
-  
-  return hasAI && (hasFail || story.score > 50)
-}
-
-async function processRedditPost(post: RedditPost): Promise<DiscoveredContent | null> {
+async function processRedditPost(post: RedditPost, analysis: any): Promise<DiscoveredContent | null> {
   try {
-    const confidence = calculateConfidenceScore(post)
-    
-    // Extract image URL
-    let imageUrl = null
-    if (post.thumbnail && post.thumbnail.startsWith('http')) {
-      imageUrl = post.thumbnail
-    } else if (post.url && (post.url.includes('.jpg') || post.url.includes('.png') || post.url.includes('.gif'))) {
-      imageUrl = post.url
+    let imageUrl = null;
+    if (post.thumbnail && post.thumbnail.startsWith('http') && post.thumbnail !== 'self') {
+      imageUrl = post.thumbnail;
+    } else if (post.url && isImageUrl(post.url)) {
+      imageUrl = post.url;
     }
 
-    const category = determineCategory(post.title + ' ' + post.selftext)
-    const viralScore = calculateViralScore(post.ups, post.num_comments, 0, post.created_utc)
+    const viralScore = calculateViralScore(post.ups, post.num_comments, 0, post.created_utc);
 
     return {
-      title: cleanTitle(post.title),
-      description: cleanDescription(post.selftext || post.title),
+      title: sanitizeText(post.title, 200),
+      description: sanitizeText(post.selftext || post.title, 500),
       image_url: imageUrl,
       source_url: `https://reddit.com${post.permalink}`,
       source_platform: 'reddit',
-      confidence_score: confidence,
-      category,
-      viral_score: viralScore
-    }
+      confidence_score: Math.min(analysis.confidence, 1.0),
+      category: analysis.category,
+      viral_score: viralScore,
+      keywords: analysis.keywords
+    };
   } catch (error) {
-    console.error('Error processing Reddit post:', error)
-    return null
+    console.error('Error processing Reddit post:', error);
+    return null;
   }
 }
 
-async function processHNStory(story: any): Promise<DiscoveredContent | null> {
+function isImageUrl(url: string): boolean {
+  const imageExts = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
+  return imageExts.some(ext => url.toLowerCase().includes(ext)) ||
+         url.includes('imgur.com') || url.includes('i.redd.it');
+}
+
+function sanitizeText(text: string, maxLength: number): string {
+  if (!text) return '';
+  return text
+    .replace(/[<>\"']/g, '')
+    .replace(/\[.*?\]/g, '')
+    .replace(/\n+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .substring(0, maxLength);
+}
+
+function calculateViralScore(ups: number, comments: number, shares: number, createdUtc: number): number {
+  const hoursOld = (Date.now() / 1000 - createdUtc) / 3600;
+  const engagementScore = (ups * 1.0) + (comments * 2.0) + (shares * 3.0);
+  return Math.round((engagementScore / Math.pow(hoursOld + 1, 0.8)) * 100) / 100;
+}
+
+async function discoverFromHackerNews(): Promise<DiscoveredContent[]> {
+  const discoveries: DiscoveredContent[] = [];
+
+  try {
+    const response = await fetch('https://hacker-news.firebaseio.com/v0/newstories.json');
+    if (!response.ok) return discoveries;
+
+    const storyIds = await response.json();
+    
+    for (const id of storyIds.slice(0, 50)) {
+      try {
+        const storyResponse = await fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`);
+        if (!storyResponse.ok) continue;
+
+        const story = await storyResponse.json();
+        
+        if (story && isLikelyAIFailHN(story)) {
+          const content = processHNStory(story);
+          if (content) discoveries.push(content);
+        }
+        
+        await new Promise(resolve => setTimeout(resolve, 100));
+      } catch (error) {
+        console.error(`Error fetching HN story ${id}:`, error);
+      }
+    }
+  } catch (error) {
+    console.error('Error fetching from HackerNews:', error);
+  }
+
+  return discoveries;
+}
+
+function isLikelyAIFailHN(story: any): boolean {
+  if (!story.title) return false;
+  const title = story.title.toLowerCase();
+  const hasAI = title.includes('ai ') || title.includes('gpt') || title.includes('artificial intelligence');
+  const hasFail = title.includes('fail') || title.includes('wrong') || title.includes('mistake');
+  return hasAI && (hasFail || story.score > 50);
+}
+
+function processHNStory(story: any): DiscoveredContent | null {
   try {
     return {
-      title: cleanTitle(story.title),
-      description: story.text ? cleanDescription(story.text) : story.title,
+      title: sanitizeText(story.title, 200),
+      description: sanitizeText(story.text || story.title, 500),
       source_url: story.url || `https://news.ycombinator.com/item?id=${story.id}`,
       source_platform: 'hackernews',
       confidence_score: 0.7,
       category: 'Tech Discussion',
-      viral_score: Math.min(story.score / 10, 10)
-    }
+      viral_score: Math.min(story.score / 10, 10),
+      keywords: ['hackernews', 'tech']
+    };
   } catch (error) {
-    console.error('Error processing HN story:', error)
-    return null
+    console.error('Error processing HN story:', error);
+    return null;
   }
 }
 
-function calculateConfidenceScore(post: RedditPost): number {
-  let score = 0.5 // Base score
-
-  // Increase confidence based on engagement
-  if (post.ups > 50) score += 0.2
-  if (post.num_comments > 10) score += 0.2
-
-  // Increase confidence for relevant subreddits
-  const relevantSubs = ['chatgptfails', 'weirddalle', 'mediasynthesis']
-  if (relevantSubs.includes(post.subreddit.toLowerCase())) {
-    score += 0.3
-  }
-
-  return Math.min(score, 1.0)
-}
-
-function determineCategory(text: string): string {
-  const lower = text.toLowerCase()
-  
-  if (lower.includes('dalle') || lower.includes('midjourney') || lower.includes('stable diffusion')) {
-    return 'Image Generation'
-  } else if (lower.includes('chatgpt') || lower.includes('gpt') || lower.includes('conversation')) {
-    return 'Chat AI'
-  } else if (lower.includes('code') || lower.includes('programming')) {
-    return 'Code Generation'
-  } else if (lower.includes('video') || lower.includes('music')) {
-    return 'Media Generation'
-  }
-  
-  return 'General AI'
-}
-
-function calculateViralScore(ups: number, comments: number, shares: number, createdUtc: number): number {
-  const hoursOld = (Date.now() / 1000 - createdUtc) / 3600
-  return ((ups * 1.0) + (comments * 2.0) + (shares * 3.0)) / Math.pow(hoursOld + 1, 0.8)
-}
-
-function cleanTitle(title: string): string {
-  return title.replace(/^\[.*?\]\s*/, '').replace(/\s+/g, ' ').trim().substring(0, 200)
-}
-
-function cleanDescription(text: string): string {
-  return text.replace(/\n+/g, ' ').replace(/\s+/g, ' ').trim().substring(0, 500)
-}
-
-async function storeDiscoveredContent(supabase: any, content: DiscoveredContent) {
+async function storeDiscoveredContent(supabase: any, content: DiscoveredContent): Promise<boolean> {
   try {
-    // Check if content already exists
+    // Check for duplicates
     const { data: existing } = await supabase
       .from('oopsies')
       .select('id')
       .eq('source_url', content.source_url)
-      .single()
+      .single();
 
     if (existing) {
-      console.log('Content already exists, skipping:', content.source_url)
-      return
+      console.log('Content already exists, skipping:', content.source_url);
+      return false;
     }
 
     // Insert new content
@@ -317,19 +409,23 @@ async function storeDiscoveredContent(supabase: any, content: DiscoveredContent)
         auto_generated: true,
         review_status: 'pending',
         status: 'pending',
-        user_id: '00000000-0000-0000-0000-000000000000', // System user
+        user_id: SYSTEM_USER_ID,
         likes: 0,
         comments: 0,
         shares: 0,
-        is_featured: content.viral_score > 5
-      })
+        is_featured: content.viral_score > 5,
+        discovery_date: new Date().toISOString()
+      });
 
     if (error) {
-      console.error('Error storing content:', error)
-    } else {
-      console.log('Stored new content:', content.title)
+      console.error('Error storing content:', error);
+      return false;
     }
+
+    console.log('Stored new content:', content.title);
+    return true;
   } catch (error) {
-    console.error('Error in storeDiscoveredContent:', error)
+    console.error('Error in storeDiscoveredContent:', error);
+    return false;
   }
 }

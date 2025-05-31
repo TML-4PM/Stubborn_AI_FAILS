@@ -58,7 +58,7 @@ const EnhancedSearch = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const allSuggestions = [
+  const allSuggestions: SearchSuggestion[] = [
     ...searchHistory.slice(0, 3).map(item => ({
       id: `history-${item}`,
       text: item,

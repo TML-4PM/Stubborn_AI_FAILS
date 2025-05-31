@@ -1,9 +1,10 @@
+
 import { useState, useEffect, useMemo } from 'react';
 import { getAllFails, AIFail } from '@/data/sampleFails';
 import FailCard from '@/components/FailCard';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { Filter, Tag, X } from 'lucide-react';
+import { Filter, Tag, X, Search } from 'lucide-react';
 import { useTransitionNavigation } from '@/hooks/useTransitionNavigation';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';

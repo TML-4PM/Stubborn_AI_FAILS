@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, Bot, Home, Image, Upload, Youtube, Info, Heart } from 'lucide-react';
@@ -33,6 +32,9 @@ const Navbar = () => {
     { name: 'Donate', href: '/donate', icon: Heart },
   ];
 
+  // Add admin link for authenticated users
+  const adminNavigation = user ? [...navigation, { name: 'Admin', href: '/admin', icon: Bot }] : navigation;
+
   const isActive = (path: string) => {
     if (path === '/' && location.pathname === '/') return true;
     if (path !== '/' && location.pathname.startsWith(path)) return true;
@@ -58,7 +60,7 @@ const Navbar = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-1">
-            {navigation.map((item) => {
+            {adminNavigation.map((item) => {
               const Icon = item.icon;
               return (
                 <Link
@@ -102,7 +104,7 @@ const Navbar = () => {
                   </div>
                   
                   <nav className="flex-1 space-y-2">
-                    {navigation.map((item) => {
+                    {adminNavigation.map((item) => {
                       const Icon = item.icon;
                       return (
                         <Link

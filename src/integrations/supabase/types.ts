@@ -9,6 +9,48 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      animals: {
+        Row: {
+          category: string
+          created_at: string
+          danger_level: number
+          description: string
+          facts: string[]
+          id: string
+          image_url: string | null
+          kills_per_year: number
+          locations: string[]
+          name: string
+          rarity: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          danger_level: number
+          description: string
+          facts?: string[]
+          id?: string
+          image_url?: string | null
+          kills_per_year?: number
+          locations?: string[]
+          name: string
+          rarity: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          danger_level?: number
+          description?: string
+          facts?: string[]
+          id?: string
+          image_url?: string | null
+          kills_per_year?: number
+          locations?: string[]
+          name?: string
+          rarity?: string
+        }
+        Relationships: []
+      }
       content_sources: {
         Row: {
           created_at: string | null
@@ -33,6 +75,51 @@ export type Database = {
           last_checked?: string | null
           platform?: string
           source_id?: string
+        }
+        Relationships: []
+      }
+      insurance_policies: {
+        Row: {
+          coverage_amount: number
+          coverage_duration_days: number
+          covered_animals: string[]
+          covered_regions: string[]
+          created_at: string
+          description: string
+          exclusions: string[]
+          id: string
+          is_active: boolean
+          name: string
+          price: number
+          requirements: string[]
+        }
+        Insert: {
+          coverage_amount: number
+          coverage_duration_days?: number
+          covered_animals?: string[]
+          covered_regions?: string[]
+          created_at?: string
+          description: string
+          exclusions?: string[]
+          id?: string
+          is_active?: boolean
+          name: string
+          price: number
+          requirements?: string[]
+        }
+        Update: {
+          coverage_amount?: number
+          coverage_duration_days?: number
+          covered_animals?: string[]
+          covered_regions?: string[]
+          created_at?: string
+          description?: string
+          exclusions?: string[]
+          id?: string
+          is_active?: boolean
+          name?: string
+          price?: number
+          requirements?: string[]
         }
         Relationships: []
       }
@@ -142,6 +229,62 @@ export type Database = {
           viral_score?: number
         }
         Relationships: []
+      }
+      predator_encounters: {
+        Row: {
+          animal_id: string
+          created_at: string
+          description: string
+          encounter_date: string
+          id: string
+          image_url: string | null
+          insurance_claim_filed: boolean
+          latitude: number | null
+          location: string
+          longitude: number | null
+          severity: string
+          user_id: string | null
+          verified: boolean
+        }
+        Insert: {
+          animal_id: string
+          created_at?: string
+          description: string
+          encounter_date: string
+          id?: string
+          image_url?: string | null
+          insurance_claim_filed?: boolean
+          latitude?: number | null
+          location: string
+          longitude?: number | null
+          severity: string
+          user_id?: string | null
+          verified?: boolean
+        }
+        Update: {
+          animal_id?: string
+          created_at?: string
+          description?: string
+          encounter_date?: string
+          id?: string
+          image_url?: string | null
+          insurance_claim_filed?: boolean
+          latitude?: number | null
+          location?: string
+          longitude?: number | null
+          severity?: string
+          user_id?: string | null
+          verified?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "predator_encounters_animal_id_fkey"
+            columns: ["animal_id"]
+            isOneToOne: false
+            referencedRelation: "animals"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {

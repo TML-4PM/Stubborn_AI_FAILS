@@ -4,7 +4,8 @@ import { loadStripe } from '@stripe/stripe-js';
 import { Button } from '@/components/ui/button';
 import { CreditCard, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { STRIPE_PUBLISHABLE_KEY, STRIPE_SUCCESS_URL, STRIPE_CANCEL_URL, getApiUrl } from '@/utils/stripeConfig';
+import { supabase } from '@/integrations/supabase/client';
+import { STRIPE_PUBLISHABLE_KEY } from '@/utils/stripeConfig';
 
 // Initialize Stripe with your publishable key
 const stripePromise = loadStripe(STRIPE_PUBLISHABLE_KEY);
@@ -36,37 +37,37 @@ const StripeCheckout = ({ amount, onSuccess }: StripeCheckoutProps) => {
         throw new Error("Failed to load Stripe");
       }
 
-      // Get the appropriate API URL
-      const checkoutApiUrl = getApiUrl();
-
-      // Create a checkout session
-      const response = await fetch(checkoutApiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          amount: Math.round(amount * 100), // Convert to cents
-          mode: 'payment',
-          successUrl: window.location.origin + STRIPE_SUCCESS_URL,
-          cancelUrl: window.location.origin + STRIPE_CANCEL_URL,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to create checkout session');
+      // Get auth token for the request
+      const { data: { session } } = await supabase.auth.getSession();
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      
+      if (session?.access_token) {
+        headers['Authorization'] = `Bearer ${session.access_token}`;
       }
 
-      const { sessionId } = await response.json();
-
-      // Redirect to checkout
-      const { error } = await stripe.redirectToCheckout({
-        sessionId,
+      // Create checkout session using Supabase edge function
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: { amount },
+        headers,
       });
 
       if (error) {
-        throw error;
+        throw new Error(error.message || 'Failed to create checkout session');
+      }
+
+      if (!data?.sessionId) {
+        throw new Error('No session ID returned from server');
+      }
+
+      // Redirect to checkout
+      const { error: stripeError } = await stripe.redirectToCheckout({
+        sessionId: data.sessionId,
+      });
+
+      if (stripeError) {
+        throw stripeError;
       }
       
       // If onSuccess is provided, call it
@@ -81,6 +82,7 @@ const StripeCheckout = ({ amount, onSuccess }: StripeCheckoutProps) => {
         description: error instanceof Error ? error.message : "An unexpected error occurred",
         variant: "destructive"
       });
+    } finally {
       setIsLoading(false);
     }
   };

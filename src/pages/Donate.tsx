@@ -7,6 +7,7 @@ import StripeCheckout from '@/components/StripeCheckout';
 import { Input } from '@/components/ui/input';
 import { DollarSign, Heart, CreditCard, Check } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 const DONATION_AMOUNTS = [5, 10, 25, 50, 100];
 
@@ -30,11 +31,16 @@ const Donate = () => {
         title: "Thank you for your donation!",
         description: "Your contribution helps keep AI Oopsies running.",
       });
+      
       // Reset form after a delay
       setTimeout(() => {
         setIsSuccess(false);
         setSelectedAmount(10);
         setCustomAmount('');
+        
+        // Clean up URL parameters
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, '', newUrl);
       }, 3000);
     } else if (canceled === 'true') {
       toast({
@@ -42,6 +48,12 @@ const Donate = () => {
         description: "Your payment was canceled. Feel free to try again!",
         variant: "destructive"
       });
+      
+      // Clean up URL parameters after showing message
+      setTimeout(() => {
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, '', newUrl);
+      }, 2000);
     }
   }, [searchParams]);
 

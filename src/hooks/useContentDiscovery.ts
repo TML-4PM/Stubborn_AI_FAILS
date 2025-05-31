@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { toast } from '@/hooks/use-toast';
+import { DiscoveryError, handleApiError, retryWithBackoff } from '@/utils/errorHandling';
 
 interface DiscoveryMetrics {
   discovered: number;
@@ -34,37 +35,46 @@ export const useContentDiscovery = () => {
     try {
       console.log(`Starting discovery for platform: ${platform}`);
       
-      const { data, error } = await supabase.functions.invoke('discover-ai-fails', {
-        body: { platform }
-      });
+      const result = await retryWithBackoff(async () => {
+        const { data, error } = await supabase.functions.invoke('discover-ai-fails', {
+          body: { platform }
+        });
 
-      if (error) {
-        console.error('Discovery function error:', error);
-        throw new Error(error.message || 'Failed to invoke discovery function');
-      }
+        if (error) {
+          throw handleApiError(error, 'discovery-function');
+        }
 
-      if (!data || !data.success) {
-        throw new Error(data?.error || 'Discovery function returned unsuccessful result');
-      }
+        if (!data || !data.success) {
+          throw new DiscoveryError(
+            data?.error || 'Discovery function returned unsuccessful result',
+            'DISCOVERY_FAILED',
+            platform
+          );
+        }
+
+        return data;
+      }, 3, 2000);
 
       setLastDiscovery(new Date());
       
       toast({
         title: "Content Discovery Completed",
-        description: `Discovered ${data.discovered} items, stored ${data.stored} new AI fails from ${data.platform}`,
+        description: `Discovered ${result.discovered} items, stored ${result.stored} new AI fails from ${result.platform}`,
       });
 
       return {
-        discovered: data.discovered || 0,
-        stored: data.stored || 0,
-        platform: data.platform || platform,
-        timestamp: data.timestamp || new Date().toISOString()
+        discovered: result.discovered || 0,
+        stored: result.stored || 0,
+        platform: result.platform || platform,
+        timestamp: result.timestamp || new Date().toISOString()
       };
 
     } catch (error) {
       console.error('Discovery error:', error);
       
-      const errorMessage = error instanceof Error ? error.message : "Failed to discover new content";
+      const errorMessage = error instanceof DiscoveryError 
+        ? error.message 
+        : "Failed to discover new content";
       
       toast({
         title: "Discovery Failed",
@@ -82,23 +92,28 @@ export const useContentDiscovery = () => {
     try {
       console.log('Triggering scheduled discovery...');
       
-      const { data, error } = await supabase.functions.invoke('schedule-discovery');
-      
-      if (error) {
-        console.error('Schedule function error:', error);
-        throw new Error(error.message || 'Failed to invoke schedule function');
-      }
+      const result = await retryWithBackoff(async () => {
+        const { data, error } = await supabase.functions.invoke('schedule-discovery');
+        
+        if (error) {
+          throw handleApiError(error, 'schedule-function');
+        }
+
+        return data;
+      });
 
       toast({
         title: "Discovery Scheduled",
         description: "Automated content discovery has been triggered for multiple platforms",
       });
 
-      return data;
+      return result;
     } catch (error) {
       console.error('Schedule error:', error);
       
-      const errorMessage = error instanceof Error ? error.message : "Failed to schedule discovery";
+      const errorMessage = error instanceof DiscoveryError 
+        ? error.message 
+        : "Failed to schedule discovery";
       
       toast({
         title: "Schedule Failed", 
@@ -126,15 +141,25 @@ export const useContentDiscovery = () => {
 
       if (error) {
         console.error('Error fetching pending content:', error);
-        throw error;
+        throw new DiscoveryError(
+          'Failed to fetch pending content',
+          'DATABASE_ERROR',
+          undefined,
+          error
+        );
       }
 
       return data || [];
     } catch (error) {
       console.error('Error in getPendingContent:', error);
+      
+      const errorMessage = error instanceof DiscoveryError 
+        ? error.message 
+        : "Unknown error occurred";
+      
       toast({
         title: "Failed to Load Pending Content",
-        description: error instanceof Error ? error.message : "Unknown error occurred",
+        description: errorMessage,
         variant: "destructive",
       });
       return [];
@@ -154,7 +179,12 @@ export const useContentDiscovery = () => {
 
       if (error) {
         console.error('Error approving content:', error);
-        throw error;
+        throw new DiscoveryError(
+          'Failed to approve content',
+          'DATABASE_ERROR',
+          undefined,
+          error
+        );
       }
 
       toast({
@@ -163,7 +193,10 @@ export const useContentDiscovery = () => {
       });
     } catch (error) {
       console.error('Error in approveContent:', error);
-      const errorMessage = error instanceof Error ? error.message : "Failed to approve content";
+      
+      const errorMessage = error instanceof DiscoveryError 
+        ? error.message 
+        : "Failed to approve content";
       
       toast({
         title: "Approval Failed",
@@ -187,7 +220,12 @@ export const useContentDiscovery = () => {
 
       if (error) {
         console.error('Error rejecting content:', error);
-        throw error;
+        throw new DiscoveryError(
+          'Failed to reject content',
+          'DATABASE_ERROR',
+          undefined,
+          error
+        );
       }
 
       toast({
@@ -196,7 +234,10 @@ export const useContentDiscovery = () => {
       });
     } catch (error) {
       console.error('Error in rejectContent:', error);
-      const errorMessage = error instanceof Error ? error.message : "Failed to reject content";
+      
+      const errorMessage = error instanceof DiscoveryError 
+        ? error.message 
+        : "Failed to reject content";
       
       toast({
         title: "Rejection Failed",
@@ -215,7 +256,14 @@ export const useContentDiscovery = () => {
         .select('auto_generated, review_status, source_platform, confidence_score, created_at')
         .eq('auto_generated', true);
 
-      if (error) throw error;
+      if (error) {
+        throw new DiscoveryError(
+          'Failed to fetch discovery metrics',
+          'DATABASE_ERROR',
+          undefined,
+          error
+        );
+      }
 
       const metrics = {
         totalDiscovered: data?.length || 0,
@@ -249,7 +297,7 @@ export const useContentDiscovery = () => {
     }, {} as Record<string, number>);
 
     return Object.entries(sourceCounts)
-      .map(([platform, count]) => ({ platform, count }))
+      .map(([platform, count]) => ({ platform, count: count as number }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 5);
   };

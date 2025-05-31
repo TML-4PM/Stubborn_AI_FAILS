@@ -71,10 +71,14 @@ export const useRealTimeNotifications = () => {
     toast({
       title: notification.title,
       description: notification.message,
-      action: notification.actionUrl ? {
-        label: notification.actionLabel || 'View',
-        onClick: () => window.location.href = notification.actionUrl!
-      } : undefined
+      action: notification.actionUrl ? (
+        <button 
+          onClick={() => window.location.href = notification.actionUrl!}
+          className="text-sm font-medium"
+        >
+          {notification.actionLabel || 'View'}
+        </button>
+      ) : undefined
     });
   }, []);
 

@@ -1,18 +1,18 @@
+
 import { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, Bot, Home, Image, Upload, Youtube, Info, Heart } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
+import { Menu, Bot, Home, Image, Upload, Youtube, Info, Heart, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import ThemeToggle from './ThemeToggle';
 import UserNavigation from './UserNavigation';
-import { useUser } from '@/contexts/UserContext';
+import { useAdminCheck } from '@/hooks/useAdminCheck';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
-  const navigate = useNavigate();
-  const { user } = useUser();
+  const { isAdmin } = useAdminCheck();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -32,8 +32,10 @@ const Navbar = () => {
     { name: 'Donate', href: '/donate', icon: Heart },
   ];
 
-  // Add admin link for authenticated users
-  const adminNavigation = user ? [...navigation, { name: 'Admin', href: '/admin', icon: Bot }] : navigation;
+  // Add admin link for admin users
+  const adminNavigation = isAdmin 
+    ? [...navigation, { name: 'Admin', href: '/admin', icon: Shield }] 
+    : navigation;
 
   const isActive = (path: string) => {
     if (path === '/' && location.pathname === '/') return true;

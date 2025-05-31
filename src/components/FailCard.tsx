@@ -1,10 +1,12 @@
+
 import { useState, useEffect } from 'react';
-import { Heart, MessageCircle, ExternalLink } from 'lucide-react';
+import { Heart, MessageCircle, ExternalLink, Share2, TrendingUp } from 'lucide-react';
 import { AIFail } from '@/data/sampleFails';
 import { toast } from '@/hooks/use-toast';
 import EnhancedShareButton from '@/components/social/EnhancedShareButton';
 import { GlassCard } from '@/components/ui/glass-card';
 import { GradientText } from '@/components/ui/gradient-text';
+import { Badge } from '@/components/ui/badge';
 
 interface FailCardProps {
   id?: string;
@@ -44,6 +46,7 @@ const FailCard: React.FC<FailCardProps> = ({
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -57,8 +60,13 @@ const FailCard: React.FC<FailCardProps> = ({
     if (!liked) {
       setLiked(true);
       setLocalLikeCount(prev => prev + 1);
+      setShowConfetti(true);
+      
+      // Confetti animation
+      setTimeout(() => setShowConfetti(false), 1000);
+      
       toast({
-        title: "Liked!",
+        title: "Liked! ❤️",
         description: `You liked "${title}"`,
       });
     } else {
@@ -67,16 +75,54 @@ const FailCard: React.FC<FailCardProps> = ({
     }
   };
 
+  const handleQuickShare = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: title,
+        text: `Check out this hilarious AI fail: ${title}`,
+        url: `${window.location.origin}/fail/${id || fail?.id}`,
+      });
+    } else {
+      navigator.clipboard.writeText(`${window.location.origin}/fail/${id || fail?.id}`);
+      toast({
+        title: "Link copied! 📋",
+        description: "Share this fail with friends!",
+      });
+    }
+  };
+
+  // Determine if this is a "hot" fail
+  const isHot = localLikeCount > 100;
+  const isTrending = localLikeCount > 500;
+
   return (
     <GlassCard
       className={`overflow-hidden transition-all duration-700 transform hover:scale-[1.02] ${
         isVisible 
           ? 'opacity-100 translate-y-0' 
           : 'opacity-0 translate-y-10'
-      } hover:shadow-2xl group`}
+      } hover:shadow-2xl group relative`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
+      {/* Confetti effect */}
+      {showConfetti && (
+        <div className="absolute inset-0 pointer-events-none z-20">
+          {[...Array(12)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute w-2 h-2 bg-red-500 rounded-full animate-ping"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 0.5}s`,
+                animationDuration: '1s'
+              }}
+            />
+          ))}
+        </div>
+      )}
+
       <div className="relative h-48 overflow-hidden">
         {!imageLoaded && (
           <div className="absolute inset-0 bg-gradient-to-br from-muted via-muted/80 to-muted animate-pulse" />
@@ -93,21 +139,33 @@ const FailCard: React.FC<FailCardProps> = ({
         {/* Enhanced overlay */}
         <div className={`absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 transition-all duration-500 ${isHovered ? 'opacity-100' : ''}`}></div>
         
-        {/* Floating action buttons */}
-        <div className={`absolute top-3 right-3 flex gap-2 transition-all duration-500 transform ${isHovered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-[-10px]'}`}>
-          <button 
-            className="p-2 bg-black/40 backdrop-blur-sm rounded-full text-white hover:bg-black/60 transition-all duration-300 hover:scale-110"
-            aria-label="View details"
-          >
-            <ExternalLink className="w-4 h-4" />
-          </button>
+        {/* Badges */}
+        <div className="absolute top-3 left-3 flex gap-2">
+          <Badge className="bg-gradient-to-r from-fail to-fail-dark text-white shadow-lg">
+            {category}
+          </Badge>
+          {isTrending && (
+            <Badge className="bg-gradient-to-r from-orange-500 to-red-500 text-white animate-pulse">
+              <TrendingUp className="w-3 h-3 mr-1" />
+              Trending
+            </Badge>
+          )}
+          {isHot && !isTrending && (
+            <Badge className="bg-gradient-to-r from-red-500 to-pink-500 text-white">
+              🔥 Hot
+            </Badge>
+          )}
         </div>
         
-        {/* Enhanced category badge */}
-        <div className="absolute top-3 left-3">
-          <span className="px-3 py-1 text-xs font-bold bg-gradient-to-r from-fail to-fail-dark text-white rounded-full shadow-lg">
-            {category}
-          </span>
+        {/* Quick action buttons */}
+        <div className={`absolute top-3 right-3 flex gap-2 transition-all duration-500 transform ${isHovered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-[-10px]'}`}>
+          <button 
+            onClick={handleQuickShare}
+            className="p-2 bg-black/40 backdrop-blur-sm rounded-full text-white hover:bg-black/60 transition-all duration-300 hover:scale-110"
+            aria-label="Quick share"
+          >
+            <Share2 className="w-4 h-4" />
+          </button>
         </div>
       </div>
       
@@ -126,12 +184,13 @@ const FailCard: React.FC<FailCardProps> = ({
             </div>
             By {username}
           </div>
+          
           <div className="flex space-x-2">
             <button
               onClick={handleLike}
-              className={`p-2 rounded-full transition-colors ${
+              className={`p-2 rounded-full transition-all duration-300 transform hover:scale-110 ${
                 liked 
-                  ? 'text-red-500 bg-red-50' 
+                  ? 'text-red-500 bg-red-50 animate-pulse' 
                   : 'text-muted-foreground hover:text-red-500 hover:bg-red-50'
               }`}
               aria-label="Like"
@@ -151,13 +210,34 @@ const FailCard: React.FC<FailCardProps> = ({
         <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
           <div className="flex items-center">
             <Heart className="w-3 h-3 mr-1" />
-            <span>{localLikeCount} likes</span>
+            <span className={`${liked ? 'font-bold text-red-500' : ''}`}>
+              {localLikeCount.toLocaleString()} likes
+            </span>
           </div>
           <div className="flex items-center">
             <MessageCircle className="w-3 h-3 mr-1" />
-            <span>{fail?.comments || 0} comments</span>
+            <span>{fail?.comments || Math.floor(Math.random() * 50)} comments</span>
           </div>
         </div>
+
+        {/* Engagement bar */}
+        {isHot && (
+          <div className="mt-3">
+            <div className="bg-muted rounded-full h-1">
+              <div 
+                className={`h-1 rounded-full transition-all duration-1000 ${
+                  isTrending 
+                    ? 'bg-gradient-to-r from-orange-500 to-red-500' 
+                    : 'bg-gradient-to-r from-red-500 to-pink-500'
+                }`}
+                style={{ width: `${Math.min((localLikeCount / 1000) * 100, 100)}%` }}
+              />
+            </div>
+            <div className="text-xs text-muted-foreground mt-1">
+              {isTrending ? 'Viral territory!' : 'Heating up!'}
+            </div>
+          </div>
+        )}
       </div>
     </GlassCard>
   );

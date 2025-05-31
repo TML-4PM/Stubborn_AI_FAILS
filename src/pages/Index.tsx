@@ -1,8 +1,12 @@
+
 import { useEffect } from 'react';
 import Hero from '@/components/Hero';
 import FeaturedFails from '@/components/FeaturedFails';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import LiveActivityFeed from '@/components/LiveActivityFeed';
+import TrendingSection from '@/components/TrendingSection';
+import QuickActions from '@/components/QuickActions';
 import { ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import EnhancedHero from '@/components/visual/EnhancedHero';
@@ -21,8 +25,20 @@ const Index = () => {
       <Navbar />
       
       <main className="flex-grow pt-16 relative z-10">
-        <EnhancedHero />
-        <FeaturedFails />
+        <div className="grid lg:grid-cols-4 gap-6 container mx-auto px-4 py-6">
+          {/* Main content */}
+          <div className="lg:col-span-3">
+            <EnhancedHero />
+            <QuickActions />
+            <TrendingSection />
+            <FeaturedFails />
+          </div>
+          
+          {/* Sidebar with live activity */}
+          <div className="lg:col-span-1 space-y-6">
+            <LiveActivityFeed />
+          </div>
+        </div>
         
         <section className="py-20 bg-fail-light/50">
           <div className="container mx-auto px-4">
@@ -88,7 +104,7 @@ const Index = () => {
                       strokeLinejoin="round"
                     >
                       <path d="M12 8L12 12M12 16H12.01"></path>
-                      <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"></path>
+                      <path d="M12 22C17.5228 22 22 17.5228 22 12C2 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"></path>
                     </svg>
                     <h3 className="text-xl font-bold mb-2">AI Confusion</h3>
                     <p className="text-muted-foreground text-sm">

@@ -1,4 +1,3 @@
-
 import { useEffect } from 'react';
 import Hero from '@/components/Hero';
 import FeaturedFails from '@/components/FeaturedFails';
@@ -6,21 +5,23 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import EnhancedHero from '@/components/visual/EnhancedHero';
+import AnimatedBackground from '@/components/visual/AnimatedBackground';
 
 const Index = () => {
   const navigate = useNavigate();
   
   useEffect(() => {
-    // Scroll to top when component mounts
     window.scrollTo(0, 0);
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col relative">
+      <AnimatedBackground />
       <Navbar />
       
-      <main className="flex-grow pt-16">
-        <Hero />
+      <main className="flex-grow pt-16 relative z-10">
+        <EnhancedHero />
         <FeaturedFails />
         
         <section className="py-20 bg-fail-light/50">

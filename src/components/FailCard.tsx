@@ -3,6 +3,8 @@ import { Heart, MessageCircle, ExternalLink } from 'lucide-react';
 import { AIFail } from '@/data/sampleFails';
 import { toast } from '@/hooks/use-toast';
 import EnhancedShareButton from '@/components/social/EnhancedShareButton';
+import { GlassCard } from '@/components/ui/glass-card';
+import { GradientText } from '@/components/ui/gradient-text';
 
 interface FailCardProps {
   id?: string;
@@ -66,49 +68,54 @@ const FailCard: React.FC<FailCardProps> = ({
   };
 
   return (
-    <div
-      className={`rounded-xl overflow-hidden bg-card border shadow-sm transition-all duration-500 transform ${
+    <GlassCard
+      className={`overflow-hidden transition-all duration-700 transform hover:scale-[1.02] ${
         isVisible 
           ? 'opacity-100 translate-y-0' 
           : 'opacity-0 translate-y-10'
-      } hover:shadow-md hover:translate-y-[-2px]`}
+      } hover:shadow-2xl group`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div className="relative h-48 overflow-hidden bg-muted">
+      <div className="relative h-48 overflow-hidden">
         {!imageLoaded && (
-          <div className="absolute inset-0 bg-muted animate-pulse" />
+          <div className="absolute inset-0 bg-gradient-to-br from-muted via-muted/80 to-muted animate-pulse" />
         )}
         <img
           src={imageUrl}
           alt={title}
-          className={`w-full h-full object-cover transition-all duration-500 ${
+          className={`w-full h-full object-cover transition-all duration-700 ${
             imageLoaded ? 'opacity-100' : 'opacity-0'
-          } ${isHovered ? 'scale-105' : 'scale-100'}`}
+          } ${isHovered ? 'scale-110' : 'scale-100'} group-hover:brightness-110`}
           onLoad={() => setImageLoaded(true)}
         />
         
-        <div className={`absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 transition-opacity duration-300 ${isHovered ? 'opacity-100' : ''}`}></div>
+        {/* Enhanced overlay */}
+        <div className={`absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 transition-all duration-500 ${isHovered ? 'opacity-100' : ''}`}></div>
         
-        <div className={`absolute top-2 right-2 flex gap-1 transition-all duration-300 ${isHovered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-[-5px]'}`}>
+        {/* Floating action buttons */}
+        <div className={`absolute top-3 right-3 flex gap-2 transition-all duration-500 transform ${isHovered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-[-10px]'}`}>
           <button 
-            className="p-1.5 bg-black/30 backdrop-blur-sm rounded-full text-white hover:bg-black/50 transition-colors"
+            className="p-2 bg-black/40 backdrop-blur-sm rounded-full text-white hover:bg-black/60 transition-all duration-300 hover:scale-110"
             aria-label="View details"
           >
-            <ExternalLink className="w-3.5 h-3.5" />
+            <ExternalLink className="w-4 h-4" />
           </button>
         </div>
         
-        <div className="absolute top-2 left-2">
-          <span className="px-2 py-0.5 text-[10px] font-medium bg-fail/80 text-white rounded-full">
+        {/* Enhanced category badge */}
+        <div className="absolute top-3 left-3">
+          <span className="px-3 py-1 text-xs font-bold bg-gradient-to-r from-fail to-fail-dark text-white rounded-full shadow-lg">
             {category}
           </span>
         </div>
       </div>
       
-      <div className="p-4">
-        <h3 className="font-bold text-lg line-clamp-1">{title}</h3>
-        <p className="text-muted-foreground text-sm mt-1 line-clamp-2">
+      <div className="p-5">
+        <GradientText gradient="fail" as="h3" className="text-lg font-bold line-clamp-1 mb-2">
+          {title}
+        </GradientText>
+        <p className="text-muted-foreground text-sm leading-relaxed line-clamp-2 mb-4">
           {desc}
         </p>
         
@@ -152,7 +159,7 @@ const FailCard: React.FC<FailCardProps> = ({
           </div>
         </div>
       </div>
-    </div>
+    </GlassCard>
   );
 };
 

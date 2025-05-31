@@ -21,7 +21,7 @@ export const useTouchGestures = (
   const [scale, setScale] = useState(1);
   const initialDistance = useRef<number>(0);
 
-  const getDistance = (touch1: Touch, touch2: Touch) => {
+  const getDistance = (touch1: React.Touch, touch2: React.Touch) => {
     return Math.hypot(
       touch1.clientX - touch2.clientX,
       touch1.clientY - touch2.clientY

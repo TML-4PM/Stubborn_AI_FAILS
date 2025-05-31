@@ -3,6 +3,8 @@ import { useState, useEffect, useMemo } from 'react';
 import { getAllFails, AIFail } from '@/data/sampleFails';
 import { useDebounce, usePerformanceMonitor } from '@/hooks/usePerformanceOptimization';
 import { useTransitionNavigation } from '@/hooks/useTransitionNavigation';
+import { useContentDiscovery } from '@/hooks/useContentDiscovery';
+import { supabase } from '@/lib/supabase';
 import ResultsGrid from '@/components/gallery/ResultsGrid';
 import GalleryHeader from '@/components/gallery/GalleryHeader';
 import GalleryFilters from '@/components/gallery/GalleryFilters';
@@ -32,24 +34,70 @@ const GalleryContent = ({ onRefresh }: GalleryContentProps) => {
   
   const { showNotification } = useTransitionNavigation();
   const { start: startPerf, end: endPerf } = usePerformanceMonitor('gallery-filter');
+  const { scheduleDiscovery } = useContentDiscovery();
 
-  useEffect(() => {
-    window.scrollTo(0, 0);
-    
-    const timer = setTimeout(() => {
-      const fails = getAllFails();
-      setAllFails(fails);
-      setFilteredFails(fails);
+  // Load data from both sample data and Supabase
+  const loadAllContent = async () => {
+    try {
+      setIsLoading(true);
       
-      const categories = Array.from(new Set(fails.map(fail => fail.category).filter(Boolean) as string[]));
-      const tags = Array.from(new Set(fails.flatMap(fail => fail.tags || []).filter(Boolean)));
+      // Get sample data
+      const sampleFails = getAllFails();
+      
+      // Get approved content from Supabase
+      const { data: supabaseContent, error } = await supabase
+        .from('oopsies')
+        .select('*')
+        .eq('status', 'approved')
+        .order('viral_score', { ascending: false })
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching Supabase content:', error);
+      }
+
+      // Convert Supabase content to AIFail format
+      const convertedContent: AIFail[] = (supabaseContent || []).map(item => ({
+        id: item.id,
+        title: item.title,
+        description: item.description,
+        imageUrl: item.image_url || '/placeholder.svg',
+        username: 'AI Discovery Bot',
+        date: item.created_at,
+        likes: item.likes || 0,
+        featured: item.is_featured || false,
+        category: item.category || 'General AI',
+        tags: ['auto-discovered', item.source_platform].filter(Boolean),
+        aiModel: item.source_platform === 'reddit' ? 'Reddit Discovery' : 'Community',
+        status: item.status
+      }));
+
+      // Combine sample data with discovered content
+      const allContent = [...sampleFails, ...convertedContent];
+      setAllFails(allContent);
+      setFilteredFails(allContent);
+      
+      // Extract categories and tags
+      const categories = Array.from(new Set(allContent.map(fail => fail.category).filter(Boolean) as string[]));
+      const tags = Array.from(new Set(allContent.flatMap(fail => fail.tags || []).filter(Boolean)));
       
       setAvailableCategories(categories);
       setAvailableTags(tags);
+      
+    } catch (error) {
+      console.error('Error loading content:', error);
+      showNotification("Failed to load content", "error");
+    } finally {
       setIsLoading(false);
-    }, 800);
+    }
+  };
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    loadAllContent();
     
-    return () => clearTimeout(timer);
+    // Schedule automated discovery on first load
+    scheduleDiscovery().catch(console.error);
   }, []);
 
   // Memoized search suggestions
@@ -149,16 +197,8 @@ const GalleryContent = ({ onRefresh }: GalleryContentProps) => {
   };
 
   const handleRefresh = async () => {
-    setIsLoading(true);
-    // Simulate refresh delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const fails = getAllFails();
-    setAllFails(fails);
-    setFilteredFails(fails);
-    setIsLoading(false);
-    
-    showNotification("Gallery refreshed", "success");
+    await loadAllContent();
+    showNotification("Gallery refreshed with latest discoveries", "success");
     onRefresh?.();
   };
 

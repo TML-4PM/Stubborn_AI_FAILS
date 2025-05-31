@@ -9,6 +9,33 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      content_sources: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          last_checked: string | null
+          platform: string
+          source_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_checked?: string | null
+          platform: string
+          source_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_checked?: string | null
+          platform?: string
+          source_id?: string
+        }
+        Relationships: []
+      }
       oopsie_comments: {
         Row: {
           content: string
@@ -46,15 +73,21 @@ export type Database = {
       }
       oopsies: {
         Row: {
+          auto_generated: boolean | null
           category: string
           comments: number
+          confidence_score: number | null
           created_at: string
           description: string
+          discovery_date: string | null
           id: string
           image_url: string | null
           is_featured: boolean
           likes: number
+          review_status: string | null
           shares: number
+          source_platform: string | null
+          source_url: string | null
           status: string
           title: string
           updated_at: string
@@ -63,15 +96,21 @@ export type Database = {
           viral_score: number
         }
         Insert: {
+          auto_generated?: boolean | null
           category: string
           comments?: number
+          confidence_score?: number | null
           created_at?: string
           description: string
+          discovery_date?: string | null
           id?: string
           image_url?: string | null
           is_featured?: boolean
           likes?: number
+          review_status?: string | null
           shares?: number
+          source_platform?: string | null
+          source_url?: string | null
           status?: string
           title: string
           updated_at?: string
@@ -80,15 +119,21 @@ export type Database = {
           viral_score?: number
         }
         Update: {
+          auto_generated?: boolean | null
           category?: string
           comments?: number
+          confidence_score?: number | null
           created_at?: string
           description?: string
+          discovery_date?: string | null
           id?: string
           image_url?: string | null
           is_featured?: boolean
           likes?: number
+          review_status?: string | null
           shares?: number
+          source_platform?: string | null
+          source_url?: string | null
           status?: string
           title?: string
           updated_at?: string
@@ -217,13 +262,73 @@ export type Database = {
         }
         Relationships: []
       }
+      viral_metrics: {
+        Row: {
+          comments_count: number | null
+          created_at: string | null
+          engagement_score: number | null
+          id: string
+          oopsie_id: string | null
+          platform: string
+          recorded_at: string | null
+          shares_count: number | null
+          upvotes_count: number | null
+          viral_score: number | null
+        }
+        Insert: {
+          comments_count?: number | null
+          created_at?: string | null
+          engagement_score?: number | null
+          id?: string
+          oopsie_id?: string | null
+          platform: string
+          recorded_at?: string | null
+          shares_count?: number | null
+          upvotes_count?: number | null
+          viral_score?: number | null
+        }
+        Update: {
+          comments_count?: number | null
+          created_at?: string | null
+          engagement_score?: number | null
+          id?: string
+          oopsie_id?: string | null
+          platform?: string
+          recorded_at?: string | null
+          shares_count?: number | null
+          upvotes_count?: number | null
+          viral_score?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "viral_metrics_oopsie_id_fkey"
+            columns: ["oopsie_id"]
+            isOneToOne: false
+            referencedRelation: "oopsies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      calculate_viral_score: {
+        Args: {
+          upvotes: number
+          comments: number
+          shares: number
+          hours_since_creation: number
+        }
+        Returns: number
+      }
       increment_oopsie_likes: {
         Args: { oopsie_id: string }
+        Returns: undefined
+      }
+      update_viral_scores: {
+        Args: Record<PropertyKey, never>
         Returns: undefined
       }
     }

@@ -7,7 +7,7 @@ interface GradientTextProps extends React.HTMLAttributes<HTMLElement> {
   as?: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'p' | 'span'
 }
 
-const GradientText = React.forwardRef<HTMLElement, GradientTextProps>(
+const GradientText = React.forwardRef<any, GradientTextProps>(
   ({ className, gradient = 'primary', as: Component = 'span', children, ...props }, ref) => {
     const gradientClasses = {
       primary: 'bg-gradient-to-r from-primary to-primary/70',

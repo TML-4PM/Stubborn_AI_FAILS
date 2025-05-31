@@ -128,10 +128,10 @@ export const useAdvancedSearch = (items: AIFail[]) => {
       );
     }
 
-    // Apply date range filter - using timestamp instead of createdAt
+    // Apply date range filter - using date instead of timestamp
     if (filters.dateRange) {
       results = results.filter(result => {
-        const itemDate = new Date(result.item.timestamp);
+        const itemDate = new Date(result.item.date);
         return itemDate >= filters.dateRange!.start && itemDate <= filters.dateRange!.end;
       });
     }
@@ -150,9 +150,9 @@ export const useAdvancedSearch = (items: AIFail[]) => {
         case 'relevance':
           return b.score - a.score;
         case 'newest':
-          return new Date(b.item.timestamp).getTime() - new Date(a.item.timestamp).getTime();
+          return new Date(b.item.date).getTime() - new Date(a.item.date).getTime();
         case 'oldest':
-          return new Date(a.item.timestamp).getTime() - new Date(b.item.timestamp).getTime();
+          return new Date(a.item.date).getTime() - new Date(b.item.date).getTime();
         case 'popular':
           return (b.item.likes || 0) - (a.item.likes || 0);
         default:

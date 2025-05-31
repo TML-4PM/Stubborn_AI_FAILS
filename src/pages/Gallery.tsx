@@ -1,14 +1,15 @@
-
 import { useState, useEffect, useMemo } from 'react';
 import { getAllFails, AIFail } from '@/data/sampleFails';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { useTransitionNavigation } from '@/hooks/useTransitionNavigation';
 import { useDebounce, usePerformanceMonitor } from '@/hooks/usePerformanceOptimization';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { updateSEOMetadata, generateStructuredData } from '@/utils/seoUtils';
 import SearchSection from '@/components/gallery/SearchSection';
 import FilterPanel from '@/components/gallery/FilterPanel';
 import ResultsGrid from '@/components/gallery/ResultsGrid';
+import PullToRefresh from '@/components/ui/PullToRefresh';
 
 interface SearchSuggestion {
   id: string;
@@ -28,6 +29,7 @@ const Gallery = () => {
   const [availableTags, setAvailableTags] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
+  const isMobile = useIsMobile();
   
   const { showNotification } = useTransitionNavigation();
   const { start: startPerf, end: endPerf } = usePerformanceMonitor('gallery-filter');
@@ -163,50 +165,73 @@ const Gallery = () => {
     setSearchTerm('');
   };
 
+  const handleRefresh = async () => {
+    setIsLoading(true);
+    // Simulate refresh delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    const fails = getAllFails();
+    setAllFails(fails);
+    setFilteredFails(fails);
+    setIsLoading(false);
+    
+    showNotification("Gallery refreshed", "success");
+  };
+
+  const content = (
+    <main className="flex-grow pt-24">
+      <div className="container mx-auto px-4">
+        <div className="max-w-3xl mx-auto text-center mb-8">
+          <h1 className="text-4xl font-bold mb-4">AI Fails Gallery</h1>
+          <p className="text-muted-foreground">
+            Browse our collection of hilarious AI mishaps and unexpected responses. 
+            Use the search bar to find specific fails or filter by categories and tags.
+          </p>
+        </div>
+        
+        <SearchSection
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          onSearch={handleSearch}
+          suggestions={searchSuggestions}
+          searchHistory={searchHistory}
+          selectedCategories={selectedCategories}
+          selectedTags={selectedTags}
+          showFilters={showFilters}
+          onShowFiltersToggle={() => setShowFilters(!showFilters)}
+        />
+        
+        <FilterPanel
+          showFilters={showFilters}
+          availableCategories={availableCategories}
+          availableTags={availableTags}
+          selectedCategories={selectedCategories}
+          selectedTags={selectedTags}
+          onToggleCategory={toggleCategory}
+          onToggleTag={toggleTag}
+          onClearFilters={clearFilters}
+        />
+        
+        <ResultsGrid
+          isLoading={isLoading}
+          filteredFails={filteredFails}
+          onClearFilters={clearFilters}
+        />
+      </div>
+    </main>
+  );
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
       
-      <main className="flex-grow pt-24">
-        <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto text-center mb-8">
-            <h1 className="text-4xl font-bold mb-4">AI Fails Gallery</h1>
-            <p className="text-muted-foreground">
-              Browse our collection of hilarious AI mishaps and unexpected responses. 
-              Use the search bar to find specific fails or filter by categories and tags.
-            </p>
-          </div>
-          
-          <SearchSection
-            searchTerm={searchTerm}
-            onSearchChange={setSearchTerm}
-            onSearch={handleSearch}
-            suggestions={searchSuggestions}
-            searchHistory={searchHistory}
-            selectedCategories={selectedCategories}
-            selectedTags={selectedTags}
-            showFilters={showFilters}
-            onShowFiltersToggle={() => setShowFilters(!showFilters)}
-          />
-          
-          <FilterPanel
-            showFilters={showFilters}
-            availableCategories={availableCategories}
-            availableTags={availableTags}
-            selectedCategories={selectedCategories}
-            selectedTags={selectedTags}
-            onToggleCategory={toggleCategory}
-            onToggleTag={toggleTag}
-            onClearFilters={clearFilters}
-          />
-          
-          <ResultsGrid
-            isLoading={isLoading}
-            filteredFails={filteredFails}
-            onClearFilters={clearFilters}
-          />
-        </div>
-      </main>
+      {isMobile ? (
+        <PullToRefresh onRefresh={handleRefresh}>
+          {content}
+        </PullToRefresh>
+      ) : (
+        content
+      )}
       
       <Footer />
     </div>

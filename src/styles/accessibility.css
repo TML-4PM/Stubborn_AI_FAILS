@@ -1,0 +1,207 @@
+
+/* Accessibility Enhancement Styles */
+
+/* Font size variants */
+.font-small {
+  font-size: 14px;
+}
+
+.font-medium {
+  font-size: 16px;
+}
+
+.font-large {
+  font-size: 18px;
+}
+
+/* High contrast mode */
+.high-contrast {
+  --background: hsl(0, 0%, 0%);
+  --foreground: hsl(0, 0%, 100%);
+  --primary: hsl(60, 100%, 50%);
+  --primary-foreground: hsl(0, 0%, 0%);
+  --secondary: hsl(0, 0%, 20%);
+  --secondary-foreground: hsl(0, 0%, 100%);
+  --muted: hsl(0, 0%, 15%);
+  --muted-foreground: hsl(0, 0%, 85%);
+  --border: hsl(0, 0%, 40%);
+}
+
+.high-contrast * {
+  border-color: var(--border) !important;
+}
+
+.high-contrast button,
+.high-contrast [role="button"] {
+  border: 2px solid var(--border) !important;
+}
+
+/* Reduced motion */
+.reduce-motion *,
+.reduce-motion *::before,
+.reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* Focus mode - enhanced focus indicators */
+.focus-mode *:focus {
+  outline: 3px solid var(--primary) !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 5px rgba(var(--primary), 0.3) !important;
+}
+
+/* Screen reader only content */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Skip links */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 6px;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  padding: 8px;
+  text-decoration: none;
+  border-radius: 4px;
+  z-index: 9999;
+  transition: top 0.3s;
+}
+
+.skip-link:focus {
+  top: 6px;
+}
+
+/* Enhanced button styles for accessibility */
+button:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Better contrast for links */
+a:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  text-decoration: underline;
+}
+
+/* Ensure interactive elements are large enough */
+button,
+[role="button"],
+input,
+select,
+textarea {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Error states for form inputs */
+input:invalid,
+textarea:invalid,
+select:invalid {
+  border-color: hsl(0, 84%, 60%);
+  box-shadow: 0 0 0 1px hsl(0, 84%, 60%);
+}
+
+/* Loading states */
+[aria-busy="true"] {
+  cursor: progress;
+}
+
+/* Disabled states */
+:disabled,
+[aria-disabled="true"] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Better visibility for required fields */
+[aria-required="true"]::after,
+.required::after {
+  content: " *";
+  color: hsl(0, 84%, 60%);
+}
+
+/* Status announcements */
+[role="status"],
+[role="alert"] {
+  border-radius: 4px;
+  padding: 12px;
+  margin: 8px 0;
+}
+
+[role="alert"] {
+  background-color: hsl(0, 84%, 95%);
+  border: 1px solid hsl(0, 84%, 60%);
+  color: hsl(0, 84%, 40%);
+}
+
+/* Improved table accessibility */
+table {
+  border-collapse: collapse;
+}
+
+th {
+  background-color: var(--muted);
+  font-weight: 600;
+}
+
+th,
+td {
+  border: 1px solid var(--border);
+  padding: 8px 12px;
+  text-align: left;
+}
+
+/* Better spacing for readability */
+.focus-mode p,
+.focus-mode li {
+  line-height: 1.6;
+  margin-bottom: 1em;
+}
+
+.focus-mode h1,
+.focus-mode h2,
+.focus-mode h3,
+.focus-mode h4,
+.focus-mode h5,
+.focus-mode h6 {
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+}
+
+/* Print styles for accessibility */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  a[href]:after {
+    content: " (" attr(href) ")";
+  }
+  
+  * {
+    background: white !important;
+    color: black !important;
+  }
+}
+
+/* Responsive text scaling */
+@media (max-width: 768px) {
+  .font-small { font-size: 16px; }
+  .font-medium { font-size: 18px; }
+  .font-large { font-size: 20px; }
+}

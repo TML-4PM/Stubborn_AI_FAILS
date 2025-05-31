@@ -78,6 +78,33 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_challenges: {
+        Row: {
+          board_data: Json
+          challenge_date: string
+          created_at: string
+          id: string
+          seed: string
+          theme: string
+        }
+        Insert: {
+          board_data: Json
+          challenge_date: string
+          created_at?: string
+          id?: string
+          seed: string
+          theme?: string
+        }
+        Update: {
+          board_data?: Json
+          challenge_date?: string
+          created_at?: string
+          id?: string
+          seed?: string
+          theme?: string
+        }
+        Relationships: []
+      }
       donations: {
         Row: {
           amount: number
@@ -441,6 +468,77 @@ export type Database = {
         }
         Relationships: []
       }
+      user_challenge_progress: {
+        Row: {
+          challenge_id: string
+          completed_at: string | null
+          completed_prompts: string[]
+          completion_percentage: number
+          id: string
+          started_at: string
+          user_id: string
+        }
+        Insert: {
+          challenge_id: string
+          completed_at?: string | null
+          completed_prompts?: string[]
+          completion_percentage?: number
+          id?: string
+          started_at?: string
+          user_id: string
+        }
+        Update: {
+          challenge_id?: string
+          completed_at?: string | null
+          completed_prompts?: string[]
+          completion_percentage?: number
+          id?: string
+          started_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_challenge_progress_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "daily_challenges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_email_preferences: {
+        Row: {
+          created_at: string
+          daily_notifications: boolean
+          id: string
+          last_email_sent: string | null
+          updated_at: string
+          user_id: string
+          weekly_recap: boolean
+          welcome_email_sent: boolean
+        }
+        Insert: {
+          created_at?: string
+          daily_notifications?: boolean
+          id?: string
+          last_email_sent?: string | null
+          updated_at?: string
+          user_id: string
+          weekly_recap?: boolean
+          welcome_email_sent?: boolean
+        }
+        Update: {
+          created_at?: string
+          daily_notifications?: boolean
+          id?: string
+          last_email_sent?: string | null
+          updated_at?: string
+          user_id?: string
+          weekly_recap?: boolean
+          welcome_email_sent?: boolean
+        }
+        Relationships: []
+      }
       viral_metrics: {
         Row: {
           comments_count: number | null
@@ -501,6 +599,10 @@ export type Database = {
           hours_since_creation: number
         }
         Returns: number
+      }
+      generate_daily_challenge: {
+        Args: { challenge_date: string }
+        Returns: string
       }
       increment_oopsie_likes: {
         Args: { oopsie_id: string }

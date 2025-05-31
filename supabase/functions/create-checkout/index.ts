@@ -8,8 +8,24 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const getDonorLevel = (amount: number) => {
+  if (amount >= 100000000) return "Hall of Fame"; // $1M in cents
+  if (amount >= 100000) return "Champion"; // $1000 in cents
+  if (amount >= 50000) return "Champion"; // $500 in cents
+  if (amount >= 10000) return "Legend"; // $100 in cents
+  if (amount >= 2500) return "Super Fan"; // $25 in cents
+  return "Supporter";
+};
+
+const getProductDescription = (amount: number, level: string) => {
+  if (level === "Hall of Fame") return "🏆 Hall of Fame Donation - AI Oopsies Legend!";
+  if (level === "Champion") return "🥇 Champion Level Donation - AI Oopsies Champion!";
+  if (level === "Legend") return "🏅 Legend Level Donation - AI Oopsies Legend!";
+  if (level === "Super Fan") return "⭐ Super Fan Donation - AI Oopsies Super Fan!";
+  return "❤️ Supporter Donation - Keep AI Oopsies Running!";
+};
+
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -20,26 +36,22 @@ serve(async (req) => {
       throw new Error("STRIPE_SECRET_KEY is not configured");
     }
 
-    // Get request data
     const { amount } = await req.json();
     
     if (!amount || amount <= 0) {
       throw new Error("Invalid amount provided");
     }
 
-    // Initialize Stripe
     const stripe = new Stripe(stripeKey, {
       apiVersion: "2023-10-16",
     });
 
-    // Initialize Supabase client with service role key for database writes
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
       { auth: { persistSession: false } }
     );
 
-    // Try to get authenticated user (optional for donations)
     let user = null;
     const authHeader = req.headers.get("Authorization");
     if (authHeader) {
@@ -52,7 +64,6 @@ serve(async (req) => {
       }
     }
 
-    // Check if user has existing Stripe customer
     let customerId = null;
     let customerEmail = "guest@aioopsies.com";
     
@@ -68,7 +79,14 @@ serve(async (req) => {
       }
     }
 
-    // Create checkout session
+    const amountInCents = Math.round(amount * 100);
+    const donorLevel = getDonorLevel(amountInCents);
+    const productDescription = getProductDescription(amountInCents, donorLevel);
+
+    // Create enhanced success URL with donor level
+    const baseSuccessUrl = `${req.headers.get("origin") || "https://aioopsies.com"}/donate?success=true`;
+    const successUrl = `${baseSuccessUrl}&level=${encodeURIComponent(donorLevel)}&amount=${amount}`;
+
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : customerEmail,
@@ -77,32 +95,39 @@ serve(async (req) => {
           price_data: {
             currency: "usd",
             product_data: {
-              name: "AI Oopsies Donation",
-              description: "Support AI Oopsies - Keep the laughs coming!",
+              name: `AI Oopsies ${donorLevel} Donation`,
+              description: productDescription,
+              images: donorLevel === "Hall of Fame" ? ["https://aioopsies.com/hall-of-fame-badge.png"] : undefined,
             },
-            unit_amount: Math.round(amount * 100), // Convert to cents
+            unit_amount: amountInCents,
           },
           quantity: 1,
         },
       ],
       mode: "payment",
-      success_url: `${req.headers.get("origin") || "https://aioopsies.com"}/donate?success=true`,
+      success_url: successUrl,
       cancel_url: `${req.headers.get("origin") || "https://aioopsies.com"}/donate?canceled=true`,
       metadata: {
         user_id: user?.id || "guest",
         amount: amount.toString(),
+        donor_level: donorLevel,
+        tier_amount: amountInCents.toString(),
       },
     });
 
-    // Record donation in database
+    // Record donation with enhanced data
     await supabase.from("donations").insert({
       user_id: user?.id || null,
       stripe_session_id: session.id,
-      amount: Math.round(amount * 100),
+      amount: amountInCents,
       currency: "usd",
       status: "pending",
       donor_email: customerEmail,
+      // Note: If you want to add donor_level column to donations table, 
+      // you'd need to run a migration first
     });
+
+    console.log(`Created ${donorLevel} level donation session for $${amount}`);
 
     return new Response(JSON.stringify({ sessionId: session.id }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

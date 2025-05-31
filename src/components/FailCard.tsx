@@ -1,8 +1,8 @@
-
 import { useState, useEffect } from 'react';
-import { Heart, Share2, MessageCircle, ExternalLink } from 'lucide-react';
+import { Heart, MessageCircle, ExternalLink } from 'lucide-react';
 import { AIFail } from '@/data/sampleFails';
 import { toast } from '@/hooks/use-toast';
+import EnhancedShareButton from '@/components/social/EnhancedShareButton';
 
 interface FailCardProps {
   id?: string;
@@ -35,6 +35,7 @@ const FailCard: React.FC<FailCardProps> = ({
   const imageUrl = image || fail?.imageUrl || '';
   const username = author || fail?.username || '';
   const likes = likeCount !== undefined ? likeCount : (fail?.likes || 0);
+  const category = fail?.category || status || 'AI Fail';
   
   const [liked, setLiked] = useState(false);
   const [localLikeCount, setLocalLikeCount] = useState(likes);
@@ -64,14 +65,6 @@ const FailCard: React.FC<FailCardProps> = ({
     }
   };
 
-  const handleShare = () => {
-    // In a real app, this would use the Web Share API or create a shareable link
-    toast({
-      title: "Shared!",
-      description: "This AI fail has been copied to your clipboard.",
-    });
-  };
-
   return (
     <div
       className={`rounded-xl overflow-hidden bg-card border shadow-sm transition-all duration-500 transform ${
@@ -95,10 +88,8 @@ const FailCard: React.FC<FailCardProps> = ({
           onLoad={() => setImageLoaded(true)}
         />
         
-        {/* Image overlay effects */}
         <div className={`absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 transition-opacity duration-300 ${isHovered ? 'opacity-100' : ''}`}></div>
         
-        {/* Quick action buttons that appear on hover */}
         <div className={`absolute top-2 right-2 flex gap-1 transition-all duration-300 ${isHovered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-[-5px]'}`}>
           <button 
             className="p-1.5 bg-black/30 backdrop-blur-sm rounded-full text-white hover:bg-black/50 transition-colors"
@@ -108,10 +99,9 @@ const FailCard: React.FC<FailCardProps> = ({
           </button>
         </div>
         
-        {/* Category tag */}
         <div className="absolute top-2 left-2">
           <span className="px-2 py-0.5 text-[10px] font-medium bg-fail/80 text-white rounded-full">
-            {status || fail?.category || 'AI Fail'}
+            {category}
           </span>
         </div>
       </div>
@@ -141,13 +131,13 @@ const FailCard: React.FC<FailCardProps> = ({
             >
               <Heart className="w-4 h-4" fill={liked ? "currentColor" : "none"} />
             </button>
-            <button
-              onClick={handleShare}
-              className="p-2 rounded-full text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
-              aria-label="Share"
-            >
-              <Share2 className="w-4 h-4" />
-            </button>
+            <EnhancedShareButton 
+              failId={id || fail?.id || ''}
+              title={title}
+              imageUrl={imageUrl}
+              category={category}
+              description={desc}
+            />
           </div>
         </div>
         

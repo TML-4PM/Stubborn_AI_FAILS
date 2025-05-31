@@ -1,10 +1,9 @@
-
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import LikeButton from '@/components/social/LikeButton';
-import ShareButton from '@/components/social/ShareButton';
+import EnhancedShareButton from '@/components/social/EnhancedShareButton';
 import { formatDistanceToNow } from 'date-fns';
 import { useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -24,7 +23,7 @@ interface FailCardSocialProps {
 }
 
 const FailCardSocial = (props: FailCardSocialProps) => {
-  const { id, title, imageUrl, username, date, likes, category, tags, aiModel } = props;
+  const { id, title, description, imageUrl, username, date, likes, category, tags, aiModel } = props;
   const [imageLoading, setImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
   
@@ -106,7 +105,13 @@ const FailCardSocial = (props: FailCardSocialProps) => {
         
         <div className="flex items-center space-x-1">
           <LikeButton failId={id} initialLikes={likes} />
-          <ShareButton failId={id} title={title} />
+          <EnhancedShareButton 
+            failId={id} 
+            title={title} 
+            imageUrl={imageUrl}
+            category={category}
+            description={description}
+          />
         </div>
       </CardFooter>
     </Card>

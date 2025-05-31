@@ -4,12 +4,19 @@ import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import { cn } from '@/lib/utils';
 
 interface PullToRefreshProps {
-  onRefresh: () => Promise<void>;
+  onRefresh: () => void | Promise<void>;
   children: React.ReactNode;
   className?: string;
 }
 
 const PullToRefresh = ({ onRefresh, children, className }: PullToRefreshProps) => {
+  const handleRefresh = async () => {
+    const result = onRefresh();
+    if (result instanceof Promise) {
+      await result;
+    }
+  };
+
   const {
     handleTouchStart,
     handleTouchMove,
@@ -18,7 +25,7 @@ const PullToRefresh = ({ onRefresh, children, className }: PullToRefreshProps) =
     pullDistance,
     canRefresh,
     refreshProgress
-  } = usePullToRefresh({ onRefresh });
+  } = usePullToRefresh({ onRefresh: handleRefresh });
 
   return (
     <div

@@ -29,7 +29,8 @@ interface PendingSubmission {
   created_at: string;
   user_id: string;
   submission_notes?: string;
-  profiles?: { username: string };
+  is_featured: boolean;
+  profiles?: { username: string } | null;
 }
 
 const ContentModerationPanel = () => {
@@ -47,8 +48,16 @@ const ContentModerationPanel = () => {
       let query = supabase
         .from('oopsies')
         .select(`
-          *,
-          profiles(username)
+          id,
+          title,
+          description,
+          image_url,
+          status,
+          created_at,
+          user_id,
+          submission_notes,
+          is_featured,
+          profiles!inner(username)
         `)
         .order('created_at', { ascending: false });
 
@@ -63,7 +72,24 @@ const ContentModerationPanel = () => {
       const { data, error } = await query;
 
       if (error) throw error;
-      setPendingSubmissions(data || []);
+      
+      // Transform the data to match our interface
+      const transformedData: PendingSubmission[] = (data || []).map(item => ({
+        id: item.id,
+        title: item.title,
+        description: item.description,
+        image_url: item.image_url,
+        status: item.status,
+        created_at: item.created_at,
+        user_id: item.user_id,
+        submission_notes: item.submission_notes,
+        is_featured: item.is_featured,
+        profiles: Array.isArray(item.profiles) && item.profiles.length > 0 
+          ? item.profiles[0] 
+          : null
+      }));
+      
+      setPendingSubmissions(transformedData);
     } catch (error) {
       console.error('Error fetching submissions:', error);
       toast({

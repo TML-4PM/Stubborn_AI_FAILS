@@ -329,7 +329,7 @@ const ImageAuditResults = ({ auditResults }: ImageAuditResultsProps) => {
                   <h4 className="font-medium">Performance Issues</h4>
                   <div className="space-y-2">
                     <div className="flex justify-between">
-                      <span className="text-sm">Large Images (>500KB):</span>
+                      <span className="text-sm">Large Images (&gt;500KB):</span>
                       <span className="text-sm font-medium text-red-600">{imageAnalysis.largeImages}</span>
                     </div>
                     <div className="flex justify-between">

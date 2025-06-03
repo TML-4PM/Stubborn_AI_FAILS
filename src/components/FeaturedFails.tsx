@@ -1,112 +1,155 @@
-import { useState, useEffect } from 'react';
-import { getFeaturedFails, AIFail } from '@/data/sampleFails';
-import FailCard from './FailCard';
-import ImageCarousel from './ImageCarousel';
-import { ArrowRight, Bot, Sparkles } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { GradientText } from '@/components/ui/gradient-text';
-import { GlassCard } from '@/components/ui/glass-card';
 
-const FeaturedFails = () => {
-  const navigate = useNavigate();
-  const [featuredFails, setFeaturedFails] = useState<AIFail[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isVisible, setIsVisible] = useState(false);
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Heart, MessageCircle, Share2, ExternalLink, Sparkles } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
-  useEffect(() => {
-    // Check if element is in viewport for animation
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          setIsVisible(true);
-        }
-      },
-      { threshold: 0.1 }
-    );
-    
-    const section = document.getElementById('featured-fails-section');
-    if (section) observer.observe(section);
-    
-    // Simulate loading data
-    const timer = setTimeout(() => {
-      setFeaturedFails(getFeaturedFails());
-      setIsLoading(false);
-    }, 800);
+interface Fail {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  image_url: string;
+  likes: number;
+  comments: number;
+  shares: number;
+  viral_score: number;
+  source_platform?: string;
+}
 
-    return () => {
-      clearTimeout(timer);
-      if (section) observer.unobserve(section);
-    };
-  }, []);
+interface FeaturedFailsProps {
+  fails?: Fail[];
+  isLoading: boolean;
+}
 
-  return (
-    <section id="featured-fails-section" className="py-24 relative overflow-hidden">
-      {/* Enhanced background with animated gradients */}
-      <div className="absolute inset-0 bg-gradient-to-r from-fail/5 via-purple-500/5 to-blue-500/5" />
-      <div className="absolute inset-0 opacity-30">
-        <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-fail/20 to-transparent rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-tl from-purple-500/20 to-transparent rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
-      </div>
-      
-      <div className="container mx-auto px-4 relative z-10">
-        <div className="text-center mb-16">
-          <div className={`transform transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-            <GlassCard className="inline-block p-3 mb-6">
-              <span className="flex items-center px-4 py-2 text-sm font-medium bg-gradient-to-r from-fail to-purple-500 text-white rounded-full">
-                <Bot className="w-4 h-4 mr-2" />
-                Featured Collection
-              </span>
-            </GlassCard>
-            
-            <GradientText gradient="fail" as="h2" className="text-4xl md:text-5xl mb-6">
-              Featured AI Fails
-            </GradientText>
-            <p className="text-muted-foreground max-w-3xl mx-auto text-lg leading-relaxed">
-              Discover the most hilarious AI mistakes from our community. From bizarre image generations 
-              to confusing conversations, these are the fails that made us laugh the most.
-            </p>
+const FeaturedFails = ({ fails, isLoading }: FeaturedFailsProps) => {
+  if (isLoading) {
+    return (
+      <section className="relative">
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center gap-2 bg-fail/10 px-4 py-2 rounded-full mb-4">
+            <Sparkles className="h-5 w-5 text-fail" />
+            <span className="text-fail font-medium">Featured AI Fails</span>
           </div>
-        </div>
-
-        {/* Enhanced carousel */}
-        <div className={`transform transition-all duration-1000 delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-          {!isLoading && <ImageCarousel fails={featuredFails} />}
-        </div>
-
-        {/* Enhanced grid */}
-        <div className={`mt-20 transform transition-all duration-1000 delay-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-          {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-              {[...Array(4)].map((_, index) => (
-                <GlassCard
-                  key={index}
-                  className="h-80 bg-gradient-to-br from-muted/50 to-muted/30 animate-pulse"
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-              {featuredFails.map((fail, index) => (
-                <FailCard 
-                  key={fail.id} 
-                  fail={fail} 
-                  delay={Math.min(index * 0.1, 0.8)}
-                />
-              ))}
-            </div>
-          )}
+          <h2 className="text-3xl font-bold mb-4">The Most Epic AI Mishaps</h2>
+          <p className="text-muted-foreground max-w-2xl mx-auto">
+            Our community's favorite AI failures that will make you laugh, cry, and question the future of technology.
+          </p>
         </div>
         
-        {/* Enhanced view more section */}
-        <div className={`mt-16 text-center transform transition-all duration-1000 delay-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-          <button 
-            onClick={() => navigate('/gallery')}
-            className="group inline-flex items-center px-8 py-4 bg-gradient-to-r from-white/10 to-white/5 backdrop-blur-md border border-white/20 text-foreground rounded-full font-medium text-lg transition-all duration-300 hover:scale-105 hover:shadow-xl"
-          >
-            View More AI Fails
-            <ArrowRight className="ml-3 h-5 w-5 transition-transform duration-300 group-hover:translate-x-2" />
-          </button>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[...Array(6)].map((_, i) => (
+            <Card key={i} className="overflow-hidden">
+              <div className="aspect-video bg-muted animate-pulse"></div>
+              <CardContent className="p-4">
+                <div className="h-6 bg-muted rounded animate-pulse mb-2"></div>
+                <div className="h-4 bg-muted rounded animate-pulse w-3/4 mb-4"></div>
+                <div className="flex gap-4 text-sm">
+                  <div className="h-4 bg-muted rounded animate-pulse w-12"></div>
+                  <div className="h-4 bg-muted rounded animate-pulse w-12"></div>
+                  <div className="h-4 bg-muted rounded animate-pulse w-12"></div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
+      </section>
+    );
+  }
+
+  if (!fails || fails.length === 0) {
+    return (
+      <section className="relative">
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center gap-2 bg-fail/10 px-4 py-2 rounded-full mb-4">
+            <Sparkles className="h-5 w-5 text-fail" />
+            <span className="text-fail font-medium">Featured AI Fails</span>
+          </div>
+          <h2 className="text-3xl font-bold mb-4">No Featured Fails Yet</h2>
+          <p className="text-muted-foreground max-w-2xl mx-auto">
+            Be the first to submit an AI fail and become featured!
+          </p>
+          <Button asChild className="mt-4">
+            <Link to="/submit">Submit Your Fail</Link>
+          </Button>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className="relative">
+      <div className="text-center mb-12">
+        <div className="inline-flex items-center gap-2 bg-fail/10 px-4 py-2 rounded-full mb-4">
+          <Sparkles className="h-5 w-5 text-fail" />
+          <span className="text-fail font-medium">Featured AI Fails</span>
+        </div>
+        <h2 className="text-3xl font-bold mb-4">The Most Epic AI Mishaps</h2>
+        <p className="text-muted-foreground max-w-2xl mx-auto">
+          Our community's favorite AI failures that will make you laugh, cry, and question the future of technology.
+        </p>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {fails.map((fail) => (
+          <Card key={fail.id} className="group overflow-hidden hover:shadow-lg transition-all duration-300">
+            <div className="aspect-video overflow-hidden">
+              <img 
+                src={fail.image_url} 
+                alt={fail.title}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              />
+            </div>
+            <CardContent className="p-4">
+              <div className="flex items-start justify-between mb-2">
+                <Badge variant="outline" className="text-xs">
+                  {fail.category}
+                </Badge>
+                {fail.viral_score > 100 && (
+                  <Badge className="bg-fail text-white text-xs">
+                    🔥 Viral
+                  </Badge>
+                )}
+              </div>
+              
+              <h3 className="font-semibold mb-2 line-clamp-2 group-hover:text-fail transition-colors">
+                {fail.title}
+              </h3>
+              <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+                {fail.description}
+              </p>
+              
+              <div className="flex items-center justify-between text-sm text-muted-foreground">
+                <div className="flex gap-4">
+                  <span className="flex items-center gap-1">
+                    <Heart className="h-4 w-4" />
+                    {fail.likes}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <MessageCircle className="h-4 w-4" />
+                    {fail.comments}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Share2 className="h-4 w-4" />
+                    {fail.shares}
+                  </span>
+                </div>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to={`/fail/${fail.id}`}>
+                    <ExternalLink className="h-4 w-4" />
+                  </Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+      
+      <div className="text-center mt-8">
+        <Button variant="outline" asChild>
+          <Link to="/gallery">View All Fails</Link>
+        </Button>
       </div>
     </section>
   );

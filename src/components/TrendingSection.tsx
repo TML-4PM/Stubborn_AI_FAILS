@@ -1,144 +1,147 @@
 
-import { useState, useEffect } from 'react';
-import { TrendingUp, Clock, Heart, Eye } from 'lucide-react';
-import { GlassCard } from '@/components/ui/glass-card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { useNavigate } from 'react-router-dom';
+import { TrendingUp, Heart, MessageCircle, Clock } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
-interface TrendingFail {
+interface Fail {
   id: string;
   title: string;
-  imageUrl: string;
-  likes: number;
-  views: number;
-  trendingScore: number;
+  description: string;
   category: string;
-  timeAgo: string;
+  image_url: string;
+  likes: number;
+  comments: number;
+  viral_score: number;
+  created_at: string;
 }
 
-const TrendingSection = () => {
-  const navigate = useNavigate();
-  const [trendingFails, setTrendingFails] = useState<TrendingFail[]>([]);
+interface TrendingSectionProps {
+  fails?: Fail[];
+  isLoading?: boolean;
+}
 
-  useEffect(() => {
-    // Simulate trending content
-    const generateTrendingFails = (): TrendingFail[] => [
-      {
-        id: '1',
-        title: 'ChatGPT convinced it\'s actually a penguin',
-        imageUrl: '/placeholder.svg',
-        likes: 847,
-        views: 12500,
-        trendingScore: 95,
-        category: 'ChatGPT',
-        timeAgo: '2h ago'
-      },
-      {
-        id: '2', 
-        title: 'DALL-E creates cursed food combinations',
-        imageUrl: '/placeholder.svg',
-        likes: 623,
-        views: 8900,
-        trendingScore: 88,
-        category: 'DALL-E',
-        timeAgo: '4h ago'
-      },
-      {
-        id: '3',
-        title: 'AI tries to explain quantum physics using emoji',
-        imageUrl: '/placeholder.svg',
-        likes: 542,
-        views: 7200,
-        trendingScore: 82,
-        category: 'General AI',
-        timeAgo: '6h ago'
-      }
-    ];
+const TrendingSection = ({ fails, isLoading }: TrendingSectionProps) => {
+  const formatTimeAgo = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+    
+    if (diffInHours < 1) return 'Just now';
+    if (diffInHours < 24) return `${diffInHours}h ago`;
+    if (diffInHours < 168) return `${Math.floor(diffInHours / 24)}d ago`;
+    return `${Math.floor(diffInHours / 168)}w ago`;
+  };
 
-    setTrendingFails(generateTrendingFails());
-  }, []);
-
-  return (
-    <section className="py-12">
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-2">
-            <TrendingUp className="w-6 h-6 text-fail" />
-            <h2 className="text-2xl font-bold">Trending Now</h2>
-            <Badge className="bg-fail text-white animate-pulse">HOT</Badge>
+  if (isLoading) {
+    return (
+      <section className="relative">
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center gap-2 bg-primary/10 px-4 py-2 rounded-full mb-4">
+            <TrendingUp className="h-5 w-5 text-primary" />
+            <span className="text-primary font-medium">Trending Now</span>
           </div>
-          <Button 
-            variant="outline" 
-            onClick={() => navigate('/gallery')}
-            className="hover:bg-fail hover:text-white"
-          >
-            View All Trending
-          </Button>
+          <h2 className="text-3xl font-bold mb-4">Rising AI Disasters</h2>
+          <p className="text-muted-foreground max-w-2xl mx-auto">
+            Fresh fails that are gaining traction in our community.
+          </p>
         </div>
-
-        <div className="grid md:grid-cols-3 gap-6">
-          {trendingFails.map((fail, index) => (
-            <GlassCard 
-              key={fail.id}
-              className="group cursor-pointer overflow-hidden hover:shadow-xl transition-all duration-300 hover:scale-105"
-              onClick={() => navigate(`/fail/${fail.id}`)}
-            >
-              <div className="relative">
-                <img 
-                  src={fail.imageUrl} 
-                  alt={fail.title}
-                  className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500"
-                />
-                <div className="absolute top-2 left-2">
-                  <Badge className="bg-gradient-to-r from-orange-500 to-red-500 text-white">
-                    #{index + 1} Trending
-                  </Badge>
-                </div>
-                <div className="absolute top-2 right-2">
-                  <Badge variant="secondary">
-                    {fail.category}
-                  </Badge>
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              </div>
-              
-              <div className="p-4">
-                <h3 className="font-bold text-lg line-clamp-2 mb-3 group-hover:text-fail transition-colors">
-                  {fail.title}
-                </h3>
-                
-                <div className="flex items-center justify-between text-sm text-muted-foreground">
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-1">
-                      <Heart className="w-4 h-4 text-red-500" />
-                      <span>{fail.likes.toLocaleString()}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Eye className="w-4 h-4" />
-                      <span>{fail.views.toLocaleString()}</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
-                    <span>{fail.timeAgo}</span>
-                  </div>
-                </div>
-                
-                {/* Trending score indicator */}
-                <div className="mt-3 bg-muted rounded-full h-2">
-                  <div 
-                    className="bg-gradient-to-r from-orange-500 to-red-500 h-2 rounded-full transition-all duration-1000"
-                    style={{ width: `${fail.trendingScore}%` }}
-                  />
-                </div>
-                <div className="text-xs text-muted-foreground mt-1">
-                  {fail.trendingScore}% trending score
-                </div>
-              </div>
-            </GlassCard>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[...Array(8)].map((_, i) => (
+            <Card key={i} className="overflow-hidden">
+              <div className="aspect-square bg-muted animate-pulse"></div>
+              <CardContent className="p-3">
+                <div className="h-4 bg-muted rounded animate-pulse mb-2"></div>
+                <div className="h-3 bg-muted rounded animate-pulse w-2/3"></div>
+              </CardContent>
+            </Card>
           ))}
         </div>
+      </section>
+    );
+  }
+
+  if (!fails || fails.length === 0) {
+    return (
+      <section className="relative">
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center gap-2 bg-primary/10 px-4 py-2 rounded-full mb-4">
+            <TrendingUp className="h-5 w-5 text-primary" />
+            <span className="text-primary font-medium">Trending Now</span>
+          </div>
+          <h2 className="text-3xl font-bold mb-4">No Trending Fails</h2>
+          <p className="text-muted-foreground max-w-2xl mx-auto">
+            Submit more AI fails to see trending content!
+          </p>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className="relative">
+      <div className="text-center mb-8">
+        <div className="inline-flex items-center gap-2 bg-primary/10 px-4 py-2 rounded-full mb-4">
+          <TrendingUp className="h-5 w-5 text-primary" />
+          <span className="text-primary font-medium">Trending Now</span>
+        </div>
+        <h2 className="text-3xl font-bold mb-4">Rising AI Disasters</h2>
+        <p className="text-muted-foreground max-w-2xl mx-auto">
+          Fresh fails that are gaining traction in our community.
+        </p>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {fails.map((fail, index) => (
+          <Card key={fail.id} className="group overflow-hidden hover:shadow-md transition-all duration-300">
+            <div className="aspect-square overflow-hidden relative">
+              <img 
+                src={fail.image_url} 
+                alt={fail.title}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              />
+              <div className="absolute top-2 left-2 flex gap-1">
+                <Badge className="bg-primary text-white text-xs">
+                  #{index + 1}
+                </Badge>
+                {fail.viral_score > 80 && (
+                  <Badge className="bg-red-500 text-white text-xs">
+                    🔥 Hot
+                  </Badge>
+                )}
+              </div>
+            </div>
+            <CardContent className="p-3">
+              <h3 className="font-medium text-sm mb-1 line-clamp-2 group-hover:text-primary transition-colors">
+                {fail.title}
+              </h3>
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <div className="flex gap-2">
+                  <span className="flex items-center gap-1">
+                    <Heart className="h-3 w-3" />
+                    {fail.likes}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <MessageCircle className="h-3 w-3" />
+                    {fail.comments}
+                  </span>
+                </div>
+                <span className="flex items-center gap-1">
+                  <Clock className="h-3 w-3" />
+                  {formatTimeAgo(fail.created_at)}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+      
+      <div className="text-center mt-8">
+        <Button variant="outline" asChild>
+          <Link to="/gallery">Explore More Trends</Link>
+        </Button>
       </div>
     </section>
   );

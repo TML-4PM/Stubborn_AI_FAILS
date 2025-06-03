@@ -9,32 +9,28 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { useRealTimeNotifications } from '@/hooks/useRealTimeNotifications';
+import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
 import { formatDistanceToNow } from 'date-fns';
 
 const NotificationPanel = () => {
   const {
     notifications,
     unreadCount,
-    isConnected,
     markAsRead,
     markAllAsRead,
-    deleteNotification,
     clearAll
-  } = useRealTimeNotifications();
+  } = useRealtimeNotifications();
 
   const [isOpen, setIsOpen] = useState(false);
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
-      case 'success':
-        return '✅';
-      case 'warning':
-        return '⚠️';
-      case 'error':
-        return '❌';
-      default:
-        return 'ℹ️';
+      case 'achievement': return '🏆';
+      case 'challenge': return '🎯';
+      case 'like': return '❤️';
+      case 'comment': return '💬';
+      case 'follow': return '👥';
+      default: return '🔔';
     }
   };
 
@@ -50,9 +46,6 @@ const NotificationPanel = () => {
             >
               {unreadCount > 99 ? '99+' : unreadCount}
             </Badge>
-          )}
-          {!isConnected && (
-            <div className="absolute -bottom-1 -right-1 w-2 h-2 bg-red-500 rounded-full" />
           )}
         </Button>
       </PopoverTrigger>
@@ -82,11 +75,6 @@ const NotificationPanel = () => {
               </Button>
             </div>
           </div>
-          {!isConnected && (
-            <p className="text-sm text-muted-foreground mt-1">
-              Reconnecting...
-            </p>
-          )}
         </div>
         
         <ScrollArea className="h-96">
@@ -120,19 +108,6 @@ const NotificationPanel = () => {
                         <p className="text-xs text-muted-foreground mt-2">
                           {formatDistanceToNow(notification.timestamp, { addSuffix: true })}
                         </p>
-                        {notification.actionUrl && (
-                          <Button
-                            variant="link"
-                            size="sm"
-                            className="h-auto p-0 mt-1"
-                            onClick={() => {
-                              window.location.href = notification.actionUrl!;
-                              markAsRead(notification.id);
-                            }}
-                          >
-                            {notification.actionLabel || 'View'}
-                          </Button>
-                        )}
                       </div>
                     </div>
                     
@@ -150,7 +125,7 @@ const NotificationPanel = () => {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => deleteNotification(notification.id)}
+                        onClick={() => markAsRead(notification.id)}
                         className="h-6 w-6 p-0"
                       >
                         <X className="w-3 h-3" />

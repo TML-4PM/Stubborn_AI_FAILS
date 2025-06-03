@@ -302,6 +302,42 @@ export type Database = {
           },
         ]
       }
+      community_challenges: {
+        Row: {
+          challenge_type: string
+          created_at: string | null
+          description: string | null
+          end_date: string
+          id: string
+          is_active: boolean | null
+          reward_points: number | null
+          start_date: string
+          title: string
+        }
+        Insert: {
+          challenge_type: string
+          created_at?: string | null
+          description?: string | null
+          end_date: string
+          id?: string
+          is_active?: boolean | null
+          reward_points?: number | null
+          start_date: string
+          title: string
+        }
+        Update: {
+          challenge_type?: string
+          created_at?: string | null
+          description?: string | null
+          end_date?: string
+          id?: string
+          is_active?: boolean | null
+          reward_points?: number | null
+          start_date?: string
+          title?: string
+        }
+        Relationships: []
+      }
       community_posts: {
         Row: {
           certificate_id: string | null
@@ -514,6 +550,39 @@ export type Database = {
         }
         Relationships: []
       }
+      leaderboards: {
+        Row: {
+          category: string
+          created_at: string | null
+          id: string
+          period_end: string | null
+          period_start: string | null
+          rank: number | null
+          score: number
+          user_id: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          id?: string
+          period_end?: string | null
+          period_start?: string | null
+          rank?: number | null
+          score: number
+          user_id?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          id?: string
+          period_end?: string | null
+          period_start?: string | null
+          rank?: number | null
+          score?: number
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       likes: {
         Row: {
           created_at: string | null
@@ -622,10 +691,12 @@ export type Database = {
       }
       notifications: {
         Row: {
+          category: string | null
           created_at: string
           from_user_id: string | null
           id: string
           message: string
+          priority: string | null
           read: boolean
           related_id: string | null
           title: string
@@ -633,10 +704,12 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          category?: string | null
           created_at?: string
           from_user_id?: string | null
           id?: string
           message: string
+          priority?: string | null
           read?: boolean
           related_id?: string | null
           title: string
@@ -644,10 +717,12 @@ export type Database = {
           user_id: string
         }
         Update: {
+          category?: string | null
           created_at?: string
           from_user_id?: string | null
           id?: string
           message?: string
+          priority?: string | null
           read?: boolean
           related_id?: string | null
           title?: string
@@ -700,6 +775,7 @@ export type Database = {
           created_at: string
           description: string
           discovery_date: string | null
+          featured_score: number | null
           featured_until: string | null
           id: string
           image_url: string | null
@@ -712,9 +788,11 @@ export type Database = {
           source_platform: string | null
           source_url: string | null
           status: string
+          submission_karma: number | null
           submission_notes: string | null
           tags: string[] | null
           title: string
+          trending_score: number | null
           updated_at: string
           user_id: string | null
           video_url: string | null
@@ -729,6 +807,7 @@ export type Database = {
           created_at?: string
           description: string
           discovery_date?: string | null
+          featured_score?: number | null
           featured_until?: string | null
           id?: string
           image_url?: string | null
@@ -741,9 +820,11 @@ export type Database = {
           source_platform?: string | null
           source_url?: string | null
           status?: string
+          submission_karma?: number | null
           submission_notes?: string | null
           tags?: string[] | null
           title: string
+          trending_score?: number | null
           updated_at?: string
           user_id?: string | null
           video_url?: string | null
@@ -758,6 +839,7 @@ export type Database = {
           created_at?: string
           description?: string
           discovery_date?: string | null
+          featured_score?: number | null
           featured_until?: string | null
           id?: string
           image_url?: string | null
@@ -770,9 +852,11 @@ export type Database = {
           source_platform?: string | null
           source_url?: string | null
           status?: string
+          submission_karma?: number | null
           submission_notes?: string | null
           tags?: string[] | null
           title?: string
+          trending_score?: number | null
           updated_at?: string
           user_id?: string | null
           video_url?: string | null
@@ -1508,6 +1592,39 @@ export type Database = {
         }
         Relationships: []
       }
+      user_achievements: {
+        Row: {
+          achievement_name: string
+          achievement_type: string
+          created_at: string | null
+          description: string | null
+          id: string
+          points: number | null
+          unlocked_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          achievement_name: string
+          achievement_type: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          points?: number | null
+          unlocked_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          achievement_name?: string
+          achievement_type?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          points?: number | null
+          unlocked_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       user_certificates: {
         Row: {
           certificate_data: Json
@@ -1548,6 +1665,44 @@ export type Database = {
             columns: ["order_id"]
             isOneToOne: false
             referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_challenge_participations: {
+        Row: {
+          challenge_id: string | null
+          completed: boolean | null
+          completion_date: string | null
+          created_at: string | null
+          id: string
+          score: number | null
+          user_id: string | null
+        }
+        Insert: {
+          challenge_id?: string | null
+          completed?: boolean | null
+          completion_date?: string | null
+          created_at?: string | null
+          id?: string
+          score?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          challenge_id?: string | null
+          completed?: boolean | null
+          completion_date?: string | null
+          created_at?: string | null
+          id?: string
+          score?: number | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_challenge_participations_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "community_challenges"
             referencedColumns: ["id"]
           },
         ]
@@ -1644,6 +1799,41 @@ export type Database = {
         }
         Relationships: []
       }
+      user_interactions: {
+        Row: {
+          created_at: string | null
+          id: string
+          interaction_type: string
+          interaction_weight: number | null
+          oopsie_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          interaction_type: string
+          interaction_weight?: number | null
+          oopsie_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          interaction_type?: string
+          interaction_weight?: number | null
+          oopsie_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_interactions_oopsie_id_fkey"
+            columns: ["oopsie_id"]
+            isOneToOne: false
+            referencedRelation: "oopsies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_mentions: {
         Row: {
           comment_id: string | null
@@ -1695,6 +1885,75 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_reputation: {
+        Row: {
+          comment_karma: number | null
+          created_at: string | null
+          id: string
+          like_karma: number | null
+          submission_karma: number | null
+          total_karma: number | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          comment_karma?: number | null
+          created_at?: string | null
+          id?: string
+          like_karma?: number | null
+          submission_karma?: number | null
+          total_karma?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          comment_karma?: number | null
+          created_at?: string | null
+          id?: string
+          like_karma?: number | null
+          submission_karma?: number | null
+          total_karma?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      user_subscriptions: {
+        Row: {
+          created_at: string | null
+          current_period_end: string | null
+          current_period_start: string | null
+          id: string
+          status: string
+          stripe_subscription_id: string | null
+          subscription_type: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          status?: string
+          stripe_subscription_id?: string | null
+          subscription_type: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          status?: string
+          stripe_subscription_id?: string | null
+          subscription_type?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
       }
       viral_metrics: {
         Row: {
@@ -1834,6 +2093,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      award_achievement: {
+        Args: {
+          target_user_id: string
+          achievement_type: string
+          achievement_name: string
+          description: string
+          points: number
+        }
+        Returns: undefined
+      }
       calculate_viral_score: {
         Args: {
           upvotes: number
@@ -1880,6 +2149,14 @@ export type Database = {
           response_time_param: number
           error_message_param?: string
         }
+        Returns: undefined
+      }
+      update_trending_scores: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      update_user_karma: {
+        Args: { target_user_id: string; karma_type: string; points: number }
         Returns: undefined
       }
       update_viral_scores: {

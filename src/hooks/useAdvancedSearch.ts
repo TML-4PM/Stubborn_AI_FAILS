@@ -1,191 +1,143 @@
 
-import { useState, useMemo, useCallback } from 'react';
-import { useDebounce } from '@/hooks/usePerformanceOptimization';
-import { AIFail } from '@/data/sampleFails';
+import { useState, useEffect, useMemo } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SearchFilters {
   query: string;
-  categories: string[];
+  category: string;
   tags: string[];
-  dateRange?: {
-    start: Date;
-    end: Date;
-  };
-  sortBy: 'relevance' | 'newest' | 'oldest' | 'popular';
-  contentType: 'all' | 'image' | 'text' | 'video';
+  sortBy: 'trending' | 'newest' | 'popular' | 'viral';
+  timeRange: 'all' | 'today' | 'week' | 'month';
+  minLikes: number;
+  featuredOnly: boolean;
 }
 
 interface SearchResult {
-  item: AIFail;
-  score: number;
-  highlights: {
-    title?: string;
-    description?: string;
-    tags?: string[];
-  };
+  id: string;
+  title: string;
+  description: string;
+  image_url: string;
+  category: string;
+  tags: string[];
+  likes: number;
+  comments: number;
+  shares: number;
+  trending_score: number;
+  viral_score: number;
+  created_at: string;
+  is_featured: boolean;
+  profiles?: { username: string } | null;
 }
 
-export const useAdvancedSearch = (items: AIFail[]) => {
+export const useAdvancedSearch = () => {
+  const [results, setResults] = useState<SearchResult[]>([]);
+  const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState<SearchFilters>({
     query: '',
-    categories: [],
+    category: 'all',
     tags: [],
-    sortBy: 'relevance',
-    contentType: 'all'
+    sortBy: 'trending',
+    timeRange: 'all',
+    minLikes: 0,
+    featuredOnly: false
   });
-  
-  const [searchHistory, setSearchHistory] = useState<string[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
 
-  // Full-text search with ranking
-  const searchItems = useCallback((query: string, items: AIFail[]): SearchResult[] => {
-    if (!query.trim()) return items.map(item => ({ item, score: 1, highlights: {} }));
+  const availableCategories = ['Technology', 'Sports', 'Entertainment', 'Science', 'Politics', 'Other'];
+  const availableTags = ['AI', 'Social Media', 'Breaking', 'Viral', 'Trending', 'Exclusive'];
 
-    const searchTerms = query.toLowerCase().split(' ').filter(term => term.length > 0);
-    
-    return items.map(item => {
-      let score = 0;
-      const highlights: SearchResult['highlights'] = {};
+  const search = async () => {
+    setLoading(true);
+    try {
+      let query = supabase
+        .from('oopsies')
+        .select(`
+          *,
+          profiles(username)
+        `)
+        .eq('status', 'approved');
 
-      // Title matching (highest weight)
-      const titleLower = item.title.toLowerCase();
-      const titleMatches = searchTerms.filter(term => titleLower.includes(term));
-      score += titleMatches.length * 10;
-      
-      if (titleMatches.length > 0) {
-        highlights.title = highlightText(item.title, searchTerms);
+      // Apply filters
+      if (filters.query) {
+        query = query.or(`title.ilike.%${filters.query}%,description.ilike.%${filters.query}%`);
       }
 
-      // Description matching (medium weight)
-      const descLower = item.description.toLowerCase();
-      const descMatches = searchTerms.filter(term => descLower.includes(term));
-      score += descMatches.length * 5;
-      
-      if (descMatches.length > 0) {
-        highlights.description = highlightText(item.description, searchTerms);
+      if (filters.category !== 'all') {
+        query = query.eq('category', filters.category);
       }
 
-      // Tag matching (medium weight)
-      const tagMatches = item.tags?.filter(tag => 
-        searchTerms.some(term => tag.toLowerCase().includes(term))
-      ) || [];
-      score += tagMatches.length * 3;
-      
-      if (tagMatches.length > 0) {
-        highlights.tags = tagMatches;
+      if (filters.featuredOnly) {
+        query = query.eq('is_featured', true);
       }
 
-      // Category matching (low weight)
-      if (item.category && searchTerms.some(term => 
-        item.category!.toLowerCase().includes(term)
-      )) {
-        score += 2;
+      if (filters.minLikes > 0) {
+        query = query.gte('likes', filters.minLikes);
       }
 
-      // Username matching (low weight)
-      if (searchTerms.some(term => 
-        item.username.toLowerCase().includes(term)
-      )) {
-        score += 1;
+      // Time range filter
+      if (filters.timeRange !== 'all') {
+        const now = new Date();
+        let startDate: Date;
+        
+        switch (filters.timeRange) {
+          case 'today':
+            startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            break;
+          case 'week':
+            startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            break;
+          case 'month':
+            startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+            break;
+          default:
+            startDate = new Date(0);
+        }
+        
+        query = query.gte('created_at', startDate.toISOString());
       }
 
-      return { item, score, highlights };
-    }).filter(result => result.score > 0);
-  }, []);
+      // Sorting
+      switch (filters.sortBy) {
+        case 'trending':
+          query = query.order('trending_score', { ascending: false });
+          break;
+        case 'newest':
+          query = query.order('created_at', { ascending: false });
+          break;
+        case 'popular':
+          query = query.order('likes', { ascending: false });
+          break;
+        case 'viral':
+          query = query.order('viral_score', { ascending: false });
+          break;
+      }
 
-  const highlightText = (text: string, terms: string[]): string => {
-    let highlighted = text;
-    terms.forEach(term => {
-      const regex = new RegExp(`(${term})`, 'gi');
-      highlighted = highlighted.replace(regex, '<mark>$1</mark>');
-    });
-    return highlighted;
+      const { data, error } = await query.limit(50);
+
+      if (error) throw error;
+      setResults(data || []);
+    } catch (error) {
+      console.error('Search error:', error);
+      setResults([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const debouncedSearch = useDebounce((searchFilters: SearchFilters) => {
-    setIsSearching(true);
-    
-    // Simulate search delay for better UX
-    setTimeout(() => {
-      setIsSearching(false);
-    }, 200);
-  }, 300);
-
-  const filteredAndSearchedItems = useMemo(() => {
-    let results = searchItems(filters.query, items);
-
-    // Apply category filters
-    if (filters.categories.length > 0) {
-      results = results.filter(result => 
-        result.item.category && filters.categories.includes(result.item.category)
-      );
-    }
-
-    // Apply tag filters
-    if (filters.tags.length > 0) {
-      results = results.filter(result =>
-        result.item.tags?.some(tag => filters.tags.includes(tag))
-      );
-    }
-
-    // Apply date range filter - using date instead of timestamp
-    if (filters.dateRange) {
-      results = results.filter(result => {
-        const itemDate = new Date(result.item.date);
-        return itemDate >= filters.dateRange!.start && itemDate <= filters.dateRange!.end;
-      });
-    }
-
-    // Apply content type filter
-    if (filters.contentType !== 'all') {
-      results = results.filter(result => {
-        // Implement content type detection based on your data structure
-        return true; // Placeholder
-      });
-    }
-
-    // Sort results
-    results.sort((a, b) => {
-      switch (filters.sortBy) {
-        case 'relevance':
-          return b.score - a.score;
-        case 'newest':
-          return new Date(b.item.date).getTime() - new Date(a.item.date).getTime();
-        case 'oldest':
-          return new Date(a.item.date).getTime() - new Date(b.item.date).getTime();
-        case 'popular':
-          return (b.item.likes || 0) - (a.item.likes || 0);
-        default:
-          return 0;
-      }
-    });
-
-    return results;
-  }, [filters, items, searchItems]);
+  useEffect(() => {
+    search();
+  }, [filters]);
 
   const updateFilters = (newFilters: Partial<SearchFilters>) => {
     setFilters(prev => ({ ...prev, ...newFilters }));
-    debouncedSearch({ ...filters, ...newFilters });
-  };
-
-  const addToHistory = (query: string) => {
-    if (query.trim() && !searchHistory.includes(query)) {
-      setSearchHistory(prev => [query, ...prev.slice(0, 9)]); // Keep last 10 searches
-    }
-  };
-
-  const clearHistory = () => {
-    setSearchHistory([]);
   };
 
   return {
+    results,
+    loading,
     filters,
     updateFilters,
-    results: filteredAndSearchedItems,
-    searchHistory,
-    addToHistory,
-    clearHistory,
-    isSearching,
-    totalResults: filteredAndSearchedItems.length
+    search,
+    availableCategories,
+    availableTags
   };
 };

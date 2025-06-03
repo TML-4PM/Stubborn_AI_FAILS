@@ -1,18 +1,16 @@
 
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, Bot, Home, Image, Upload, Youtube, Info, Heart, Shield } from 'lucide-react';
+import { Menu, Bot, Home, Image, Upload, Youtube, Info, Heart, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import ThemeToggle from './ThemeToggle';
 import UserNavigation from './UserNavigation';
-import { useAdminCheck } from '@/hooks/useAdminCheck';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
-  const { isAdmin } = useAdminCheck();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -28,14 +26,10 @@ const Navbar = () => {
     { name: 'Gallery', href: '/gallery', icon: Image },
     { name: 'Submit', href: '/submit', icon: Upload },
     { name: 'YouTube', href: '/youtube', icon: Youtube },
+    { name: 'Website Audit', href: '/admin', icon: Globe },
     { name: 'About', href: '/about', icon: Info },
     { name: 'Donate', href: '/donate', icon: Heart },
   ];
-
-  // Add admin link for admin users
-  const adminNavigation = isAdmin 
-    ? [...navigation, { name: 'Admin', href: '/admin', icon: Shield }] 
-    : navigation;
 
   const isActive = (path: string) => {
     if (path === '/' && location.pathname === '/') return true;
@@ -62,7 +56,7 @@ const Navbar = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-1">
-            {adminNavigation.map((item) => {
+            {navigation.map((item) => {
               const Icon = item.icon;
               return (
                 <Link
@@ -106,7 +100,7 @@ const Navbar = () => {
                   </div>
                   
                   <nav className="flex-1 space-y-2">
-                    {adminNavigation.map((item) => {
+                    {navigation.map((item) => {
                       const Icon = item.icon;
                       return (
                         <Link

@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, Bot, Home, Image, Upload, Youtube, Info, Heart, Target } from 'lucide-react';
+import { Menu, Bot, Home, Image, Upload, Youtube, Info, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import ThemeToggle from './ThemeToggle';
@@ -26,7 +26,6 @@ const Navbar = () => {
     { name: 'Gallery', href: '/gallery', icon: Image },
     { name: 'Submit', href: '/submit', icon: Upload },
     { name: 'YouTube', href: '/youtube', icon: Youtube },
-    { name: 'Site Health', href: '/admin', icon: Target },
     { name: 'About', href: '/about', icon: Info },
     { name: 'Donate', href: '/donate', icon: Heart },
   ];

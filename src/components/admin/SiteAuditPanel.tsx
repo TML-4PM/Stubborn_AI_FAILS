@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -35,25 +35,35 @@ const SiteAuditPanel = () => {
   // Auto-detect current domain
   const currentDomain = typeof window !== 'undefined' ? window.location.origin : '';
 
-  // Fetch recent audits
-  const { data: audits, isLoading } = useQuery({
+  // Fetch recent audits with better error handling
+  const { data: audits, isLoading, error } = useQuery({
     queryKey: ['site-audits'],
     queryFn: async () => {
+      console.log('Fetching site audits...');
       const { data, error } = await supabase
         .from('site_audits')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(20);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching audits:', error);
+        throw error;
+      }
+      
+      console.log('Fetched audits:', data);
       return data;
-    }
+    },
+    retry: 3,
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
   // Start audit mutation
   const startAuditMutation = useMutation({
     mutationFn: async ({ auditType }: { auditType: string }) => {
       setIsRunning(true);
+      console.log('Starting audit with type:', auditType);
+      
       const { data, error } = await supabase.functions.invoke('website-audit', {
         body: { 
           baseUrl: currentDomain,
@@ -62,7 +72,12 @@ const SiteAuditPanel = () => {
         }
       });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Audit error:', error);
+        throw error;
+      }
+      
+      console.log('Audit completed:', data);
       return data;
     },
     onSuccess: (data) => {
@@ -74,8 +89,9 @@ const SiteAuditPanel = () => {
       queryClient.invalidateQueries({ queryKey: ['site-audits'] });
       setSelectedAuditId(data.auditId);
     },
-    onError: (error) => {
+    onError: (error: any) => {
       setIsRunning(false);
+      console.error('Audit mutation error:', error);
       toast({
         title: "Audit Failed ❌",
         description: `Error: ${error.message}`,
@@ -84,14 +100,8 @@ const SiteAuditPanel = () => {
     }
   });
 
-  // Auto-run audit on page load if no recent audits
-  useEffect(() => {
-    if (audits && audits.length === 0 && !isRunning) {
-      handleStartAudit();
-    }
-  }, [audits]);
-
   const handleStartAudit = () => {
+    console.log('Manual audit triggered');
     startAuditMutation.mutate({ auditType });
   };
 
@@ -119,6 +129,10 @@ const SiteAuditPanel = () => {
     return <AlertTriangle className="h-4 w-4 text-red-600" />;
   };
 
+  if (error) {
+    console.error('Query error:', error);
+  }
+
   return (
     <div className="space-y-6">
       <Card>
@@ -133,7 +147,7 @@ const SiteAuditPanel = () => {
             <Search className="h-4 w-4" />
             <AlertDescription>
               Comprehensive analysis of this AI Fails website - SEO, accessibility, performance, and functionality.
-              Automatically audits key pages and features to ensure optimal user experience.
+              Manually run audits to monitor key pages and features for optimal user experience.
             </AlertDescription>
           </Alert>
 
@@ -206,6 +220,14 @@ const SiteAuditPanel = () => {
                 <div className="text-center py-8">
                   <Activity className="h-8 w-8 animate-spin mx-auto mb-4 text-muted-foreground" />
                   <p className="text-muted-foreground">Loading audit history...</p>
+                </div>
+              ) : error ? (
+                <div className="text-center py-8">
+                  <AlertTriangle className="h-8 w-8 mx-auto mb-4 text-red-500" />
+                  <p className="text-red-500 mb-4">Failed to load audit history</p>
+                  <Button onClick={() => queryClient.invalidateQueries({ queryKey: ['site-audits'] })}>
+                    Retry
+                  </Button>
                 </div>
               ) : audits && audits.length > 0 ? (
                 <div className="space-y-4">

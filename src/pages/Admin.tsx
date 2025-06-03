@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import AdminAuthGuard from '@/components/admin/AdminAuthGuard';
 import { useUser } from '@/contexts/UserContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,9 +22,6 @@ import QuickSetup from '@/components/admin/QuickSetup';
 const Admin = () => {
   const { user } = useUser();
   const [activeTab, setActiveTab] = useState('setup');
-
-  // Simple admin check - in a real app, this would check user roles
-  const isAdmin = user?.email === 'admin@example.com' || true; // Allow all for demo
 
   if (!user) {
     return (
@@ -49,137 +47,115 @@ const Admin = () => {
     );
   }
 
-  if (!isAdmin) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Navbar />
-        <main className="pt-16">
-          <div className="container mx-auto px-4 py-8">
-            <Card>
-              <CardContent className="pt-6">
-                <div className="text-center">
-                  <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
-                  <h2 className="text-xl font-semibold mb-2">Access Denied</h2>
-                  <p className="text-muted-foreground">
-                    You don't have permission to access this area.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
       <main className="pt-16">
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex items-center gap-3 mb-8">
-            <Settings className="h-8 w-8" />
-            <div>
-              <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-              <p className="text-muted-foreground">
-                Manage your AI Oopsies platform
-              </p>
+        <AdminAuthGuard>
+          <div className="container mx-auto px-4 py-8">
+            <div className="flex items-center gap-3 mb-8">
+              <Settings className="h-8 w-8" />
+              <div>
+                <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+                <p className="text-muted-foreground">
+                  Manage your AI Oopsies platform
+                </p>
+              </div>
+              <Badge variant="secondary" className="ml-auto">
+                Admin Access
+              </Badge>
             </div>
-            <Badge variant="secondary" className="ml-auto">
-              Admin Access
-            </Badge>
+
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="grid w-full grid-cols-6">
+                <TabsTrigger value="setup" className="flex items-center gap-2">
+                  <Zap className="h-4 w-4" />
+                  Setup
+                </TabsTrigger>
+                <TabsTrigger value="content" className="flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  Content
+                </TabsTrigger>
+                <TabsTrigger value="users" className="flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  Users
+                </TabsTrigger>
+                <TabsTrigger value="shop" className="flex items-center gap-2">
+                  <Package className="h-4 w-4" />
+                  Shop
+                </TabsTrigger>
+                <TabsTrigger value="analytics" className="flex items-center gap-2">
+                  <BarChart3 className="h-4 w-4" />
+                  Analytics
+                </TabsTrigger>
+                <TabsTrigger value="settings" className="flex items-center gap-2">
+                  <Settings className="h-4 w-4" />
+                  Settings
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="setup" className="mt-6">
+                <QuickSetup />
+              </TabsContent>
+
+              <TabsContent value="content" className="mt-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Content Management</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-muted-foreground">
+                      Content moderation and submission management features coming soon.
+                    </p>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="users" className="mt-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>User Management</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-muted-foreground">
+                      User analytics and management features coming soon.
+                    </p>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="shop" className="mt-6">
+                <PrintifyAdmin />
+              </TabsContent>
+
+              <TabsContent value="analytics" className="mt-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Analytics Dashboard</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-muted-foreground">
+                      Analytics and metrics dashboard coming soon.
+                    </p>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="settings" className="mt-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Platform Settings</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-muted-foreground">
+                      Platform configuration and settings coming soon.
+                    </p>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
           </div>
-
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-6">
-              <TabsTrigger value="setup" className="flex items-center gap-2">
-                <Zap className="h-4 w-4" />
-                Setup
-              </TabsTrigger>
-              <TabsTrigger value="content" className="flex items-center gap-2">
-                <FileText className="h-4 w-4" />
-                Content
-              </TabsTrigger>
-              <TabsTrigger value="users" className="flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                Users
-              </TabsTrigger>
-              <TabsTrigger value="shop" className="flex items-center gap-2">
-                <Package className="h-4 w-4" />
-                Shop
-              </TabsTrigger>
-              <TabsTrigger value="analytics" className="flex items-center gap-2">
-                <BarChart3 className="h-4 w-4" />
-                Analytics
-              </TabsTrigger>
-              <TabsTrigger value="settings" className="flex items-center gap-2">
-                <Settings className="h-4 w-4" />
-                Settings
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="setup" className="mt-6">
-              <QuickSetup />
-            </TabsContent>
-
-            <TabsContent value="content" className="mt-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Content Management</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">
-                    Content moderation and submission management features coming soon.
-                  </p>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="users" className="mt-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>User Management</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">
-                    User analytics and management features coming soon.
-                  </p>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="shop" className="mt-6">
-              <PrintifyAdmin />
-            </TabsContent>
-
-            <TabsContent value="analytics" className="mt-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Analytics Dashboard</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">
-                    Analytics and metrics dashboard coming soon.
-                  </p>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="settings" className="mt-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Platform Settings</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">
-                    Platform configuration and settings coming soon.
-                  </p>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        </div>
+        </AdminAuthGuard>
       </main>
       <Footer />
     </div>

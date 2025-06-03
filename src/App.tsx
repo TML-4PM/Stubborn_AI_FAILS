@@ -5,12 +5,13 @@ import { Toaster } from '@/components/ui/toaster';
 import ErrorBoundary from './components/ErrorBoundary';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from './components/ThemeProvider';
+import { UserProvider } from './contexts/UserContext';
 import PageTransition from './components/PageTransition';
 
 // Page imports
 import Index from './pages/Index';
 import NotFound from './pages/NotFound';
-import Gallery from './pages/Gallery';
+import GalleryPage from './pages/GalleryPage';
 import FailDetail from './pages/FailDetail';
 import Submit from './pages/Submit';
 import About from './pages/About';
@@ -36,115 +37,117 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
-        <ErrorBoundary>
-          <Routes>
-            <Route
-              path="/"
-              element={
-                <PageTransition>
-                  <Index />
-                </PageTransition>
-              }
-            />
-            <Route
-              path="/gallery"
-              element={
-                <PageTransition>
-                  <Gallery />
-                </PageTransition>
-              }
-            />
-            <Route
-              path="/fail/:id"
-              element={
-                <PageTransition>
-                  <FailDetail />
-                </PageTransition>
-              }
-            />
-            <Route
-              path="/submit"
-              element={
-                <PageTransition>
-                  <Submit />
-                </PageTransition>
-              }
-            />
-            <Route
-              path="/about"
-              element={
-                <PageTransition>
-                  <About />
-                </PageTransition>
-              }
-            />
-            <Route
-              path="/terms"
-              element={
-                <PageTransition>
-                  <Terms />
-                </PageTransition>
-              }
-            />
-            <Route
-              path="/privacy"
-              element={
-                <PageTransition>
-                  <Privacy />
-                </PageTransition>
-              }
-            />
-            <Route
-              path="/youtube"
-              element={
-                <PageTransition>
-                  <YouTubePage />
-                </PageTransition>
-              }
-            />
-            <Route
-              path="/profile"
-              element={
-                <PageTransition>
-                  <Profile />
-                </PageTransition>
-              }
-            />
-            <Route
-              path="/donate"
-              element={
-                <PageTransition>
-                  <Donate />
-                </PageTransition>
-              }
-            />
-            <Route
-              path="/admin"
-              element={
-                <PageTransition>
-                  <Admin />
-                </PageTransition>
-              }
-            />
-            <Route
-              path="/shop"
-              element={
-                <PageTransition>
-                  <Shop />
-                </PageTransition>
-              }
-            />
-            <Route
-              path="*"
-              element={
-                <PageTransition>
-                  <NotFound />
-                </PageTransition>
-              }
-            />
-          </Routes>
-        </ErrorBoundary>
-        <Toaster />
+        <UserProvider>
+          <ErrorBoundary>
+            <Routes>
+              <Route
+                path="/"
+                element={
+                  <PageTransition>
+                    <Index />
+                  </PageTransition>
+                }
+              />
+              <Route
+                path="/gallery"
+                element={
+                  <PageTransition>
+                    <GalleryPage />
+                  </PageTransition>
+                }
+              />
+              <Route
+                path="/fail/:id"
+                element={
+                  <PageTransition>
+                    <FailDetail />
+                  </PageTransition>
+                }
+              />
+              <Route
+                path="/submit"
+                element={
+                  <PageTransition>
+                    <Submit />
+                  </PageTransition>
+                }
+              />
+              <Route
+                path="/about"
+                element={
+                  <PageTransition>
+                    <About />
+                  </PageTransition>
+                }
+              />
+              <Route
+                path="/terms"
+                element={
+                  <PageTransition>
+                    <Terms />
+                  </PageTransition>
+                }
+              />
+              <Route
+                path="/privacy"
+                element={
+                  <PageTransition>
+                    <Privacy />
+                  </PageTransition>
+                }
+              />
+              <Route
+                path="/youtube"
+                element={
+                  <PageTransition>
+                    <YouTubePage />
+                  </PageTransition>
+                }
+              />
+              <Route
+                path="/profile"
+                element={
+                  <PageTransition>
+                    <Profile />
+                  </PageTransition>
+                }
+              />
+              <Route
+                path="/donate"
+                element={
+                  <PageTransition>
+                    <Donate />
+                  </PageTransition>
+                }
+              />
+              <Route
+                path="/admin"
+                element={
+                  <PageTransition>
+                    <Admin />
+                  </PageTransition>
+                }
+              />
+              <Route
+                path="/shop"
+                element={
+                  <PageTransition>
+                    <Shop />
+                  </PageTransition>
+                }
+              />
+              <Route
+                path="*"
+                element={
+                  <PageTransition>
+                    <NotFound />
+                  </PageTransition>
+                }
+              />
+            </Routes>
+          </ErrorBoundary>
+          <Toaster />
+        </UserProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );

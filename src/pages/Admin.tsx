@@ -14,10 +14,15 @@ import {
   Users, 
   FileText,
   Zap,
-  AlertCircle
+  AlertCircle,
+  Shield,
+  Search
 } from 'lucide-react';
 import PrintifyAdmin from '@/components/admin/PrintifyAdmin';
 import QuickSetup from '@/components/admin/QuickSetup';
+import ContentModerationPanel from '@/components/admin/ContentModerationPanel';
+import ContentAnalytics from '@/components/admin/ContentAnalytics';
+import ContentDiscoveryManager from '@/components/admin/ContentDiscoveryManager';
 
 const Admin = () => {
   const { user } = useUser();
@@ -67,14 +72,22 @@ const Admin = () => {
             </div>
 
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-6">
+              <TabsList className="grid w-full grid-cols-7">
                 <TabsTrigger value="setup" className="flex items-center gap-2">
                   <Zap className="h-4 w-4" />
                   Setup
                 </TabsTrigger>
-                <TabsTrigger value="content" className="flex items-center gap-2">
-                  <FileText className="h-4 w-4" />
-                  Content
+                <TabsTrigger value="moderation" className="flex items-center gap-2">
+                  <Shield className="h-4 w-4" />
+                  Moderation
+                </TabsTrigger>
+                <TabsTrigger value="discovery" className="flex items-center gap-2">
+                  <Search className="h-4 w-4" />
+                  Discovery
+                </TabsTrigger>
+                <TabsTrigger value="analytics" className="flex items-center gap-2">
+                  <BarChart3 className="h-4 w-4" />
+                  Analytics
                 </TabsTrigger>
                 <TabsTrigger value="users" className="flex items-center gap-2">
                   <Users className="h-4 w-4" />
@@ -83,10 +96,6 @@ const Admin = () => {
                 <TabsTrigger value="shop" className="flex items-center gap-2">
                   <Package className="h-4 w-4" />
                   Shop
-                </TabsTrigger>
-                <TabsTrigger value="analytics" className="flex items-center gap-2">
-                  <BarChart3 className="h-4 w-4" />
-                  Analytics
                 </TabsTrigger>
                 <TabsTrigger value="settings" className="flex items-center gap-2">
                   <Settings className="h-4 w-4" />
@@ -98,17 +107,16 @@ const Admin = () => {
                 <QuickSetup />
               </TabsContent>
 
-              <TabsContent value="content" className="mt-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Content Management</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground">
-                      Content moderation and submission management features coming soon.
-                    </p>
-                  </CardContent>
-                </Card>
+              <TabsContent value="moderation" className="mt-6">
+                <ContentModerationPanel />
+              </TabsContent>
+
+              <TabsContent value="discovery" className="mt-6">
+                <ContentDiscoveryManager />
+              </TabsContent>
+
+              <TabsContent value="analytics" className="mt-6">
+                <ContentAnalytics />
               </TabsContent>
 
               <TabsContent value="users" className="mt-6">
@@ -126,19 +134,6 @@ const Admin = () => {
 
               <TabsContent value="shop" className="mt-6">
                 <PrintifyAdmin />
-              </TabsContent>
-
-              <TabsContent value="analytics" className="mt-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Analytics Dashboard</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground">
-                      Analytics and metrics dashboard coming soon.
-                    </p>
-                  </CardContent>
-                </Card>
               </TabsContent>
 
               <TabsContent value="settings" className="mt-6">

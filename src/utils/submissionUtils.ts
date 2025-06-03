@@ -1,4 +1,7 @@
 
+// Legacy submission utils - kept for backward compatibility
+// New submissions should use enhancedSubmissionUtils.ts
+
 import { getAllFails, AIFail, addNewFail } from '@/data/sampleFails';
 
 export interface UserSubmission {
@@ -15,6 +18,7 @@ export interface UserSubmission {
 }
 
 /**
+ * @deprecated Use submitToSupabase from enhancedSubmissionUtils.ts instead
  * Saves submission data to local storage and sample data
  */
 export const saveSubmissionToStorage = async (
@@ -30,7 +34,7 @@ export const saveSubmissionToStorage = async (
     title,
     description,
     username: username || 'Anonymous',
-    imageUrl: imageUrl, // Fixed property name to match AIFail interface
+    imageUrl: imageUrl,
     date: new Date().toISOString(),
     likes: 0,
     featured: false,

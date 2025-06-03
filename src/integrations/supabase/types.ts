@@ -205,6 +205,41 @@ export type Database = {
         }
         Relationships: []
       }
+      content_analytics: {
+        Row: {
+          created_at: string | null
+          event_type: string
+          id: string
+          metadata: Json | null
+          oopsie_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          oopsie_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          oopsie_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_analytics_oopsie_id_fkey"
+            columns: ["oopsie_id"]
+            isOneToOne: false
+            referencedRelation: "oopsies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       content_sources: {
         Row: {
           created_at: string | null
@@ -405,6 +440,47 @@ export type Database = {
         }
         Relationships: []
       }
+      moderation_logs: {
+        Row: {
+          action: string
+          created_at: string | null
+          id: string
+          moderator_id: string | null
+          new_status: string | null
+          oopsie_id: string | null
+          previous_status: string | null
+          reason: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          id?: string
+          moderator_id?: string | null
+          new_status?: string | null
+          oopsie_id?: string | null
+          previous_status?: string | null
+          reason?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          id?: string
+          moderator_id?: string | null
+          new_status?: string | null
+          oopsie_id?: string | null
+          previous_status?: string | null
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "moderation_logs_oopsie_id_fkey"
+            columns: ["oopsie_id"]
+            isOneToOne: false
+            referencedRelation: "oopsies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string
@@ -485,19 +561,25 @@ export type Database = {
           created_at: string
           description: string
           discovery_date: string | null
+          featured_until: string | null
           id: string
           image_url: string | null
           is_featured: boolean
           likes: number
+          moderation_notes: string | null
+          processed_at: string | null
           review_status: string | null
           shares: number
           source_platform: string | null
           source_url: string | null
           status: string
+          submission_notes: string | null
+          tags: string[] | null
           title: string
           updated_at: string
           user_id: string | null
           video_url: string | null
+          view_count: number | null
           viral_score: number
         }
         Insert: {
@@ -508,19 +590,25 @@ export type Database = {
           created_at?: string
           description: string
           discovery_date?: string | null
+          featured_until?: string | null
           id?: string
           image_url?: string | null
           is_featured?: boolean
           likes?: number
+          moderation_notes?: string | null
+          processed_at?: string | null
           review_status?: string | null
           shares?: number
           source_platform?: string | null
           source_url?: string | null
           status?: string
+          submission_notes?: string | null
+          tags?: string[] | null
           title: string
           updated_at?: string
           user_id?: string | null
           video_url?: string | null
+          view_count?: number | null
           viral_score?: number
         }
         Update: {
@@ -531,19 +619,25 @@ export type Database = {
           created_at?: string
           description?: string
           discovery_date?: string | null
+          featured_until?: string | null
           id?: string
           image_url?: string | null
           is_featured?: boolean
           likes?: number
+          moderation_notes?: string | null
+          processed_at?: string | null
           review_status?: string | null
           shares?: number
           source_platform?: string | null
           source_url?: string | null
           status?: string
+          submission_notes?: string | null
+          tags?: string[] | null
           title?: string
           updated_at?: string
           user_id?: string | null
           video_url?: string | null
+          view_count?: number | null
           viral_score?: number
         }
         Relationships: []
@@ -1492,6 +1586,20 @@ export type Database = {
       }
       increment_oopsie_likes: {
         Args: { oopsie_id: string }
+        Returns: undefined
+      }
+      increment_view_count: {
+        Args: { oopsie_id: string }
+        Returns: undefined
+      }
+      log_moderation_action: {
+        Args: {
+          oopsie_id: string
+          action: string
+          reason?: string
+          previous_status?: string
+          new_status?: string
+        }
         Returns: undefined
       }
       update_link_health: {

@@ -1,22 +1,16 @@
 
-// Legacy submission form hook - kept for backward compatibility
-// New submissions should use useEnhancedSubmissionForm.ts
-
 import { useState, useEffect } from 'react';
 import { toast } from '@/hooks/use-toast';
 import { useUser } from '@/contexts/UserContext';
-import { validateSubmissionForm } from '@/utils/validationUtils';
-import { uploadFileToStorage } from '@/utils/uploadUtils';
-import { saveSubmissionToStorage, UserSubmission } from '@/utils/submissionUtils';
+import { submitToSupabase, validateImageFile, processTags } from '@/utils/enhancedSubmissionUtils';
 
-/**
- * @deprecated Use useEnhancedSubmissionForm instead
- */
-export const useSubmissionForm = () => {
+export const useEnhancedSubmissionForm = () => {
   const { user } = useUser();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [username, setUsername] = useState('');
+  const [tags, setTags] = useState('');
+  const [submissionNotes, setSubmissionNotes] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageUrl, setImageUrl] = useState<string>('');
   const [isUrl, setIsUrl] = useState<boolean>(false);
@@ -34,15 +28,23 @@ export const useSubmissionForm = () => {
   }, [user]);
 
   const handleImageChange = (file: File | null) => {
-    setImageFile(file);
-    setIsUrl(false);
     setErrorMessage(null);
     
     if (file) {
-      const url = URL.createObjectURL(file);
-      setPreviewUrl(url);
-      setImageUrl('');
+      try {
+        validateImageFile(file);
+        setImageFile(file);
+        setIsUrl(false);
+        const url = URL.createObjectURL(file);
+        setPreviewUrl(url);
+        setImageUrl('');
+      } catch (error: any) {
+        setErrorMessage(error.message);
+        setImageFile(null);
+        setPreviewUrl(null);
+      }
     } else {
+      setImageFile(null);
       setPreviewUrl(null);
     }
     
@@ -75,6 +77,8 @@ export const useSubmissionForm = () => {
   const resetForm = () => {
     setTitle('');
     setDescription('');
+    setTags('');
+    setSubmissionNotes('');
     if (!user?.username) {
       setUsername('');
     }
@@ -87,36 +91,52 @@ export const useSubmissionForm = () => {
     setErrorMessage(null);
   };
 
+  const validateForm = (): boolean => {
+    if (!title.trim()) {
+      setErrorMessage('Title is required');
+      return false;
+    }
+
+    if (!description.trim()) {
+      setErrorMessage('Description is required');
+      return false;
+    }
+
+    if (!isUrl && !imageFile) {
+      setErrorMessage('Please upload an image or provide a URL');
+      return false;
+    }
+
+    if (isUrl && !imageUrl.trim()) {
+      setErrorMessage('Please provide an image URL');
+      return false;
+    }
+
+    return true;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validateSubmissionForm(title, imageFile, imageUrl, setErrorMessage, showToast)) return;
+    if (!validateForm()) return;
 
     setIsSubmitting(true);
     setUploadProgress(10);
 
     try {
-      let finalImageUrl = '';
-      
-      if (isUrl) {
-        // If it's a URL submission, use the URL directly
-        finalImageUrl = imageUrl;
-        setUploadProgress(60);
-      } else if (imageFile) {
-        // Upload image to Firebase Storage
-        finalImageUrl = await uploadFileToStorage(imageFile, setUploadProgress);
-      }
+      const processedTags = processTags(tags);
+      setUploadProgress(30);
 
-      setUploadProgress(80);
-
-      // Save submission data
-      await saveSubmissionToStorage(
-        title,
-        description,
-        username,
-        finalImageUrl,
+      await submitToSupabase(
+        title.trim(),
+        description.trim(),
+        username.trim() || 'Anonymous',
+        imageFile,
+        imageUrl.trim(),
         isUrl,
-        user?.id
+        user?.id,
+        processedTags,
+        submissionNotes.trim()
       );
 
       setUploadProgress(100);
@@ -126,7 +146,7 @@ export const useSubmissionForm = () => {
       setIsSuccess(true);
       showToast(
         "Submission received!",
-        "Your AI fail has been submitted for review."
+        "Your AI fail has been submitted for review and will be visible once approved."
       );
 
       // Reset form after submission
@@ -157,6 +177,10 @@ export const useSubmissionForm = () => {
     setDescription,
     username,
     setUsername,
+    tags,
+    setTags,
+    submissionNotes,
+    setSubmissionNotes,
     imageFile,
     imageUrl,
     setImageUrl,

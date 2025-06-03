@@ -11,6 +11,11 @@ import ProductGrid from '@/components/shop/ProductGrid';
 import ShopHero from '@/components/shop/ShopHero';
 import { supabase } from '@/integrations/supabase/client';
 
+interface ProductVariants {
+  sizes?: string[];
+  colors?: string[];
+}
+
 const Shop = () => {
   const [category, setCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -32,17 +37,20 @@ const Shop = () => {
       }
       
       // Transform the data to match the expected interface
-      return data.map(product => ({
-        id: product.id,
-        name: product.name,
-        description: product.description || '',
-        price: Number(product.price),
-        category: product.category.toLowerCase().replace(/\s+/g, ''),
-        image: product.image_url || '',
-        variants: product.variants?.sizes || [],
-        colors: product.variants?.colors || [],
-        featured: product.featured || false
-      }));
+      return data.map(product => {
+        const variants = product.variants as ProductVariants | null;
+        return {
+          id: product.id,
+          name: product.name,
+          description: product.description || '',
+          price: Number(product.price),
+          category: product.category.toLowerCase().replace(/\s+/g, ''),
+          image: product.image_url || '',
+          variants: variants?.sizes || [],
+          colors: variants?.colors || [],
+          featured: product.featured || false
+        };
+      });
     },
     staleTime: 1000 * 60 * 5, // 5 minutes
   });

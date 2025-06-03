@@ -64,7 +64,9 @@ const ProductGrid = ({ products, isLoading }: ProductGridProps) => {
             <CardContent className="p-4">
               <div className="flex justify-between items-start mb-2">
                 <h3 className="font-medium line-clamp-2">{product.name}</h3>
-                <Badge variant="outline" className="capitalize">{product.category}</Badge>
+                <Badge variant="outline" className="capitalize">
+                  {product.category.replace(/([A-Z])/g, ' $1').trim()}
+                </Badge>
               </div>
               <p className="text-muted-foreground text-sm mb-4 line-clamp-2">{product.description}</p>
               <div className="flex justify-between items-center">

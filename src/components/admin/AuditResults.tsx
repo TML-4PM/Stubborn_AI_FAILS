@@ -1,7 +1,6 @@
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
   TrendingUp,
   Activity,
@@ -43,6 +42,39 @@ const isAuditResults = (data: any): data is {
   errors: any[];
 } => {
   return data && typeof data === 'object' && Array.isArray(data.pages);
+};
+
+const isImageAuditResults = (data: any): data is {
+  pages: {
+    url: string;
+    images: Array<{
+      url: string;
+      alt: string;
+      size: number;
+      format: string;
+      loading: string;
+      issues: string[];
+    }>;
+  }[];
+  summary: {
+    imageAnalysis: {
+      totalImages: number;
+      unoptimizedImages: number;
+      imagesWithoutAlt: number;
+      imagesWithoutLazyLoading: number;
+      largeImages: number;
+      averageImageSize: number;
+      formatDistribution: Record<string, number>;
+      optimizationScore: number;
+    };
+  };
+} => {
+  return data && 
+         typeof data === 'object' && 
+         Array.isArray(data.pages) &&
+         data.summary &&
+         data.summary.imageAnalysis &&
+         typeof data.summary.imageAnalysis.totalImages === 'number';
 };
 
 const AuditResults = ({ auditId }: AuditResultsProps) => {
@@ -189,7 +221,7 @@ const AuditResults = ({ auditId }: AuditResultsProps) => {
         </TabsContent>
 
         <TabsContent value="images">
-          {parsedSummary.imageAnalysis ? (
+          {isImageAuditResults(results) ? (
             <ImageAuditResults auditResults={results} />
           ) : (
             <Card>

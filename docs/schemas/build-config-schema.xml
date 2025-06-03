@@ -1,0 +1,259 @@
+
+<?xml version="1.0" encoding="UTF-8"?>
+<build-config-schema version="2.0" platform="vite-react">
+  <metadata>
+    <name>AI Oopsies Build Configuration</name>
+    <description>Build system configuration and deployment schemas</description>
+    <version>2.0.0</version>
+    <build-tool>Vite 5.0+</build-tool>
+    <target>ES2022</target>
+  </metadata>
+
+  <build-configuration>
+    <vite-config file-path="vite.config.ts">
+      <plugins>
+        <plugin name="@vitejs/plugin-react" purpose="React support with Fast Refresh"/>
+        <plugin name="vite-plugin-pwa" purpose="Progressive Web App features"/>
+        <plugin name="vite-plugin-eslint" purpose="ESLint integration"/>
+      </plugins>
+      <optimizations>
+        <optimization name="chunk-splitting">
+          <description>Vendor chunk separation for better caching</description>
+          <config>
+            <vendor-chunk>react,react-dom,react-router-dom</vendor-chunk>
+            <ui-chunk>@radix-ui,lucide-react</ui-chunk>
+            <utils-chunk>date-fns,clsx,tailwind-merge</utils-chunk>
+          </config>
+        </optimization>
+        <optimization name="tree-shaking">
+          <description>Eliminate unused code</description>
+          <sideEffects>false</sideEffects>
+        </optimization>
+        <optimization name="minification">
+          <tool>terser</tool>
+          <options>
+            <compress>true</compress>
+            <mangle>true</mangle>
+            <drop-console>production</drop-console>
+          </options>
+        </optimization>
+      </optimizations>
+    </vite-config>
+
+    <typescript-config file-path="tsconfig.json">
+      <compiler-options>
+        <target>ES2022</target>
+        <module>ESNext</module>
+        <strict>true</strict>
+        <jsx>react-jsx</jsx>
+        <moduleResolution>bundler</moduleResolution>
+      </compiler-options>
+      <path-mapping>
+        <alias from="@/*" to="./src/*"/>
+        <alias from="@/components/*" to="./src/components/*"/>
+        <alias from="@/hooks/*" to="./src/hooks/*"/>
+        <alias from="@/utils/*" to="./src/utils/*"/>
+      </path-mapping>
+    </typescript-config>
+
+    <tailwind-config file-path="tailwind.config.ts">
+      <content-sources>
+        <source>./index.html</source>
+        <source>./src/**/*.{js,ts,jsx,tsx}</source>
+      </content-sources>
+      <theme-extensions>
+        <colors>
+          <color name="primary" value="hsl(var(--primary))"/>
+          <color name="secondary" value="hsl(var(--secondary))"/>
+          <color name="destructive" value="hsl(var(--destructive))"/>
+          <color name="muted" value="hsl(var(--muted))"/>
+        </colors>
+        <animations>
+          <animation name="fade-in" duration="0.3s"/>
+          <animation name="slide-up" duration="0.2s"/>
+          <animation name="spin" duration="1s"/>
+        </animations>
+      </theme-extensions>
+      <plugins>
+        <plugin name="tailwindcss-animate"/>
+        <plugin name="@tailwindcss/typography"/>
+        <plugin name="@tailwindcss/forms"/>
+      </plugins>
+    </tailwind-config>
+  </build-configuration>
+
+  <environment-variables>
+    <category name="supabase">
+      <description>Supabase integration configuration</description>
+      <variables>
+        <variable name="VITE_SUPABASE_URL" type="string" required="true" format="url">
+          <description>Supabase project URL</description>
+          <example>https://pflisxkcxbzboxwidywf.supabase.co</example>
+        </variable>
+        <variable name="VITE_SUPABASE_ANON_KEY" type="string" required="true">
+          <description>Supabase anonymous key for client-side operations</description>
+          <security-level>public</security-level>
+        </variable>
+      </variables>
+    </category>
+
+    <category name="payments">
+      <description>Payment processing configuration</description>
+      <variables>
+        <variable name="VITE_STRIPE_PUBLISHABLE_KEY" type="string" required="false">
+          <description>Stripe publishable key for payment processing</description>
+          <security-level>public</security-level>
+        </variable>
+      </variables>
+    </category>
+
+    <category name="monitoring">
+      <description>Analytics and monitoring configuration</description>
+      <variables>
+        <variable name="VITE_GA_MEASUREMENT_ID" type="string" required="false">
+          <description>Google Analytics 4 measurement ID</description>
+          <format>G-XXXXXXXXXX</format>
+        </variable>
+        <variable name="VITE_SENTRY_DSN" type="string" required="false" format="url">
+          <description>Sentry error tracking DSN</description>
+        </variable>
+      </variables>
+    </category>
+  </environment-variables>
+
+  <deployment-configurations>
+    <platform name="lovable">
+      <description>Primary deployment platform with automatic builds</description>
+      <features>
+        <feature>Automatic GitHub integration</feature>
+        <feature>Preview deployments for branches</feature>
+        <feature>Environment variable management</feature>
+        <feature>Custom domain support</feature>
+      </features>
+      <build-command>npm run build</build-command>
+      <output-directory>dist</output-directory>
+    </platform>
+
+    <platform name="netlify">
+      <description>Alternative deployment with edge functions</description>
+      <configuration file-path="netlify.toml">
+        <build>
+          <command>npm run build</command>
+          <publish>dist</publish>
+        </build>
+        <redirects>
+          <redirect from="/*" to="/index.html" status="200"/>
+        </redirects>
+        <headers>
+          <header path="/*.js">
+            <cache-control>public, max-age=31536000</cache-control>
+          </header>
+          <header path="/*.css">
+            <cache-control>public, max-age=31536000</cache-control>
+          </header>
+        </headers>
+      </configuration>
+    </platform>
+
+    <platform name="vercel">
+      <description>Alternative deployment with serverless functions</description>
+      <configuration file-path="vercel.json">
+        <builds>
+          <build src="package.json" use="@vercel/static-build"/>
+        </builds>
+        <routes>
+          <route src="/(.*)" dest="/index.html"/>
+        </routes>
+        <headers>
+          <header source="/(.*)" has="Cache-Control" value="public, max-age=31536000"/>
+        </headers>
+      </configuration>
+    </platform>
+  </deployment-configurations>
+
+  <performance-optimizations>
+    <code-splitting>
+      <description>Route-based and component-based code splitting</description>
+      <strategies>
+        <strategy name="route-splitting">
+          <description>Lazy load page components</description>
+          <implementation>React.lazy() with Suspense</implementation>
+        </strategy>
+        <strategy name="vendor-splitting">
+          <description>Separate vendor dependencies</description>
+          <chunks>react-vendor, ui-vendor, utils-vendor</chunks>
+        </strategy>
+      </strategies>
+    </code-splitting>
+
+    <asset-optimization>
+      <images>
+        <formats>WebP, AVIF with fallbacks</formats>
+        <compression>lossy with quality 80</compression>
+        <lazy-loading>intersection observer</lazy-loading>
+      </images>
+      <fonts>
+        <preload>critical fonts</preload>
+        <display>swap</display>
+        <subset>latin characters only</subset>
+      </fonts>
+    </asset-optimization>
+
+    <caching-strategy>
+      <static-assets>
+        <cache-control>public, max-age=31536000</cache-control>
+        <immutable>true</immutable>
+      </static-assets>
+      <html>
+        <cache-control>public, max-age=3600</cache-control>
+        <etag>enabled</etag>
+      </html>
+      <api-responses>
+        <stale-while-revalidate>86400</stale-while-revalidate>
+        <max-age>3600</max-age>
+      </api-responses>
+    </caching-strategy>
+  </performance-optimizations>
+
+  <quality-assurance>
+    <linting>
+      <eslint file-path=".eslintrc.js">
+        <extends>
+          <config>@typescript-eslint/recommended</config>
+          <config>react-hooks/recommended</config>
+          <config>react/recommended</config>
+        </extends>
+        <rules>
+          <rule name="react/react-in-jsx-scope" value="off"/>
+          <rule name="@typescript-eslint/no-unused-vars" value="error"/>
+          <rule name="react-hooks/exhaustive-deps" value="warn"/>
+        </rules>
+      </eslint>
+    </linting>
+
+    <testing>
+      <unit-tests>
+        <framework>Vitest</framework>
+        <coverage-threshold>80</coverage-threshold>
+        <test-environment>jsdom</test-environment>
+      </unit-tests>
+      <integration-tests>
+        <framework>React Testing Library</framework>
+        <setup-files>src/test/setup.ts</setup-files>
+      </integration-tests>
+      <e2e-tests>
+        <framework>Playwright</framework>
+        <browsers>chromium, firefox, webkit</browsers>
+      </e2e-tests>
+    </testing>
+
+    <type-checking>
+      <typescript>
+        <strict>true</strict>
+        <noImplicitAny>true</noImplicitAny>
+        <noImplicitReturns>true</noImplicitReturns>
+        <noUnusedLocals>true</noUnusedLocals>
+      </typescript>
+    </type-checking>
+  </quality-assurance>
+</build-config-schema>

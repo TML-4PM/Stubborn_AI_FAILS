@@ -1,0 +1,302 @@
+
+<?xml version="1.0" encoding="UTF-8"?>
+<component-schema version="2.0" framework="react-typescript">
+  <metadata>
+    <name>AI Oopsies Component Architecture</name>
+    <description>React component interfaces and usage patterns</description>
+    <version>2.0.0</version>
+    <typescript-version>5.0+</typescript-version>
+    <react-version>18.3.1</react-version>
+  </metadata>
+
+  <component-categories>
+    <category name="ui-components">
+      <description>Core UI building blocks with consistent design system</description>
+      <components>
+        <component name="Button">
+          <file-path>src/components/ui/button.tsx</file-path>
+          <description>Primary button component with variants and states</description>
+          <props>
+            <prop name="variant" type="'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link'" default="default"/>
+            <prop name="size" type="'default' | 'sm' | 'lg' | 'icon'" default="default"/>
+            <prop name="disabled" type="boolean" default="false"/>
+            <prop name="children" type="React.ReactNode" required="true"/>
+            <prop name="onClick" type="() => void" required="false"/>
+          </props>
+          <usage-example>
+            <![CDATA[
+            <Button variant="destructive" size="lg" onClick={handleDelete}>
+              Delete Content
+            </Button>
+            ]]>
+          </usage-example>
+        </component>
+
+        <component name="Card">
+          <file-path>src/components/ui/card.tsx</file-path>
+          <description>Flexible card container with header, content, and footer sections</description>
+          <props>
+            <prop name="className" type="string" required="false"/>
+            <prop name="children" type="React.ReactNode" required="true"/>
+          </props>
+          <sub-components>
+            <component name="CardHeader"/>
+            <component name="CardTitle"/>
+            <component name="CardDescription"/>
+            <component name="CardContent"/>
+            <component name="CardFooter"/>
+          </sub-components>
+        </component>
+
+        <component name="Toast">
+          <file-path>src/components/ui/toast.tsx</file-path>
+          <description>Notification system with automatic dismissal</description>
+          <props>
+            <prop name="title" type="string" required="false"/>
+            <prop name="description" type="string" required="false"/>
+            <prop name="variant" type="'default' | 'destructive'" default="default"/>
+            <prop name="duration" type="number" default="5000"/>
+          </props>
+        </component>
+      </components>
+    </category>
+
+    <category name="feature-components">
+      <description>Feature-specific components with business logic</description>
+      <components>
+        <component name="FailCard">
+          <file-path>src/components/FailCard.tsx</file-path>
+          <description>Content card for displaying AI fails with interactions</description>
+          <props>
+            <prop name="id" type="string" required="true"/>
+            <prop name="image" type="string" required="true"/>
+            <prop name="name" type="string" required="true"/>
+            <prop name="description" type="string" required="true"/>
+            <prop name="likeCount" type="number" default="0"/>
+            <prop name="author" type="string" required="true"/>
+            <prop name="timestamp" type="string" required="true"/>
+            <prop name="status" type="'pending' | 'approved' | 'rejected'" required="true"/>
+          </props>
+          <hooks-used>
+            <hook name="useOptimisticUpdates"/>
+            <hook name="useIntersectionObserver"/>
+          </hooks-used>
+        </component>
+
+        <component name="GalleryContent">
+          <file-path>src/components/gallery/GalleryContent.tsx</file-path>
+          <description>Virtualized gallery with infinite scrolling and filtering</description>
+          <props>
+            <prop name="category" type="string" required="false"/>
+            <prop name="query" type="string" required="false"/>
+          </props>
+          <performance-features>
+            <feature>Virtual scrolling for large datasets</feature>
+            <feature>Image lazy loading with intersection observer</feature>
+            <feature>Optimistic updates for user interactions</feature>
+            <feature>Background data prefetching</feature>
+          </performance-features>
+        </component>
+
+        <component name="EnhancedSearch">
+          <file-path>src/components/search/EnhancedSearch.tsx</file-path>
+          <description>Advanced search with suggestions and filters</description>
+          <props>
+            <prop name="value" type="string" required="true"/>
+            <prop name="onChange" type="(value: string) => void" required="true"/>
+            <prop name="onSearch" type="(query: string) => void" required="true"/>
+            <prop name="suggestions" type="SearchSuggestion[]" required="true"/>
+            <prop name="searchHistory" type="string[]" required="true"/>
+          </props>
+          <state-management>
+            <hook name="useDebounce" purpose="Search input debouncing"/>
+            <hook name="useLocalStorage" purpose="Search history persistence"/>
+          </state-management>
+        </component>
+      </components>
+    </category>
+
+    <category name="layout-components">
+      <description>Application layout and navigation components</description>
+      <components>
+        <component name="Navbar">
+          <file-path>src/components/Navbar.tsx</file-path>
+          <description>Main navigation with responsive design and user menu</description>
+          <features>
+            <feature>Responsive collapse on mobile</feature>
+            <feature>User authentication state</feature>
+            <feature>Theme toggle integration</feature>
+            <feature>Search functionality</feature>
+          </features>
+        </component>
+
+        <component name="Footer">
+          <file-path>src/components/Footer.tsx</file-path>
+          <description>Site footer with links and branding</description>
+          <sections>
+            <section name="brand" description="Logo and tagline"/>
+            <section name="navigation" description="Quick links"/>
+            <section name="social" description="Social media links"/>
+            <section name="legal" description="Terms and privacy"/>
+          </sections>
+        </component>
+      </components>
+    </category>
+
+    <category name="performance-components">
+      <description>Components optimized for performance and monitoring</description>
+      <components>
+        <component name="VirtualizedGrid">
+          <file-path>src/components/ui/VirtualizedGrid.tsx</file-path>
+          <description>High-performance grid for large datasets</description>
+          <props>
+            <prop name="items" type="T[]" required="true"/>
+            <prop name="itemHeight" type="number" required="true"/>
+            <prop name="containerHeight" type="number" required="true"/>
+            <prop name="renderItem" type="(item: T, index: number) => React.ReactNode" required="true"/>
+            <prop name="overscan" type="number" default="5"/>
+          </props>
+          <optimizations>
+            <optimization>Window-based rendering</optimization>
+            <optimization>Intersection observer for visibility</optimization>
+            <optimization>Memory-efficient item recycling</optimization>
+          </optimizations>
+        </component>
+
+        <component name="PerformanceMonitor">
+          <file-path>src/components/ui/PerformanceMonitor.tsx</file-path>
+          <description>Real-time performance metrics display (development only)</description>
+          <metrics>
+            <metric name="FCP" description="First Contentful Paint"/>
+            <metric name="LCP" description="Largest Contentful Paint"/>
+            <metric name="CLS" description="Cumulative Layout Shift"/>
+            <metric name="FID" description="First Input Delay"/>
+          </metrics>
+        </component>
+
+        <component name="LazyImage">
+          <file-path>src/components/ui/LazyImage.tsx</file-path>
+          <description>Optimized image loading with progressive enhancement</description>
+          <props>
+            <prop name="src" type="string" required="true"/>
+            <prop name="alt" type="string" required="true"/>
+            <prop name="placeholder" type="string" required="false"/>
+            <prop name="className" type="string" required="false"/>
+          </props>
+          <features>
+            <feature>Intersection observer loading</feature>
+            <feature>WebP format detection</feature>
+            <feature>Blur placeholder support</feature>
+            <feature>Error fallback handling</feature>
+          </features>
+        </component>
+      </components>
+    </category>
+  </component-categories>
+
+  <custom-hooks>
+    <hook name="useOptimizedQuery">
+      <file-path>src/hooks/useOptimizedQuery.ts</file-path>
+      <description>Enhanced React Query with performance caching</description>
+      <parameters>
+        <param name="queryKey" type="string[]" required="true"/>
+        <param name="queryFn" type="() => Promise<T>" required="true"/>
+        <param name="options" type="OptimizedQueryOptions<T>" required="false"/>
+      </parameters>
+      <returns>
+        <field name="data" type="T | undefined"/>
+        <field name="isLoading" type="boolean"/>
+        <field name="error" type="Error | null"/>
+        <field name="refetch" type="() => void"/>
+      </returns>
+    </hook>
+
+    <hook name="useVirtualScrollOptimized">
+      <file-path>src/hooks/useVirtualScrollOptimized.ts</file-path>
+      <description>Advanced virtual scrolling with performance optimizations</description>
+      <parameters>
+        <param name="items" type="any[]" required="true"/>
+        <param name="itemHeight" type="number" required="true"/>
+        <param name="containerHeight" type="number" required="true"/>
+        <param name="overscan" type="number" default="5"/>
+      </parameters>
+      <features>
+        <feature>Throttled scroll handling</feature>
+        <feature>Image preloading</feature>
+        <feature>Load more integration</feature>
+        <feature>Scroll position persistence</feature>
+      </features>
+    </hook>
+
+    <hook name="usePerformanceOptimization">
+      <file-path>src/hooks/usePerformanceOptimization.ts</file-path>
+      <description>Collection of performance optimization utilities</description>
+      <exports>
+        <export name="useDebounce" description="Input debouncing for search"/>
+        <export name="useThrottle" description="Event throttling for scroll/resize"/>
+        <export name="useMemoizedValue" description="Expensive calculation memoization"/>
+        <export name="usePerformanceMonitor" description="Performance metric tracking"/>
+      </exports>
+    </hook>
+  </custom-hooks>
+
+  <state-management>
+    <store name="GalleryStore">
+      <file-path>src/store/useGalleryStore.ts</file-path>
+      <description>Gallery state management with Zustand</description>
+      <state>
+        <field name="filters" type="GalleryFilters"/>
+        <field name="sortBy" type="SortOption"/>
+        <field name="viewMode" type="'grid' | 'list'"/>
+        <field name="selectedCategory" type="string | null"/>
+      </state>
+      <actions>
+        <action name="setFilters" params="filters: GalleryFilters"/>
+        <action name="setSortBy" params="sortBy: SortOption"/>
+        <action name="setViewMode" params="viewMode: 'grid' | 'list'"/>
+        <action name="clearFilters" params="void"/>
+      </actions>
+    </store>
+
+    <store name="UserPreferencesStore">
+      <file-path>src/store/useUserPreferencesStore.ts</file-path>
+      <description>User preferences and settings</description>
+      <state>
+        <field name="theme" type="'light' | 'dark' | 'system'"/>
+        <field name="language" type="string"/>
+        <field name="notifications" type="NotificationSettings"/>
+        <field name="privacy" type="PrivacySettings"/>
+      </state>
+      <persistence>
+        <method>localStorage</method>
+        <key>user-preferences</key>
+      </persistence>
+    </store>
+  </state-management>
+
+  <design-patterns>
+    <pattern name="Compound Components">
+      <description>Related components that work together as a unit</description>
+      <examples>
+        <example component="Card" sub-components="CardHeader, CardTitle, CardContent, CardFooter"/>
+        <example component="Dialog" sub-components="DialogTrigger, DialogContent, DialogHeader"/>
+      </examples>
+    </pattern>
+
+    <pattern name="Render Props">
+      <description>Components that accept functions as children for flexible rendering</description>
+      <examples>
+        <example component="VirtualizedGrid" prop="renderItem"/>
+        <example component="InfiniteScroll" prop="renderItem"/>
+      </examples>
+    </pattern>
+
+    <pattern name="Higher-Order Components">
+      <description>Components that enhance other components with additional functionality</description>
+      <examples>
+        <example name="withErrorBoundary" purpose="Error handling wrapper"/>
+        <example name="withPerformanceMonitoring" purpose="Performance tracking"/>
+      </examples>
+    </pattern>
+  </design-patterns>
+</component-schema>

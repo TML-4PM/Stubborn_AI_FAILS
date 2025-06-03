@@ -1,0 +1,209 @@
+
+<?xml version="1.0" encoding="UTF-8"?>
+<api-schema version="2.0" platform="supabase-edge-functions">
+  <metadata>
+    <name>AI Oopsies API Schema</name>
+    <description>Complete API documentation for edge functions and real-time features</description>
+    <version>2.0.0</version>
+    <base-url>https://pflisxkcxbzboxwidywf.supabase.co/functions/v1</base-url>
+    <authentication>Bearer JWT</authentication>
+  </metadata>
+
+  <edge-functions>
+    <function name="create-checkout">
+      <description>Stripe payment processing for products and donations</description>
+      <endpoint>/create-checkout</endpoint>
+      <method>POST</method>
+      <authentication>optional</authentication>
+      <request-schema>
+        <field name="items" type="array" required="true">
+          <description>Array of product items to purchase</description>
+          <item-schema>
+            <field name="price_id" type="string" required="true"/>
+            <field name="quantity" type="number" required="true" min="1"/>
+          </item-schema>
+        </field>
+        <field name="success_url" type="string" required="true" format="url"/>
+        <field name="cancel_url" type="string" required="true" format="url"/>
+        <field name="customer_email" type="string" required="false" format="email"/>
+      </request-schema>
+      <response-schema>
+        <field name="url" type="string" description="Stripe checkout session URL"/>
+        <field name="session_id" type="string" description="Stripe session identifier"/>
+      </response-schema>
+      <errors>
+        <error code="400" message="Invalid request parameters"/>
+        <error code="500" message="Stripe integration error"/>
+      </errors>
+    </function>
+
+    <function name="discover-ai-fails">
+      <description>Automated content discovery from external sources</description>
+      <endpoint>/discover-ai-fails</endpoint>
+      <method>POST</method>
+      <authentication>required</authentication>
+      <request-schema>
+        <field name="sources" type="array" required="false">
+          <description>Specific sources to scan</description>
+          <item-schema>
+            <field name="platform" type="string" enum="reddit,twitter,youtube"/>
+            <field name="query" type="string"/>
+          </item-schema>
+        </field>
+        <field name="limit" type="number" required="false" default="10" max="50"/>
+      </request-schema>
+      <response-schema>
+        <field name="discovered_count" type="number"/>
+        <field name="processed_count" type="number"/>
+        <field name="failed_count" type="number"/>
+        <field name="items" type="array">
+          <item-schema>
+            <field name="id" type="string"/>
+            <field name="title" type="string"/>
+            <field name="confidence_score" type="number" min="0" max="1"/>
+            <field name="source_url" type="string"/>
+          </item-schema>
+        </field>
+      </response-schema>
+    </function>
+
+    <function name="website-audit">
+      <description>Comprehensive website performance auditing</description>
+      <endpoint>/website-audit</endpoint>
+      <method>POST</method>
+      <authentication>required</authentication>
+      <request-schema>
+        <field name="url" type="string" required="true" format="url"/>
+        <field name="audit_type" type="string" enum="performance,seo,accessibility,full" default="full"/>
+        <field name="mobile" type="boolean" default="false"/>
+      </request-schema>
+      <response-schema>
+        <field name="audit_id" type="string"/>
+        <field name="status" type="string" enum="pending,running,completed,failed"/>
+        <field name="results" type="object">
+          <field name="performance_score" type="number" min="0" max="100"/>
+          <field name="seo_score" type="number" min="0" max="100"/>
+          <field name="accessibility_score" type="number" min="0" max="100"/>
+          <field name="metrics" type="object">
+            <field name="first_contentful_paint" type="number"/>
+            <field name="largest_contentful_paint" type="number"/>
+            <field name="cumulative_layout_shift" type="number"/>
+            <field name="first_input_delay" type="number"/>
+          </field>
+        </field>
+      </response-schema>
+    </function>
+  </edge-functions>
+
+  <real-time-channels>
+    <channel name="presence_tracking">
+      <description>User presence and activity tracking</description>
+      <events>
+        <event name="sync">
+          <description>Synchronize presence state</description>
+          <payload-schema>
+            <field name="user_id" type="string"/>
+            <field name="status" type="string" enum="online,away,offline"/>
+            <field name="last_seen" type="string" format="iso-datetime"/>
+            <field name="current_page" type="string"/>
+          </payload-schema>
+        </event>
+        <event name="join">
+          <description>User joins channel</description>
+          <payload-schema>
+            <field name="key" type="string"/>
+            <field name="newPresences" type="array"/>
+          </payload-schema>
+        </event>
+        <event name="leave">
+          <description>User leaves channel</description>
+          <payload-schema>
+            <field name="key" type="string"/>
+            <field name="leftPresences" type="array"/>
+          </payload-schema>
+        </event>
+      </events>
+    </channel>
+
+    <channel name="content_updates">
+      <description>Live content modifications and new submissions</description>
+      <events>
+        <event name="INSERT">
+          <description>New content created</description>
+          <table>oopsies</table>
+          <payload-schema>
+            <field name="new" type="object">
+              <field name="id" type="string"/>
+              <field name="title" type="string"/>
+              <field name="status" type="string"/>
+              <field name="created_at" type="string"/>
+            </field>
+          </payload-schema>
+        </event>
+        <event name="UPDATE">
+          <description>Content modified</description>
+          <table>oopsies</table>
+          <payload-schema>
+            <field name="old" type="object"/>
+            <field name="new" type="object"/>
+          </payload-schema>
+        </event>
+      </events>
+    </channel>
+  </real-time-channels>
+
+  <webhooks>
+    <webhook name="stripe_events">
+      <description>Stripe payment event handling</description>
+      <endpoint>/verify-payment</endpoint>
+      <events>
+        <event name="checkout.session.completed"/>
+        <event name="payment_intent.succeeded"/>
+        <event name="payment_intent.payment_failed"/>
+      </events>
+      <security>
+        <signature-verification algorithm="hmac-sha256"/>
+        <ip-whitelist enabled="true"/>
+      </security>
+    </webhook>
+  </webhooks>
+
+  <rate-limits>
+    <endpoint pattern="/create-checkout" rate="10/minute"/>
+    <endpoint pattern="/discover-ai-fails" rate="5/minute"/>
+    <endpoint pattern="/website-audit" rate="3/hour"/>
+    <global rate="100/minute"/>
+  </rate-limits>
+
+  <error-responses>
+    <error code="400">
+      <description>Bad Request - Invalid parameters</description>
+      <schema>
+        <field name="error" type="string"/>
+        <field name="message" type="string"/>
+        <field name="details" type="object" required="false"/>
+      </schema>
+    </error>
+    <error code="401">
+      <description>Unauthorized - Invalid or missing authentication</description>
+      <schema>
+        <field name="error" type="string" value="Unauthorized"/>
+        <field name="message" type="string"/>
+      </schema>
+    </error>
+    <error code="429">
+      <description>Too Many Requests - Rate limit exceeded</description>
+      <schema>
+        <field name="error" type="string" value="RateLimitExceeded"/>
+        <field name="retry_after" type="number"/>
+      </schema>
+    </error>
+    <error code="500">
+      <description>Internal Server Error</description>
+      <schema>
+        <field name="error" type="string" value="InternalServerError"/>
+        <field name="message" type="string"/>
+      </schema>
+    </error>
+  </error-responses>
+</api-schema>

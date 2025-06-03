@@ -1,0 +1,184 @@
+
+<?xml version="1.0" encoding="UTF-8"?>
+<database-schema version="2.0" platform="supabase-postgresql">
+  <metadata>
+    <name>AI Oopsies Database Schema</name>
+    <description>Comprehensive database schema for AI Fails Gallery platform</description>
+    <version>2.0.0</version>
+    <last-updated>2024-12-03</last-updated>
+    <total-tables>40</total-tables>
+    <rls-enabled>true</rls-enabled>
+  </metadata>
+
+  <table-groups>
+    <group name="content-management">
+      <description>Core content and moderation tables</description>
+      <tables>
+        <table name="oopsies">
+          <description>Main content table for AI fails</description>
+          <columns>
+            <column name="id" type="uuid" primary-key="true" nullable="false" default="gen_random_uuid()"/>
+            <column name="user_id" type="uuid" nullable="true" foreign-key="profiles.user_id"/>
+            <column name="title" type="text" nullable="false"/>
+            <column name="description" type="text" nullable="false"/>
+            <column name="category" type="text" nullable="false"/>
+            <column name="image_url" type="text" nullable="true"/>
+            <column name="video_url" type="text" nullable="true"/>
+            <column name="status" type="text" nullable="false" default="pending"/>
+            <column name="likes" type="integer" nullable="false" default="0"/>
+            <column name="comments" type="integer" nullable="false" default="0"/>
+            <column name="shares" type="integer" nullable="false" default="0"/>
+            <column name="viral_score" type="integer" nullable="false" default="0"/>
+            <column name="view_count" type="integer" nullable="true" default="0"/>
+            <column name="trending_score" type="numeric" nullable="true" default="0"/>
+            <column name="created_at" type="timestamp with time zone" nullable="false" default="now()"/>
+            <column name="updated_at" type="timestamp with time zone" nullable="false" default="now()"/>
+          </columns>
+          <indexes>
+            <index name="idx_oopsies_status" columns="status"/>
+            <index name="idx_oopsies_category" columns="category"/>
+            <index name="idx_oopsies_viral_score" columns="viral_score DESC"/>
+            <index name="idx_oopsies_created_at" columns="created_at DESC"/>
+          </indexes>
+          <rls-policies>
+            <policy name="Allow system and user oopsies creation" type="INSERT"/>
+            <policy name="Public read access for approved content" type="SELECT"/>
+          </rls-policies>
+        </table>
+
+        <table name="oopsie_comments">
+          <description>Comments on AI fails</description>
+          <columns>
+            <column name="id" type="uuid" primary-key="true" nullable="false" default="gen_random_uuid()"/>
+            <column name="oopsie_id" type="uuid" nullable="false" foreign-key="oopsies.id"/>
+            <column name="user_id" type="uuid" nullable="false" foreign-key="profiles.user_id"/>
+            <column name="content" type="text" nullable="false"/>
+            <column name="likes" type="integer" nullable="false" default="0"/>
+            <column name="created_at" type="timestamp with time zone" nullable="false" default="now()"/>
+          </columns>
+          <indexes>
+            <index name="idx_comments_oopsie_id" columns="oopsie_id"/>
+            <index name="idx_comments_user_id" columns="user_id"/>
+          </indexes>
+        </table>
+
+        <table name="moderation_logs">
+          <description>Audit trail for content moderation</description>
+          <columns>
+            <column name="id" type="uuid" primary-key="true" nullable="false" default="gen_random_uuid()"/>
+            <column name="oopsie_id" type="uuid" nullable="true" foreign-key="oopsies.id"/>
+            <column name="moderator_id" type="uuid" nullable="true" foreign-key="profiles.user_id"/>
+            <column name="action" type="text" nullable="false"/>
+            <column name="reason" type="text" nullable="true"/>
+            <column name="previous_status" type="text" nullable="true"/>
+            <column name="new_status" type="text" nullable="true"/>
+            <column name="created_at" type="timestamp with time zone" nullable="true" default="now()"/>
+          </columns>
+        </table>
+      </tables>
+    </group>
+
+    <group name="user-management">
+      <description>User profiles, authentication, and reputation</description>
+      <tables>
+        <table name="profiles">
+          <description>User profile information</description>
+          <columns>
+            <column name="id" type="uuid" primary-key="true" nullable="false" default="gen_random_uuid()"/>
+            <column name="user_id" type="uuid" nullable="false" unique="true"/>
+            <column name="username" type="text" nullable="false" unique="true"/>
+            <column name="full_name" type="text" nullable="true"/>
+            <column name="avatar_url" type="text" nullable="true"/>
+            <column name="bio" type="text" nullable="true"/>
+            <column name="created_at" type="timestamp with time zone" nullable="false" default="now()"/>
+            <column name="updated_at" type="timestamp with time zone" nullable="false" default="now()"/>
+          </columns>
+        </table>
+
+        <table name="user_reputation">
+          <description>User karma and reputation tracking</description>
+          <columns>
+            <column name="id" type="uuid" primary-key="true" nullable="false" default="gen_random_uuid()"/>
+            <column name="user_id" type="uuid" nullable="true" foreign-key="profiles.user_id"/>
+            <column name="total_karma" type="integer" nullable="true" default="0"/>
+            <column name="submission_karma" type="integer" nullable="true" default="0"/>
+            <column name="comment_karma" type="integer" nullable="true" default="0"/>
+            <column name="like_karma" type="integer" nullable="true" default="0"/>
+            <column name="created_at" type="timestamp with time zone" nullable="true" default="now()"/>
+            <column name="updated_at" type="timestamp with time zone" nullable="true" default="now()"/>
+          </columns>
+        </table>
+      </tables>
+    </group>
+
+    <group name="analytics-monitoring">
+      <description>Performance monitoring and analytics</description>
+      <tables>
+        <table name="content_analytics">
+          <description>Content interaction analytics</description>
+          <columns>
+            <column name="id" type="uuid" primary-key="true" nullable="false" default="gen_random_uuid()"/>
+            <column name="oopsie_id" type="uuid" nullable="true" foreign-key="oopsies.id"/>
+            <column name="user_id" type="uuid" nullable="true" foreign-key="profiles.user_id"/>
+            <column name="event_type" type="text" nullable="false"/>
+            <column name="metadata" type="jsonb" nullable="true" default="{}"/>
+            <column name="created_at" type="timestamp with time zone" nullable="true" default="now()"/>
+          </columns>
+          <indexes>
+            <index name="idx_analytics_event_type" columns="event_type"/>
+            <index name="idx_analytics_created_at" columns="created_at"/>
+          </indexes>
+        </table>
+
+        <table name="site_audits">
+          <description>Website performance audits</description>
+          <columns>
+            <column name="id" type="uuid" primary-key="true" nullable="false" default="gen_random_uuid()"/>
+            <column name="domain" type="text" nullable="false"/>
+            <column name="url" type="text" nullable="false"/>
+            <column name="audit_type" type="text" nullable="false" default="full"/>
+            <column name="status" type="text" nullable="false" default="pending"/>
+            <column name="results" type="jsonb" nullable="true"/>
+            <column name="performance_score" type="integer" nullable="true" default="0"/>
+            <column name="seo_score" type="integer" nullable="true" default="0"/>
+            <column name="accessibility_score" type="integer" nullable="true" default="0"/>
+            <column name="created_at" type="timestamp with time zone" nullable="true" default="now()"/>
+            <column name="completed_at" type="timestamp with time zone" nullable="true"/>
+          </columns>
+        </table>
+      </tables>
+    </group>
+  </table-groups>
+
+  <functions>
+    <function name="increment_likes">
+      <description>Safely increment like count for content</description>
+      <parameters>
+        <parameter name="fail_id" type="uuid"/>
+      </parameters>
+      <returns>void</returns>
+      <security>DEFINER</security>
+    </function>
+
+    <function name="update_viral_scores">
+      <description>Recalculate viral scores for trending content</description>
+      <returns>void</returns>
+      <language>plpgsql</language>
+    </function>
+
+    <function name="handle_new_user">
+      <description>Trigger function for new user profile creation</description>
+      <returns>trigger</returns>
+      <security>DEFINER</security>
+    </function>
+  </functions>
+
+  <relationships>
+    <relationship from="oopsies.user_id" to="profiles.user_id" type="many-to-one"/>
+    <relationship from="oopsie_comments.oopsie_id" to="oopsies.id" type="many-to-one"/>
+    <relationship from="oopsie_comments.user_id" to="profiles.user_id" type="many-to-one"/>
+    <relationship from="user_reputation.user_id" to="profiles.user_id" type="one-to-one"/>
+    <relationship from="content_analytics.oopsie_id" to="oopsies.id" type="many-to-one"/>
+    <relationship from="content_analytics.user_id" to="profiles.user_id" type="many-to-one"/>
+  </relationships>
+</database-schema>

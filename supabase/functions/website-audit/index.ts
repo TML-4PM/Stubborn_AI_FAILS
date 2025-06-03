@@ -68,14 +68,14 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const { baseUrl, auditType = 'full', maxPages = 15 } = await req.json() as AuditRequest;
+    const { baseUrl, auditType = 'full', maxPages = 25 } = await req.json() as AuditRequest;
     
-    // Auto-detect current domain if not provided (site-specific feature)
+    // Auto-detect current domain if not provided
     const auditUrl = baseUrl || 'https://pflisxkcxbzboxwidywf.supabase.co';
     const normalizedUrl = normalizeUrl(auditUrl);
     const domain = new URL(normalizedUrl).hostname;
 
-    console.log(`🚀 Starting comprehensive audit of ${normalizedUrl}`);
+    console.log(`🚀 Starting comprehensive audit of ${normalizedUrl} (max ${maxPages} pages)`);
 
     // Create audit record
     const { data: audit, error: auditError } = await supabaseClient
@@ -91,7 +91,7 @@ serve(async (req) => {
 
     if (auditError) throw auditError;
 
-    // Perform comprehensive audit
+    // Perform comprehensive audit with proper crawling
     const auditor = new WebsiteAuditor(normalizedUrl, { maxPages, auditType });
     const auditResults = await auditor.performFullAudit();
 
@@ -173,6 +173,22 @@ class WebsiteAuditor {
     this.options = options;
     this.pendingPages.add(this.baseUrl);
     
+    // Pre-populate with known AI Fails routes for better coverage
+    const knownRoutes = [
+      '',
+      '/gallery',
+      '/submit', 
+      '/youtube',
+      '/about',
+      '/donate',
+      '/admin',
+      '/profile'
+    ];
+    
+    knownRoutes.forEach(route => {
+      this.pendingPages.add(new URL(route, this.baseUrl).href);
+    });
+    
     this.results = {
       pages: [],
       errors: [],
@@ -198,6 +214,7 @@ class WebsiteAuditor {
 
   async performFullAudit(): Promise<AuditResults> {
     console.log(`🔍 Starting audit with ${this.options.maxPages} max pages`);
+    console.log(`📝 Known routes to check: ${Array.from(this.pendingPages).join(', ')}`);
 
     // Crawl and audit pages
     while (this.pendingPages.size > 0 && this.visitedPages.size < this.options.maxPages) {
@@ -206,11 +223,11 @@ class WebsiteAuditor {
       
       if (this.visitedPages.has(currentUrl)) continue;
       
-      console.log(`📄 Auditing page ${this.visitedPages.size + 1}: ${currentUrl}`);
+      console.log(`📄 Auditing page ${this.visitedPages.size + 1}/${this.options.maxPages}: ${currentUrl}`);
       await this.auditPage(currentUrl);
       
       // Small delay to be respectful
-      await this.delay(500);
+      await this.delay(1000);
     }
 
     // Perform AI Fails specific checks
@@ -219,6 +236,7 @@ class WebsiteAuditor {
     // Generate comprehensive summary
     this.generateAdvancedSummary();
 
+    console.log(`🏁 Crawling complete: found ${this.results.pages.length} pages`);
     return this.results;
   }
 
@@ -230,12 +248,19 @@ class WebsiteAuditor {
       
       const response = await fetch(url, {
         headers: {
-          'User-Agent': 'AI-Fails-Audit-Bot/2.0',
+          'User-Agent': 'AI-Fails-Site-Health-Bot/2.0',
           'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
         }
       });
       
       const loadTime = Date.now() - startTime;
+      
+      // Handle redirects
+      if (response.redirected) {
+        console.log(`↩️ Redirect from ${url} to ${response.url}`);
+        url = response.url;
+      }
+      
       const html = await response.text();
       
       const pageResult: PageResult = {
@@ -266,7 +291,7 @@ class WebsiteAuditor {
       // Parse HTML and extract data
       await this.parseHTMLContent(html, url, pageResult);
       
-      // Perform specific analyses
+      // Perform specific analyses based on audit type
       if (this.options.auditType === 'full' || this.options.auditType === 'seo') {
         this.analyzeSEO(pageResult);
       }
@@ -280,6 +305,7 @@ class WebsiteAuditor {
       }
 
       this.results.pages.push(pageResult);
+      console.log(`✅ Page audited: ${url} (${response.status}, ${loadTime}ms, ${pageResult.links.length} links found)`);
 
     } catch (error) {
       console.error(`❌ Error auditing ${url}:`, error);
@@ -335,9 +361,12 @@ class WebsiteAuditor {
             isInternal
           };
 
-          // Check link health
+          // Check link health with timeout
           try {
-            const linkResponse = await fetch(absoluteUrl, { method: 'HEAD' });
+            const linkResponse = await fetch(absoluteUrl, { 
+              method: 'HEAD',
+              signal: AbortSignal.timeout(5000)
+            });
             linkData.status = linkResponse.status;
             
             if (!linkResponse.ok) {
@@ -361,13 +390,18 @@ class WebsiteAuditor {
 
           pageResult.links.push(linkData);
           
-          // Add internal links to pending queue
-          if (isInternal && !href.includes('#')) {
-            this.pendingPages.add(absoluteUrl);
+          // Add internal links to pending queue (but avoid infinite loops)
+          if (isInternal && !href.includes('#') && this.visitedPages.size < this.options.maxPages) {
+            const cleanUrl = absoluteUrl.split('?')[0].split('#')[0]; // Remove query params and fragments
+            if (!this.visitedPages.has(cleanUrl) && !this.pendingPages.has(cleanUrl)) {
+              this.pendingPages.add(cleanUrl);
+              console.log(`🔗 Found new internal link: ${cleanUrl}`);
+            }
           }
         }
       } catch (error) {
         // Skip invalid URLs
+        console.log(`⚠️ Skipping invalid link: ${match[1]}`);
       }
     }
   }
@@ -389,9 +423,12 @@ class WebsiteAuditor {
             loading: 'eager' // Default, would need more parsing to detect
           };
 
-          // Check image accessibility and loading
+          // Check image loading with timeout
           try {
-            const imgResponse = await fetch(absoluteUrl, { method: 'HEAD' });
+            const imgResponse = await fetch(absoluteUrl, { 
+              method: 'HEAD',
+              signal: AbortSignal.timeout(5000)
+            });
             imageData.status = imgResponse.status;
             
             if (!imgResponse.ok) {
@@ -417,6 +454,7 @@ class WebsiteAuditor {
         }
       } catch (error) {
         // Skip invalid URLs
+        console.log(`⚠️ Skipping invalid image: ${match[1]}`);
       }
     }
   }
@@ -555,6 +593,8 @@ class WebsiteAuditor {
       formsValidated: this.results.pages.some(page => page.url.includes('/submit')),
       keyFeaturesWorking: workingRoutes
     };
+    
+    console.log(`✅ Core routes working: ${workingRoutes.join(', ')}`);
   }
 
   generateAdvancedSummary(): void {

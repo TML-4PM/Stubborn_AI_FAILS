@@ -30,9 +30,8 @@ export const useDataInitialization = () => {
 
       console.log('No existing data found, inserting initial AI fails...');
 
-      // Insert initial AI fails data
+      // Insert initial AI fails data - let database generate UUIDs if needed
       const oopsiesData = initialAIFails.map(fail => ({
-        id: fail.id,
         title: fail.title,
         description: fail.description,
         category: fail.category,

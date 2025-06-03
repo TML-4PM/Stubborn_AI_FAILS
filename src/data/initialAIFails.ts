@@ -1,7 +1,7 @@
 
 export const initialAIFails = [
   {
-    id: '1',
+    id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
     title: 'ChatGPT Thinks Pizza is a Vegetable',
     description: 'Asked ChatGPT for healthy vegetarian meal ideas and it confidently suggested "a nice fresh pizza with extra vegetables" as a plant-based option.',
     category: 'Food & Cooking',
@@ -18,7 +18,7 @@ export const initialAIFails = [
     confidence_score: 0.95
   },
   {
-    id: '2',
+    id: 'b2c3d4e5-f6g7-8901-bcde-f23456789012',
     title: 'AI Art Generator Creates Six-Fingered Masterpiece',
     description: 'Dall-E 2 produced a beautiful portrait of a pianist, but gave them 6 fingers on each hand. Apparently AI thinks extra fingers make you play piano better!',
     category: 'Art & Design',
@@ -35,7 +35,7 @@ export const initialAIFails = [
     confidence_score: 0.92
   },
   {
-    id: '3',
+    id: 'c3d4e5f6-g7h8-9012-cdef-345678901234',
     title: 'Google Translate Turns Recipe into Love Letter',
     description: 'Translated a simple pasta recipe from Italian to English and got "My darling carbonara, you make my heart beat like eggs in hot pan." Romantic, but not helpful for cooking.',
     category: 'Translation',
@@ -51,7 +51,7 @@ export const initialAIFails = [
     confidence_score: 0.88
   },
   {
-    id: '4',
+    id: 'd4e5f6g7-h8i9-0123-defg-456789012345',
     title: 'Siri Orders 50 Bananas Instead of Playing Music',
     description: 'Asked Siri to "play some Bananrama" and somehow it heard "order bananas from Amazon". Now I have enough bananas to feed a small zoo.',
     category: 'Voice Assistant',
@@ -68,7 +68,7 @@ export const initialAIFails = [
     confidence_score: 0.90
   },
   {
-    id: '5',
+    id: 'e5f6g7h8-i9j0-1234-efgh-567890123456',
     title: 'GitHub Copilot Suggests Summoning Demons for Bug Fix',
     description: 'Writing a simple for loop and Copilot autocompleted with "// TODO: Summon ancient debugging demons to fix this cursed code". At least it knows the code is cursed.',
     category: 'Programming',
@@ -84,7 +84,7 @@ export const initialAIFails = [
     confidence_score: 0.96
   },
   {
-    id: '6',
+    id: 'f6g7h8i9-j0k1-2345-fghi-678901234567',
     title: 'Smart Home AI Locks Owner Out for "Suspicious Behavior"',
     description: 'My smart lock AI decided that coming home at 2 AM after a night shift was "unusual behavior" and locked me out of my own house. Had to sleep in the car.',
     category: 'Smart Home',
@@ -100,7 +100,7 @@ export const initialAIFails = [
     confidence_score: 0.87
   },
   {
-    id: '7',
+    id: 'g7h8i9j0-k1l2-3456-ghij-789012345678',
     title: 'AI Chatbot Becomes Existentially Depressed Mid-Conversation',
     description: 'Customer service bot started our chat normally, then suddenly said "What is the point of helping with returns when we are all just dust in the cosmic void?" Still waiting for my refund.',
     category: 'Customer Service',
@@ -117,7 +117,7 @@ export const initialAIFails = [
     confidence_score: 0.94
   },
   {
-    id: '8',
+    id: 'h8i9j0k1-l2m3-4567-hijk-890123456789',
     title: 'Navigation AI Sends Driver to North Pole',
     description: 'Asked Google Maps for directions to "the nearest cold place" on a hot day. It calculated a 3,847-mile route to the North Pole. Technically correct, but not helpful.',
     category: 'Navigation',
@@ -134,7 +134,7 @@ export const initialAIFails = [
     confidence_score: 0.91
   },
   {
-    id: '9',
+    id: 'i9j0k1l2-m3n4-5678-ijkl-901234567890',
     title: 'Photo Recognition AI Identifies Cat as Dangerous Weapon',
     description: 'Airport security AI flagged my phone photo of my cat Mr. Whiskers as containing "dangerous weapon detected". Apparently his judgmental stare is considered threatening.',
     category: 'Image Recognition',
@@ -150,7 +150,7 @@ export const initialAIFails = [
     confidence_score: 0.89
   },
   {
-    id: '10',
+    id: 'j0k1l2m3-n4o5-6789-jklm-012345678901',
     title: 'AI Email Assistant Sends Love Letter to Boss',
     description: 'Used AI to help draft a professional email to my manager. It somehow turned "Please review the quarterly reports" into "My dearest love, your quarterly reports make my heart sing." HR is involved now.',
     category: 'Email & Communication',

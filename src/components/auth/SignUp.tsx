@@ -15,6 +15,7 @@ const SignUp = ({ switchToSignIn, onSuccess }: SignUpProps) => {
   const { signUp, isLoading } = useUser();
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
+  const [fullName, setFullName] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
@@ -24,7 +25,7 @@ const SignUp = ({ switchToSignIn, onSuccess }: SignUpProps) => {
     setError('');
     
     if (!email || !password || !username || !confirmPassword) {
-      setError('Please fill in all fields');
+      setError('Please fill in all required fields');
       return;
     }
     
@@ -50,7 +51,7 @@ const SignUp = ({ switchToSignIn, onSuccess }: SignUpProps) => {
     }
     
     try {
-      await signUp(email, password, username);
+      await signUp(email, password, username, fullName);
       onSuccess();
     } catch (err) {
       // Error is already handled by the useUser hook
@@ -60,7 +61,7 @@ const SignUp = ({ switchToSignIn, onSuccess }: SignUpProps) => {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="email">Email *</Label>
         <Input
           id="email"
           type="email"
@@ -72,7 +73,7 @@ const SignUp = ({ switchToSignIn, onSuccess }: SignUpProps) => {
       </div>
       
       <div className="space-y-2">
-        <Label htmlFor="username">Username</Label>
+        <Label htmlFor="username">Username *</Label>
         <Input
           id="username"
           type="text"
@@ -84,7 +85,18 @@ const SignUp = ({ switchToSignIn, onSuccess }: SignUpProps) => {
       </div>
       
       <div className="space-y-2">
-        <Label htmlFor="password">Password</Label>
+        <Label htmlFor="fullName">Full Name</Label>
+        <Input
+          id="fullName"
+          type="text"
+          placeholder="John Doe"
+          value={fullName}
+          onChange={(e) => setFullName(e.target.value)}
+        />
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="password">Password *</Label>
         <Input
           id="password"
           type="password"
@@ -96,7 +108,7 @@ const SignUp = ({ switchToSignIn, onSuccess }: SignUpProps) => {
       </div>
       
       <div className="space-y-2">
-        <Label htmlFor="confirmPassword">Confirm Password</Label>
+        <Label htmlFor="confirmPassword">Confirm Password *</Label>
         <Input
           id="confirmPassword"
           type="password"

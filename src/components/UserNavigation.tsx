@@ -50,7 +50,7 @@ const UserNavigation = () => {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>
-                {user.username || 'User'}
+                {user.username || user.full_name || 'User'}
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>

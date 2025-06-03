@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -13,6 +12,28 @@ interface AuditRequest {
   maxPages?: number;
 }
 
+interface ImageAnalysis {
+  url: string;
+  alt: string;
+  hasAlt: boolean;
+  loading?: string;
+  width?: string;
+  height?: string;
+  status?: number;
+  error?: string;
+  fileSize?: number;
+  format?: string;
+  dimensions?: { width: number; height: number };
+  isOptimized?: boolean;
+  hasLazyLoading?: boolean;
+  isResponsive?: boolean;
+  accessibilityScore?: number;
+  performanceScore?: number;
+  recommendations?: string[];
+  srcset?: string;
+  sizes?: string;
+}
+
 interface PageResult {
   url: string;
   status: number;
@@ -22,7 +43,7 @@ interface PageResult {
   metaDescription: string;
   headings: Array<{ level: string; text: string }>;
   links: Array<{ url: string; text: string; isInternal: boolean; status?: number; error?: string }>;
-  images: Array<{ url: string; alt: string; hasAlt: boolean; loading?: string; width?: string; height?: string; status?: number; error?: string }>;
+  images: ImageAnalysis[];
   errors: Array<{ type: string; message: string; severity: 'critical' | 'warning' | 'info' }>;
   seo: any;
   accessibility: any;
@@ -47,6 +68,16 @@ interface AuditResults {
       seo: number;
       accessibility: number;
       performance: number;
+    };
+    imageAnalysis: {
+      totalImages: number;
+      unoptimizedImages: number;
+      imagesWithoutAlt: number;
+      imagesWithoutLazyLoading: number;
+      largeImages: number;
+      averageImageSize: number;
+      formatDistribution: Record<string, number>;
+      optimizationScore: number;
     };
   };
   aiFailsSpecific: {
@@ -201,7 +232,17 @@ class WebsiteAuditor {
         brokenLinks: 0,
         brokenImages: 0,
         errorsByType: {},
-        scores: { overall: 0, seo: 0, accessibility: 0, performance: 0 }
+        scores: { overall: 0, seo: 0, accessibility: 0, performance: 0 },
+        imageAnalysis: {
+          totalImages: 0,
+          unoptimizedImages: 0,
+          imagesWithoutAlt: 0,
+          imagesWithoutLazyLoading: 0,
+          largeImages: 0,
+          averageImageSize: 0,
+          formatDistribution: {},
+          optimizationScore: 0
+        }
       },
       aiFailsSpecific: {
         coreRoutesWorking: false,
@@ -233,7 +274,7 @@ class WebsiteAuditor {
     // Perform AI Fails specific checks
     await this.performAIFailsSpecificChecks();
 
-    // Generate comprehensive summary
+    // Generate comprehensive summary including image analysis
     this.generateAdvancedSummary();
 
     console.log(`🏁 Crawling complete: found ${this.results.pages.length} pages`);
@@ -305,7 +346,7 @@ class WebsiteAuditor {
       }
 
       this.results.pages.push(pageResult);
-      console.log(`✅ Page audited: ${url} (${response.status}, ${loadTime}ms, ${pageResult.links.length} links found)`);
+      console.log(`✅ Page audited: ${url} (${response.status}, ${loadTime}ms, ${pageResult.images.length} images analyzed)`);
 
     } catch (error) {
       console.error(`❌ Error auditing ${url}:`, error);
@@ -407,32 +448,63 @@ class WebsiteAuditor {
   }
 
   async extractAndAnalyzeImages(html: string, baseUrl: string, pageResult: PageResult): Promise<void> {
-    const imageMatches = html.matchAll(/<img[^>]*src=["']([^"']*)["'][^>]*(?:alt=["']([^"']*)["'])?[^>]*>/gi);
+    const imageMatches = html.matchAll(/<img[^>]*>/gi);
     
     for (const match of imageMatches) {
       try {
-        const src = match[1];
-        const alt = match[2] || '';
+        const imgTag = match[0];
+        const src = this.extractAttribute(imgTag, 'src');
+        const alt = this.extractAttribute(imgTag, 'alt') || '';
+        const loading = this.extractAttribute(imgTag, 'loading');
+        const width = this.extractAttribute(imgTag, 'width');
+        const height = this.extractAttribute(imgTag, 'height');
+        const srcset = this.extractAttribute(imgTag, 'srcset');
+        const sizes = this.extractAttribute(imgTag, 'sizes');
         
         if (src) {
           const absoluteUrl = new URL(src, baseUrl).href;
-          const imageData = {
+          const imageAnalysis: ImageAnalysis = {
             url: absoluteUrl,
             alt,
-            hasAlt: !!alt,
-            loading: 'eager' // Default, would need more parsing to detect
+            hasAlt: !!alt && alt.trim().length > 0,
+            loading,
+            width,
+            height,
+            srcset,
+            sizes,
+            isResponsive: !!(srcset || sizes),
+            hasLazyLoading: loading === 'lazy',
+            recommendations: []
           };
 
-          // Check image loading with timeout
+          // Analyze image format
+          const format = this.detectImageFormat(absoluteUrl);
+          imageAnalysis.format = format;
+
+          // Check image loading and get metadata
           try {
             const imgResponse = await fetch(absoluteUrl, { 
               method: 'HEAD',
-              signal: AbortSignal.timeout(5000)
+              signal: AbortSignal.timeout(10000)
             });
-            imageData.status = imgResponse.status;
             
-            if (!imgResponse.ok) {
-              imageData.error = `HTTP ${imgResponse.status}`;
+            imageAnalysis.status = imgResponse.status;
+            
+            if (imgResponse.ok) {
+              const contentLength = imgResponse.headers.get('content-length');
+              if (contentLength) {
+                imageAnalysis.fileSize = parseInt(contentLength);
+              }
+              
+              // Analyze image optimization
+              await this.analyzeImageOptimization(imageAnalysis, baseUrl);
+              
+              // Calculate scores
+              imageAnalysis.accessibilityScore = this.calculateImageAccessibilityScore(imageAnalysis);
+              imageAnalysis.performanceScore = this.calculateImagePerformanceScore(imageAnalysis);
+              
+            } else {
+              imageAnalysis.error = `HTTP ${imgResponse.status}`;
               this.results.errors.push({
                 type: 'BROKEN_IMAGE',
                 message: `Broken image: ${absoluteUrl} (${imgResponse.status})`,
@@ -441,7 +513,7 @@ class WebsiteAuditor {
               });
             }
           } catch (error) {
-            imageData.error = error.message;
+            imageAnalysis.error = error.message;
             this.results.errors.push({
               type: 'BROKEN_IMAGE',
               message: `Image error: ${absoluteUrl} - ${error.message}`,
@@ -450,13 +522,114 @@ class WebsiteAuditor {
             });
           }
 
-          pageResult.images.push(imageData);
+          pageResult.images.push(imageAnalysis);
         }
       } catch (error) {
-        // Skip invalid URLs
-        console.log(`⚠️ Skipping invalid image: ${match[1]}`);
+        console.log(`⚠️ Skipping invalid image: ${match[0]}`);
       }
     }
+  }
+
+  private extractAttribute(tag: string, attribute: string): string | undefined {
+    const regex = new RegExp(`${attribute}=["']([^"']*)["']`, 'i');
+    const match = tag.match(regex);
+    return match ? match[1] : undefined;
+  }
+
+  private detectImageFormat(url: string): string {
+    const extension = url.split('.').pop()?.toLowerCase().split('?')[0];
+    switch (extension) {
+      case 'jpg':
+      case 'jpeg':
+        return 'JPEG';
+      case 'png':
+        return 'PNG';
+      case 'webp':
+        return 'WebP';
+      case 'avif':
+        return 'AVIF';
+      case 'svg':
+        return 'SVG';
+      case 'gif':
+        return 'GIF';
+      default:
+        return 'Unknown';
+    }
+  }
+
+  private async analyzeImageOptimization(image: ImageAnalysis, pageUrl: string): Promise<void> {
+    const recommendations: string[] = [];
+
+    // File size analysis
+    if (image.fileSize) {
+      if (image.fileSize > 1000000) { // > 1MB
+        recommendations.push('Image file size is very large (>1MB). Consider compression or resizing.');
+        image.isOptimized = false;
+      } else if (image.fileSize > 500000) { // > 500KB
+        recommendations.push('Image file size is large (>500KB). Consider optimization.');
+        image.isOptimized = false;
+      } else {
+        image.isOptimized = true;
+      }
+    }
+
+    // Format recommendations
+    if (image.format === 'JPEG' || image.format === 'PNG') {
+      recommendations.push('Consider using modern formats like WebP or AVIF for better compression.');
+    }
+
+    // Lazy loading
+    if (!image.hasLazyLoading && image.fileSize && image.fileSize > 100000) {
+      recommendations.push('Large image should use lazy loading (loading="lazy").');
+    }
+
+    // Alt text quality
+    if (!image.hasAlt) {
+      recommendations.push('Missing alt text affects accessibility and SEO.');
+    } else if (image.alt && image.alt.length < 10) {
+      recommendations.push('Alt text is very short. Consider a more descriptive alternative.');
+    }
+
+    // Responsive images
+    if (!image.isResponsive && image.fileSize && image.fileSize > 200000) {
+      recommendations.push('Consider using srcset for responsive images.');
+    }
+
+    // Dimensions
+    if (!image.width || !image.height) {
+      recommendations.push('Missing width/height attributes may cause layout shifts.');
+    }
+
+    image.recommendations = recommendations;
+  }
+
+  private calculateImageAccessibilityScore(image: ImageAnalysis): number {
+    let score = 100;
+
+    if (!image.hasAlt) score -= 40;
+    else if (image.alt && image.alt.length < 10) score -= 15;
+
+    if (!image.width || !image.height) score -= 10;
+    
+    return Math.max(0, score);
+  }
+
+  private calculateImagePerformanceScore(image: ImageAnalysis): number {
+    let score = 100;
+
+    if (image.fileSize) {
+      if (image.fileSize > 1000000) score -= 40;
+      else if (image.fileSize > 500000) score -= 25;
+      else if (image.fileSize > 200000) score -= 10;
+    }
+
+    if (image.format === 'PNG' && image.fileSize && image.fileSize > 100000) score -= 15;
+    if (image.format === 'JPEG' && image.fileSize && image.fileSize > 500000) score -= 10;
+
+    if (!image.hasLazyLoading && image.fileSize && image.fileSize > 100000) score -= 15;
+    if (!image.isResponsive && image.fileSize && image.fileSize > 200000) score -= 10;
+
+    return Math.max(0, score);
   }
 
   analyzeSEO(pageResult: PageResult): void {
@@ -482,7 +655,6 @@ class WebsiteAuditor {
       }
     };
 
-    // Add SEO issues to errors
     if (!pageResult.seo.title.optimal) {
       pageResult.errors.push({
         type: 'SEO_ISSUE',
@@ -515,7 +687,6 @@ class WebsiteAuditor {
       }
     };
 
-    // Add accessibility issues to errors
     if (pageResult.accessibility.images.missingAlt > 0) {
       pageResult.errors.push({
         type: 'ACCESSIBILITY_ISSUE',
@@ -588,8 +759,8 @@ class WebsiteAuditor {
     }
     
     this.results.aiFailsSpecific = {
-      coreRoutesWorking: workingRoutes.length >= 4, // At least 4 core routes working
-      navigationAccessible: true, // Would need more sophisticated check
+      coreRoutesWorking: workingRoutes.length >= 4,
+      navigationAccessible: true,
       formsValidated: this.results.pages.some(page => page.url.includes('/submit')),
       keyFeaturesWorking: workingRoutes
     };
@@ -612,11 +783,45 @@ class WebsiteAuditor {
     });
     this.results.summary.errorsByType = errorsByType;
 
-    // Count specific issue types
     this.results.summary.brokenLinks = errorsByType['BROKEN_LINK'] || 0;
     this.results.summary.brokenImages = errorsByType['BROKEN_IMAGE'] || 0;
     this.results.summary.seoIssues = errorsByType['SEO_ISSUE'] || 0;
     this.results.summary.accessibilityIssues = errorsByType['ACCESSIBILITY_ISSUE'] || 0;
+
+    // Calculate image analysis summary
+    const allImages = this.results.pages.flatMap(page => page.images);
+    this.results.summary.imageAnalysis = {
+      totalImages: allImages.length,
+      unoptimizedImages: allImages.filter(img => img.isOptimized === false).length,
+      imagesWithoutAlt: allImages.filter(img => !img.hasAlt).length,
+      imagesWithoutLazyLoading: allImages.filter(img => !img.hasLazyLoading && img.fileSize && img.fileSize > 100000).length,
+      largeImages: allImages.filter(img => img.fileSize && img.fileSize > 500000).length,
+      averageImageSize: allImages.length > 0 ? Math.round(allImages.reduce((sum, img) => sum + (img.fileSize || 0), 0) / allImages.length) : 0,
+      formatDistribution: this.calculateFormatDistribution(allImages),
+      optimizationScore: this.calculateImageOptimizationScore(allImages)
+    };
+  }
+
+  private calculateFormatDistribution(images: ImageAnalysis[]): Record<string, number> {
+    const distribution: Record<string, number> = {};
+    images.forEach(img => {
+      if (img.format) {
+        distribution[img.format] = (distribution[img.format] || 0) + 1;
+      }
+    });
+    return distribution;
+  }
+
+  private calculateImageOptimizationScore(images: ImageAnalysis[]): number {
+    if (images.length === 0) return 100;
+    
+    const totalScore = images.reduce((sum, img) => {
+      const accessibilityScore = img.accessibilityScore || 50;
+      const performanceScore = img.performanceScore || 50;
+      return sum + ((accessibilityScore + performanceScore) / 2);
+    }, 0);
+    
+    return Math.round(totalScore / images.length);
   }
 
   private delay(ms: number): Promise<void> {
@@ -643,7 +848,6 @@ class AuditValidator {
       if (!Array.isArray(page.images)) errors.push(`Page ${index} missing images array`);
     });
     
-    // Validate summary calculations
     if (results.summary && results.pages) {
       const actualPageCount = results.pages.length;
       if (results.summary.totalPages !== actualPageCount) {
@@ -668,7 +872,6 @@ function calculateAdvancedScores(results: AuditResults) {
   let performanceScore = 100;
 
   results.pages.forEach(page => {
-    // SEO scoring
     if (page.seo) {
       if (!page.seo.title.optimal) seoScore -= 5;
       if (!page.seo.metaDescription.optimal) seoScore -= 5;
@@ -676,20 +879,17 @@ function calculateAdvancedScores(results: AuditResults) {
       seoScore -= Math.min(page.seo.images.withoutAlt * 2, 15);
     }
 
-    // Accessibility scoring
     if (page.accessibility) {
       accessibilityScore -= Math.min(page.accessibility.images.missingAlt * 3, 20);
       if (!page.accessibility.headings.hasH1) accessibilityScore -= 5;
       accessibilityScore -= Math.min(page.accessibility.links.emptyLinks * 2, 10);
     }
 
-    // Performance scoring
     if (page.loadTime > 5000) performanceScore -= 15;
     else if (page.loadTime > 3000) performanceScore -= 8;
     else if (page.loadTime > 1000) performanceScore -= 3;
   });
 
-  // Critical errors heavily impact scores
   results.errors.forEach(error => {
     if (error.severity === 'critical') {
       seoScore -= 10;
@@ -715,7 +915,11 @@ async function storeAdvancedMetrics(supabaseClient: any, auditId: string, result
     { metric_type: 'total_errors', metric_value: results.summary.totalErrors },
     { metric_type: 'avg_load_time', metric_value: results.summary.averageLoadTime },
     { metric_type: 'broken_links', metric_value: results.summary.brokenLinks },
-    { metric_type: 'broken_images', metric_value: results.summary.brokenImages }
+    { metric_type: 'broken_images', metric_value: results.summary.brokenImages },
+    { metric_type: 'total_images', metric_value: results.summary.imageAnalysis.totalImages },
+    { metric_type: 'unoptimized_images', metric_value: results.summary.imageAnalysis.unoptimizedImages },
+    { metric_type: 'images_without_alt', metric_value: results.summary.imageAnalysis.imagesWithoutAlt },
+    { metric_type: 'image_optimization_score', metric_value: results.summary.imageAnalysis.optimizationScore }
   ];
 
   for (const metric of metrics) {

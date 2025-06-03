@@ -1,358 +1,533 @@
-
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 import { 
-  TrendingUp, 
+  Globe, 
+  Search, 
+  Clock, 
   AlertTriangle, 
   CheckCircle, 
-  Image, 
-  Link, 
-  Clock,
   Eye,
-  Target,
-  Zap
+  TrendingUp,
+  Activity,
+  Zap,
+  Shield,
+  FileImage,
+  ExternalLink,
+  Download
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { useQuery } from '@tanstack/react-query';
+import ImageAuditResults from './ImageAuditResults';
 
 interface AuditResultsProps {
   auditId: string;
 }
 
-interface AuditError {
-  type: string;
-  message: string;
-  url?: string;
-}
-
-interface AuditPage {
-  url: string;
-  status: number;
-  loadTime: number;
-  title?: string;
-  links?: Array<{ url: string; text: string }>;
-  images?: Array<{ url: string; alt: string }>;
-  errors?: AuditError[];
-}
-
-interface AuditResultsData {
-  errors?: AuditError[];
-  pages?: AuditPage[];
-}
-
 const AuditResults = ({ auditId }: AuditResultsProps) => {
-  const { data: audit, isLoading } = useQuery({
+  const [selectedPage, setSelectedPage] = useState<string | null>(null);
+
+  const { data: audit, isLoading, error } = useQuery({
     queryKey: ['audit-results', auditId],
     queryFn: async () => {
+      console.log('Fetching audit results for ID:', auditId);
       const { data, error } = await supabase
         .from('site_audits')
         .select('*')
         .eq('id', auditId)
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching audit:', error);
+        throw error;
+      }
+      
+      console.log('Fetched audit data:', data);
       return data;
     },
-    enabled: !!auditId
+    enabled: !!auditId,
   });
 
   if (isLoading) {
     return (
       <Card>
         <CardContent className="py-8 text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <Activity className="h-8 w-8 animate-spin mx-auto mb-4 text-muted-foreground" />
           <p className="text-muted-foreground">Loading audit results...</p>
         </CardContent>
       </Card>
     );
   }
 
-  if (!audit) {
+  if (error || !audit) {
     return (
       <Card>
         <CardContent className="py-8 text-center">
-          <AlertTriangle className="h-8 w-8 mx-auto mb-4 text-muted-foreground" />
-          <p className="text-muted-foreground">Audit not found.</p>
+          <AlertTriangle className="h-8 w-8 mx-auto mb-4 text-red-500" />
+          <p className="text-red-500 mb-4">Failed to load audit results</p>
+          <p className="text-sm text-muted-foreground">Audit ID: {auditId}</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const results = audit.results;
+  const summary = audit.summary;
+
+  if (!results || !summary) {
+    return (
+      <Card>
+        <CardContent className="py-8 text-center">
+          <AlertTriangle className="h-8 w-8 mx-auto mb-4 text-yellow-500" />
+          <p className="text-muted-foreground">No detailed results available for this audit</p>
         </CardContent>
       </Card>
     );
   }
 
   const getScoreColor = (score: number) => {
-    if (score >= 80) return "text-green-600";
+    if (score >= 90) return "text-green-600";
+    if (score >= 75) return "text-blue-600";
     if (score >= 60) return "text-yellow-600";
     return "text-red-600";
   };
 
-  // Type guard and safe parsing for JSONB data
-  const parseAuditResults = (results: any): AuditResultsData => {
-    if (!results || typeof results !== 'object') {
-      return { errors: [], pages: [] };
-    }
-    return {
-      errors: Array.isArray(results.errors) ? results.errors : [],
-      pages: Array.isArray(results.pages) ? results.pages : []
-    };
+  const getScoreIcon = (score: number) => {
+    if (score >= 90) return <CheckCircle className="h-4 w-4 text-green-600" />;
+    if (score >= 60) return <AlertTriangle className="h-4 w-4 text-yellow-600" />;
+    return <AlertTriangle className="h-4 w-4 text-red-600" />;
   };
-
-  const results = parseAuditResults(audit.results);
-  const summary = audit.summary || {};
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Audit Overview */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5" />
-              Audit Results for {audit.domain}
+              <Search className="h-5 w-5" />
+              Audit Results - {audit.domain}
             </div>
-            <Badge variant={audit.status === 'completed' ? 'default' : 'secondary'}>
-              {audit.status}
+            <Badge variant="outline" className="capitalize">
+              {audit.audit_type.replace('_', ' ')}
             </Badge>
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center">
-              <div className="text-2xl font-bold">{audit.total_pages}</div>
-              <div className="text-sm text-muted-foreground">Pages Scanned</div>
+              <div className="text-2xl font-bold text-blue-600">{summary.totalPages}</div>
+              <div className="text-sm text-muted-foreground">Pages Analyzed</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-red-600">{audit.total_errors}</div>
-              <div className="text-sm text-muted-foreground">Errors Found</div>
+              <div className="text-2xl font-bold text-red-600">{summary.totalErrors}</div>
+              <div className="text-sm text-muted-foreground">Issues Found</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold">{audit.average_load_time}ms</div>
+              <div className="text-2xl font-bold text-green-600">{summary.averageLoadTime}ms</div>
               <div className="text-sm text-muted-foreground">Avg Load Time</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold">
-                {new Date(audit.created_at).toLocaleDateString()}
-              </div>
-              <div className="text-sm text-muted-foreground">Audit Date</div>
+              <div className="text-2xl font-bold text-purple-600">{audit.seo_score}%</div>
+              <div className="text-sm text-muted-foreground">Overall Score</div>
             </div>
           </div>
-        </CardContent>
-      </Card>
 
-      {/* Scores */}
-      <div className="grid md:grid-cols-3 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Target className="h-4 w-4" />
-              SEO Score
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold mb-2">
-              <span className={getScoreColor(audit.seo_score || 0)}>
-                {audit.seo_score || 0}%
-              </span>
-            </div>
-            <Progress 
-              value={audit.seo_score || 0} 
-              className="mb-2"
-            />
-            <p className="text-xs text-muted-foreground">
-              Based on title tags, meta descriptions, headings, and alt text
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Eye className="h-4 w-4" />
-              Accessibility Score
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold mb-2">
-              <span className={getScoreColor(audit.accessibility_score || 0)}>
-                {audit.accessibility_score || 0}%
-              </span>
-            </div>
-            <Progress 
-              value={audit.accessibility_score || 0} 
-              className="mb-2"
-            />
-            <p className="text-xs text-muted-foreground">
-              Alt text coverage, heading structure, and WCAG compliance
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Zap className="h-4 w-4" />
-              Performance Score
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold mb-2">
-              <span className={getScoreColor(audit.performance_score || 0)}>
-                {audit.performance_score || 0}%
-              </span>
-            </div>
-            <Progress 
-              value={audit.performance_score || 0} 
-              className="mb-2"
-            />
-            <p className="text-xs text-muted-foreground">
-              Load times and page responsiveness
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Issues Summary */}
-      {results.errors && results.errors.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-red-500" />
-              Critical Issues ({results.errors.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+          {/* Scores */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="space-y-2">
-              {results.errors.slice(0, 10).map((error: AuditError, index: number) => (
-                <Alert key={index} variant="destructive">
-                  <AlertTriangle className="h-4 w-4" />
-                  <AlertDescription>
-                    <strong>{error.type}:</strong> {error.message}
-                    {error.url && (
-                      <div className="text-xs mt-1 opacity-75">
-                        URL: {error.url}
-                      </div>
-                    )}
-                  </AlertDescription>
-                </Alert>
-              ))}
-              {results.errors.length > 10 && (
-                <p className="text-sm text-muted-foreground">
-                  And {results.errors.length - 10} more issues...
-                </p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Page Details */}
-      {results.pages && results.pages.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Link className="h-5 w-5" />
-              Page Analysis ({results.pages.length} pages)
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {results.pages.slice(0, 5).map((page: AuditPage, index: number) => (
-                <div key={index} className="border-l-2 border-blue-200 pl-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-medium truncate">{page.url}</h4>
-                    <Badge variant={page.status >= 400 ? 'destructive' : 'default'}>
-                      {page.status}
-                    </Badge>
-                  </div>
-                  
-                  <div className="text-sm text-muted-foreground mb-2">
-                    <span className="font-medium">{page.title || 'No title'}</span>
-                  </div>
-                  
-                  <div className="flex gap-4 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      {page.loadTime}ms
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Link className="h-3 w-3" />
-                      {page.links?.length || 0} links
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Image className="h-3 w-3" />
-                      {page.images?.length || 0} images
-                    </span>
-                    {page.errors && page.errors.length > 0 && (
-                      <span className="flex items-center gap-1 text-red-600">
-                        <AlertTriangle className="h-3 w-3" />
-                        {page.errors.length} issues
-                      </span>
-                    )}
-                  </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">SEO</span>
+                <div className="flex items-center gap-1">
+                  {getScoreIcon(audit.seo_score || 0)}
+                  <span className={`font-medium ${getScoreColor(audit.seo_score || 0)}`}>
+                    {audit.seo_score}%
+                  </span>
                 </div>
-              ))}
-              {results.pages.length > 5 && (
-                <p className="text-sm text-muted-foreground">
-                  And {results.pages.length - 5} more pages analyzed...
-                </p>
-              )}
+              </div>
+              <Progress value={audit.seo_score || 0} className="h-2" />
             </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Recommendations */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <CheckCircle className="h-5 w-5 text-green-500" />
-            Recommendations
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            {audit.seo_score < 80 && (
-              <Alert>
-                <Target className="h-4 w-4" />
-                <AlertDescription>
-                  <strong>SEO Improvement:</strong> Focus on optimizing title tags and meta descriptions. 
-                  Ensure all pages have unique, descriptive titles between 30-60 characters.
-                </AlertDescription>
-              </Alert>
-            )}
-            
-            {audit.accessibility_score < 80 && (
-              <Alert>
-                <Eye className="h-4 w-4" />
-                <AlertDescription>
-                  <strong>Accessibility Improvement:</strong> Add alt text to all images and ensure 
-                  proper heading structure (start with H1, don't skip levels).
-                </AlertDescription>
-              </Alert>
-            )}
-            
-            {audit.performance_score < 80 && (
-              <Alert>
-                <Zap className="h-4 w-4" />
-                <AlertDescription>
-                  <strong>Performance Improvement:</strong> Optimize page load times by compressing images, 
-                  minifying CSS/JS, and using a CDN for static assets.
-                </AlertDescription>
-              </Alert>
-            )}
-            
-            {audit.total_errors === 0 && audit.seo_score >= 80 && audit.accessibility_score >= 80 && audit.performance_score >= 80 && (
-              <Alert>
-                <CheckCircle className="h-4 w-4" />
-                <AlertDescription>
-                  <strong>Great job!</strong> Your website passed all major checks. 
-                  Continue monitoring regularly to maintain these high standards.
-                </AlertDescription>
-              </Alert>
-            )}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Accessibility</span>
+                <div className="flex items-center gap-1">
+                  {getScoreIcon(audit.accessibility_score || 0)}
+                  <span className={`font-medium ${getScoreColor(audit.accessibility_score || 0)}`}>
+                    {audit.accessibility_score}%
+                  </span>
+                </div>
+              </div>
+              <Progress value={audit.accessibility_score || 0} className="h-2" />
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Performance</span>
+                <div className="flex items-center gap-1">
+                  {getScoreIcon(audit.performance_score || 0)}
+                  <span className={`font-medium ${getScoreColor(audit.performance_score || 0)}`}>
+                    {audit.performance_score}%
+                  </span>
+                </div>
+              </div>
+              <Progress value={audit.performance_score || 0} className="h-2" />
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Images</span>
+                <div className="flex items-center gap-1">
+                  {getScoreIcon(summary.imageAnalysis?.optimizationScore || 0)}
+                  <span className={`font-medium ${getScoreColor(summary.imageAnalysis?.optimizationScore || 0)}`}>
+                    {summary.imageAnalysis?.optimizationScore || 0}%
+                  </span>
+                </div>
+              </div>
+              <Progress value={summary.imageAnalysis?.optimizationScore || 0} className="h-2" />
+            </div>
           </div>
         </CardContent>
       </Card>
+
+      <Tabs defaultValue="overview" className="w-full">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="overview">📊 Overview</TabsTrigger>
+          <TabsTrigger value="images">🖼️ Images ({summary.imageAnalysis?.totalImages || 0})</TabsTrigger>
+          <TabsTrigger value="pages">📄 Pages</TabsTrigger>
+          <TabsTrigger value="errors">🚨 Issues</TabsTrigger>
+          <TabsTrigger value="recommendations">💡 Tips</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="space-y-4">
+          {/* ... keep existing code (overview content) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5" />
+                  Performance Metrics
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex justify-between">
+                  <span className="text-sm">Average Load Time:</span>
+                  <span className="text-sm font-medium">{summary.averageLoadTime}ms</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm">Total Pages:</span>
+                  <span className="text-sm font-medium">{summary.totalPages}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm">Broken Links:</span>
+                  <span className="text-sm font-medium text-red-600">{summary.brokenLinks}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm">Broken Images:</span>
+                  <span className="text-sm font-medium text-red-600">{summary.brokenImages}</span>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileImage className="h-5 w-5" />
+                  Image Analysis
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex justify-between">
+                  <span className="text-sm">Total Images:</span>
+                  <span className="text-sm font-medium">{summary.imageAnalysis?.totalImages || 0}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm">Unoptimized:</span>
+                  <span className="text-sm font-medium text-red-600">{summary.imageAnalysis?.unoptimizedImages || 0}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm">Missing Alt Text:</span>
+                  <span className="text-sm font-medium text-orange-600">{summary.imageAnalysis?.imagesWithoutAlt || 0}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm">Large Images:</span>
+                  <span className="text-sm font-medium text-yellow-600">{summary.imageAnalysis?.largeImages || 0}</span>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="images">
+          {summary.imageAnalysis ? (
+            <ImageAuditResults auditResults={results} />
+          ) : (
+            <Card>
+              <CardContent className="py-8 text-center">
+                <FileImage className="h-8 w-8 mx-auto mb-4 text-muted-foreground" />
+                <p className="text-muted-foreground">No image analysis data available</p>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        <TabsContent value="pages" className="space-y-4">
+          {/* ... keep existing code (pages content) */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Globe className="h-5 w-5" />
+                Analyzed Pages
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {results.pages && results.pages.length > 0 ? (
+                <div className="space-y-4">
+                  {results.pages.map((page: any, index: number) => (
+                    <div
+                      key={index}
+                      className="border rounded-lg p-4 hover:bg-muted/50 transition-colors cursor-pointer"
+                      onClick={() => setSelectedPage(selectedPage === page.url ? null : page.url)}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-medium">{page.title || 'Untitled Page'}</h4>
+                          <Badge variant={page.status === 200 ? "default" : "destructive"}>
+                            {page.status}
+                          </Badge>
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {page.loadTime}ms
+                        </div>
+                      </div>
+                      <div className="text-sm text-muted-foreground mb-2">
+                        {page.url}
+                      </div>
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <Globe className="h-3 w-3" />
+                          {page.links?.length || 0} links
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <FileImage className="h-3 w-3" />
+                          {page.images?.length || 0} images
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <AlertTriangle className="h-3 w-3" />
+                          {page.errors?.length || 0} issues
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Globe className="h-8 w-8 mx-auto mb-4 text-muted-foreground" />
+                  <p className="text-muted-foreground">No pages found in audit results</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="errors" className="space-y-4">
+          {/* ... keep existing code (errors content) */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5" />
+                Issues Found
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {results.errors && results.errors.length > 0 ? (
+                <div className="space-y-3">
+                  {results.errors.map((error: any, index: number) => (
+                    <div key={index} className="border rounded-lg p-4">
+                      <div className="flex items-start gap-3">
+                        <AlertTriangle className={`h-4 w-4 mt-0.5 ${
+                          error.severity === 'critical' ? 'text-red-500' : 
+                          error.severity === 'warning' ? 'text-yellow-500' : 'text-blue-500'
+                        }`} />
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Badge variant={
+                              error.severity === 'critical' ? 'destructive' : 
+                              error.severity === 'warning' ? 'secondary' : 'outline'
+                            }>
+                              {error.type.replace('_', ' ')}
+                            </Badge>
+                            <Badge variant="outline" className="capitalize">
+                              {error.severity}
+                            </Badge>
+                          </div>
+                          <p className="text-sm">{error.message}</p>
+                          {error.url && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Page: {error.url}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <CheckCircle className="h-8 w-8 mx-auto mb-4 text-green-500" />
+                  <p className="text-muted-foreground">No issues found! Your site is in great shape.</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="recommendations" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5" />
+                Optimization Recommendations
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Alert>
+                <TrendingUp className="h-4 w-4" />
+                <AlertDescription>
+                  Here are personalized recommendations based on your audit results to improve your site's performance, SEO, and accessibility.
+                </AlertDescription>
+              </Alert>
+
+              <div className="space-y-4">
+                {/* Image Recommendations */}
+                {summary.imageAnalysis && summary.imageAnalysis.unoptimizedImages > 0 && (
+                  <div className="border rounded-lg p-4">
+                    <h4 className="font-medium mb-2 flex items-center gap-2">
+                      <FileImage className="h-4 w-4" />
+                      Image Optimization
+                    </h4>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      {summary.imageAnalysis.unoptimizedImages} images need optimization
+                    </p>
+                    <ul className="space-y-1 text-sm">
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="h-3 w-3 text-green-500" />
+                        Convert images to modern formats (WebP, AVIF)
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="h-3 w-3 text-green-500" />
+                        Implement lazy loading for below-the-fold images
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="h-3 w-3 text-green-500" />
+                        Add proper alt text for accessibility
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="h-3 w-3 text-green-500" />
+                        Use responsive images with srcset
+                      </li>
+                    </ul>
+                  </div>
+                )}
+
+                {/* Performance Recommendations */}
+                {summary.averageLoadTime > 3000 && (
+                  <div className="border rounded-lg p-4">
+                    <h4 className="font-medium mb-2 flex items-center gap-2">
+                      <Zap className="h-4 w-4" />
+                      Performance Optimization
+                    </h4>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      Average load time is {summary.averageLoadTime}ms (target: &lt;3000ms)
+                    </p>
+                    <ul className="space-y-1 text-sm">
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="h-3 w-3 text-green-500" />
+                        Optimize and compress images
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="h-3 w-3 text-green-500" />
+                        Enable browser caching
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="h-3 w-3 text-green-500" />
+                        Minify CSS and JavaScript
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="h-3 w-3 text-green-500" />
+                        Use a Content Delivery Network (CDN)
+                      </li>
+                    </ul>
+                  </div>
+                )}
+
+                {/* SEO Recommendations */}
+                {audit.seo_score < 80 && (
+                  <div className="border rounded-lg p-4">
+                    <h4 className="font-medium mb-2 flex items-center gap-2">
+                      <Search className="h-4 w-4" />
+                      SEO Improvements
+                    </h4>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      SEO score: {audit.seo_score}% (target: 90%+)
+                    </p>
+                    <ul className="space-y-1 text-sm">
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="h-3 w-3 text-green-500" />
+                        Optimize page titles (30-60 characters)
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="h-3 w-3 text-green-500" />
+                        Write compelling meta descriptions (120-160 characters)
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="h-3 w-3 text-green-500" />
+                        Ensure proper heading structure (H1-H6)
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="h-3 w-3 text-green-500" />
+                        Add alt text to all images
+                      </li>
+                    </ul>
+                  </div>
+                )}
+
+                {/* Accessibility Recommendations */}
+                {audit.accessibility_score < 80 && (
+                  <div className="border rounded-lg p-4">
+                    <h4 className="font-medium mb-2 flex items-center gap-2">
+                      <Shield className="h-4 w-4" />
+                      Accessibility Improvements
+                    </h4>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      Accessibility score: {audit.accessibility_score}% (target: 90%+)
+                    </p>
+                    <ul className="space-y-1 text-sm">
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="h-3 w-3 text-green-500" />
+                        Add alt text to all images
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="h-3 w-3 text-green-500" />
+                        Ensure proper color contrast ratios
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="h-3 w-3 text-green-500" />
+                        Use semantic HTML elements
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="h-3 w-3 text-green-500" />
+                        Add keyboard navigation support
+                      </li>
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

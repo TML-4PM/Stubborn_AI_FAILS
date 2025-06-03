@@ -3,8 +3,8 @@ import { useEffect, useState } from 'react';
 import { useUser } from '@/contexts/UserContext';
 import { Navigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Shield } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { Shield, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AdminAuthGuardProps {
   children: React.ReactNode;
@@ -17,7 +17,10 @@ const AdminAuthGuard = ({ children }: AdminAuthGuardProps) => {
 
   useEffect(() => {
     const checkAdminStatus = async () => {
+      console.log('Checking admin status for user:', user?.id);
+      
       if (!user) {
+        console.log('No user found');
         setCheckingPermissions(false);
         return;
       }
@@ -40,6 +43,14 @@ const AdminAuthGuard = ({ children }: AdminAuthGuardProps) => {
         const isFirstUser = profiles?.[0]?.user_id === user.id;
         const hasAdminEmail = user.email?.includes('admin') || user.email?.includes('test');
         
+        console.log('Admin check results:', {
+          isFirstUser,
+          hasAdminEmail,
+          userEmail: user.email,
+          firstUserId: profiles?.[0]?.user_id,
+          currentUserId: user.id
+        });
+        
         setIsAdmin(isFirstUser || hasAdminEmail || false);
       } catch (error) {
         console.error('Error in admin check:', error);
@@ -52,11 +63,13 @@ const AdminAuthGuard = ({ children }: AdminAuthGuardProps) => {
     checkAdminStatus();
   }, [user]);
 
+  console.log('AdminAuthGuard state:', { isLoading, checkingPermissions, isAdmin, user: !!user });
+
   if (isLoading || checkingPermissions) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <Loader2 className="animate-spin h-8 w-8 mx-auto mb-4 text-primary" />
           <p className="text-muted-foreground">Checking permissions...</p>
         </div>
       </div>
@@ -78,6 +91,9 @@ const AdminAuthGuard = ({ children }: AdminAuthGuardProps) => {
           <CardContent className="text-center">
             <p className="text-muted-foreground">
               You don't have permission to access the admin panel.
+            </p>
+            <p className="text-sm text-muted-foreground mt-2">
+              Current user: {user.email}
             </p>
           </CardContent>
         </Card>

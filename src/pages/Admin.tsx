@@ -9,7 +9,7 @@ import SiteAuditPanel from '@/components/admin/SiteAuditPanel';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Database, Bot, Globe, Activity } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { createSystemUserIfNotExists } from '@/utils/systemUser';
 import SystemHealthDashboard from '@/components/admin/SystemHealthDashboard';
 
@@ -44,7 +44,7 @@ const Admin = () => {
           </div>
 
           <Tabs defaultValue="health" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-4 mb-6">
               <TabsTrigger value="health" className="flex items-center gap-2">
                 <Activity className="h-4 w-4" />
                 System Health
@@ -64,32 +64,40 @@ const Admin = () => {
             </TabsList>
 
             <TabsContent value="health" className="mt-6">
-              <SystemHealthDashboard />
+              <div className="space-y-6">
+                <SystemHealthDashboard />
+              </div>
             </TabsContent>
 
             <TabsContent value="discovery" className="mt-6">
-              <ContentDiscoveryPanel />
+              <div className="space-y-6">
+                <ContentDiscoveryPanel />
+              </div>
             </TabsContent>
 
             <TabsContent value="audit" className="mt-6">
-              <SiteAuditPanel />
+              <div className="space-y-6">
+                <SiteAuditPanel />
+              </div>
             </TabsContent>
 
             <TabsContent value="database" className="mt-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Database className="h-5 w-5" />
-                    Database Management
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">
-                    Database management tools and utilities will be available here.
-                    For now, use the Supabase dashboard for direct database access.
-                  </p>
-                </CardContent>
-              </Card>
+              <div className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Database className="h-5 w-5" />
+                      Database Management
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-muted-foreground">
+                      Database management tools and utilities will be available here.
+                      For now, use the Supabase dashboard for direct database access.
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
             </TabsContent>
           </Tabs>
         </AdminAuthGuard>

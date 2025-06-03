@@ -15,6 +15,9 @@ interface Product {
   variants?: string[];
   colors?: string[];
   featured?: boolean;
+  coming_soon?: boolean;
+  print_on_demand?: boolean;
+  is_printify_product?: boolean;
 }
 
 interface ProductGridProps {
@@ -55,9 +58,23 @@ const ProductGrid = ({ products, isLoading }: ProductGridProps) => {
     <>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {products.map((product) => (
-          <Card key={product.id} className="overflow-hidden hover:shadow-md transition-shadow">
+          <Card key={product.id} className="overflow-hidden hover:shadow-md transition-shadow relative">
+            {product.coming_soon && (
+              <div className="absolute top-2 left-2 z-10">
+                <Badge variant="secondary" className="bg-blue-500 text-white">
+                  Coming Soon
+                </Badge>
+              </div>
+            )}
+            {product.print_on_demand && !product.coming_soon && (
+              <div className="absolute top-2 left-2 z-10">
+                <Badge variant="outline" className="bg-green-500 text-white border-green-500">
+                  Print on Demand
+                </Badge>
+              </div>
+            )}
             <div 
-              className="aspect-square bg-cover bg-center cursor-pointer" 
+              className={`aspect-square bg-cover bg-center cursor-pointer ${product.coming_soon ? 'opacity-75' : ''}`}
               style={{ backgroundImage: `url(${product.image})` }}
               onClick={() => setSelectedProduct(product)}
             ></div>
@@ -74,8 +91,10 @@ const ProductGrid = ({ products, isLoading }: ProductGridProps) => {
                 <Button 
                   size="sm" 
                   onClick={() => setSelectedProduct(product)}
+                  disabled={product.coming_soon}
+                  variant={product.coming_soon ? "outline" : "default"}
                 >
-                  View Details
+                  {product.coming_soon ? 'Coming Soon' : 'View Details'}
                 </Button>
               </div>
             </CardContent>

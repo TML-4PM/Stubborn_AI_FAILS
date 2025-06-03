@@ -48,7 +48,10 @@ const Shop = () => {
           image: product.image_url || '',
           variants: variants?.sizes || [],
           colors: variants?.colors || [],
-          featured: product.featured || false
+          featured: product.featured || false,
+          coming_soon: product.coming_soon || false,
+          print_on_demand: product.print_on_demand || false,
+          is_printify_product: product.is_printify_product || false
         };
       });
     },
@@ -64,6 +67,8 @@ const Shop = () => {
   });
 
   const featuredProducts = products?.filter(product => product.featured);
+  const printifyProducts = products?.filter(product => product.is_printify_product);
+  const comingSoonProducts = products?.filter(product => product.coming_soon);
 
   // Get unique categories for filter badges
   const categories = products ? [...new Set(products.map(p => p.category))] : [];
@@ -109,9 +114,11 @@ const Shop = () => {
 
           {/* Products */}
           <Tabs defaultValue="all" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="all">All Products</TabsTrigger>
               <TabsTrigger value="featured">Featured</TabsTrigger>
+              <TabsTrigger value="printify">Print on Demand</TabsTrigger>
+              <TabsTrigger value="coming-soon">Coming Soon</TabsTrigger>
             </TabsList>
             
             <TabsContent value="all" className="mt-6">
@@ -120,6 +127,14 @@ const Shop = () => {
             
             <TabsContent value="featured" className="mt-6">
               <ProductGrid products={featuredProducts} isLoading={isLoading} />
+            </TabsContent>
+            
+            <TabsContent value="printify" className="mt-6">
+              <ProductGrid products={printifyProducts} isLoading={isLoading} />
+            </TabsContent>
+            
+            <TabsContent value="coming-soon" className="mt-6">
+              <ProductGrid products={comingSoonProducts} isLoading={isLoading} />
             </TabsContent>
           </Tabs>
         </div>

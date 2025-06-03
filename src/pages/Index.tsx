@@ -17,6 +17,15 @@ const Index = () => {
   // Initialize data on app load
   const { isInitialized } = useDataInitialization();
 
+  // Always show fallback data initially to ensure the page loads
+  useEffect(() => {
+    console.log('Index component mounted, isInitialized:', isInitialized);
+    if (!isInitialized) {
+      console.log('Using fallback data while initializing...');
+      setUseFallbackData(true);
+    }
+  }, [isInitialized]);
+
   // Fetch featured AI fails from the database with fallback
   const { data: featuredFails, isLoading: featuredLoading, error: featuredError } = useQuery({
     queryKey: ['featured-fails'],
@@ -66,13 +75,16 @@ const Index = () => {
     retry: false,
   });
 
-  // Use fallback data if database queries fail or return empty
+  // Use fallback data if database queries fail or return empty, or if not initialized
   useEffect(() => {
-    if (featuredError || trendingError || (isInitialized && !featuredFails?.length && !trendingFails?.length)) {
-      console.log('Using fallback static data due to database issues');
+    if (featuredError || trendingError || (!useFallbackData && isInitialized && !featuredFails?.length && !trendingFails?.length)) {
+      console.log('Using fallback static data due to database issues or empty results');
       setUseFallbackData(true);
+    } else if (isInitialized && (featuredFails?.length || trendingFails?.length)) {
+      console.log('Successfully loaded data from database');
+      setUseFallbackData(false);
     }
-  }, [featuredError, trendingError, featuredFails, trendingFails, isInitialized]);
+  }, [featuredError, trendingError, featuredFails, trendingFails, isInitialized, useFallbackData]);
 
   // Convert sample data to match expected format
   const convertSampleToDatabase = (sampleFails: any[]) => {
@@ -105,6 +117,14 @@ const Index = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  console.log('Index render state:', {
+    isInitialized,
+    useFallbackData,
+    isLoading,
+    featuredFails: displayFeaturedFails?.length || 0,
+    trendingFails: displayTrendingFails?.length || 0
+  });
 
   return (
     <div className="min-h-screen bg-background">

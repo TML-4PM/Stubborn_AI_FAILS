@@ -86,6 +86,51 @@ export type Database = {
           },
         ]
       }
+      bundle_products: {
+        Row: {
+          animal_count: number
+          base_price: number
+          category: string | null
+          created_at: string | null
+          description: string | null
+          features: string[] | null
+          icon: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          name: string
+          savings: number
+        }
+        Insert: {
+          animal_count: number
+          base_price: number
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          features?: string[] | null
+          icon?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          name: string
+          savings: number
+        }
+        Update: {
+          animal_count?: number
+          base_price?: number
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          features?: string[] | null
+          icon?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          name?: string
+          savings?: number
+        }
+        Relationships: []
+      }
       content_sources: {
         Row: {
           created_at: string | null
@@ -418,6 +463,156 @@ export type Database = {
         }
         Relationships: []
       }
+      partner_accounts: {
+        Row: {
+          application_id: string | null
+          branding_config: Json | null
+          commission_rate: number | null
+          company_name: string
+          contact_email: string
+          created_at: string | null
+          custom_domain: string | null
+          id: string
+          is_active: boolean | null
+          partner_code: string
+          total_orders: number | null
+          total_revenue: number | null
+          updated_at: string | null
+          white_label_enabled: boolean | null
+          wholesale_tier_id: string | null
+        }
+        Insert: {
+          application_id?: string | null
+          branding_config?: Json | null
+          commission_rate?: number | null
+          company_name: string
+          contact_email: string
+          created_at?: string | null
+          custom_domain?: string | null
+          id?: string
+          is_active?: boolean | null
+          partner_code: string
+          total_orders?: number | null
+          total_revenue?: number | null
+          updated_at?: string | null
+          white_label_enabled?: boolean | null
+          wholesale_tier_id?: string | null
+        }
+        Update: {
+          application_id?: string | null
+          branding_config?: Json | null
+          commission_rate?: number | null
+          company_name?: string
+          contact_email?: string
+          created_at?: string | null
+          custom_domain?: string | null
+          id?: string
+          is_active?: boolean | null
+          partner_code?: string
+          total_orders?: number | null
+          total_revenue?: number | null
+          updated_at?: string | null
+          white_label_enabled?: boolean | null
+          wholesale_tier_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_accounts_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "partner_applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_accounts_wholesale_tier_id_fkey"
+            columns: ["wholesale_tier_id"]
+            isOneToOne: false
+            referencedRelation: "wholesale_tiers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_applications: {
+        Row: {
+          additional_notes: string | null
+          annual_revenue_range: string | null
+          business_type: string
+          company_name: string
+          company_size: string | null
+          contact_name: string
+          created_at: string | null
+          current_distribution_channels: string[] | null
+          custom_branding_needs: string | null
+          email: string
+          expected_monthly_volume: number | null
+          id: string
+          integration_requirements: string | null
+          lead_score: number | null
+          marketing_budget_range: string | null
+          phone: string | null
+          preferred_commission_structure: string | null
+          status: string | null
+          target_market: string | null
+          timeline: string | null
+          updated_at: string | null
+          website_url: string | null
+          white_label_interest: boolean | null
+          why_partner: string | null
+        }
+        Insert: {
+          additional_notes?: string | null
+          annual_revenue_range?: string | null
+          business_type: string
+          company_name: string
+          company_size?: string | null
+          contact_name: string
+          created_at?: string | null
+          current_distribution_channels?: string[] | null
+          custom_branding_needs?: string | null
+          email: string
+          expected_monthly_volume?: number | null
+          id?: string
+          integration_requirements?: string | null
+          lead_score?: number | null
+          marketing_budget_range?: string | null
+          phone?: string | null
+          preferred_commission_structure?: string | null
+          status?: string | null
+          target_market?: string | null
+          timeline?: string | null
+          updated_at?: string | null
+          website_url?: string | null
+          white_label_interest?: boolean | null
+          why_partner?: string | null
+        }
+        Update: {
+          additional_notes?: string | null
+          annual_revenue_range?: string | null
+          business_type?: string
+          company_name?: string
+          company_size?: string | null
+          contact_name?: string
+          created_at?: string | null
+          current_distribution_channels?: string[] | null
+          custom_branding_needs?: string | null
+          email?: string
+          expected_monthly_volume?: number | null
+          id?: string
+          integration_requirements?: string | null
+          lead_score?: number | null
+          marketing_budget_range?: string | null
+          phone?: string | null
+          preferred_commission_structure?: string | null
+          status?: string | null
+          target_market?: string | null
+          timeline?: string | null
+          updated_at?: string | null
+          website_url?: string | null
+          white_label_interest?: boolean | null
+          why_partner?: string | null
+        }
+        Relationships: []
+      }
       predator_encounters: {
         Row: {
           animal_id: string
@@ -473,6 +668,57 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      products: {
+        Row: {
+          base_price: number
+          category: string
+          created_at: string | null
+          danger_level: number | null
+          description: string | null
+          facts: string[] | null
+          icon: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          locations: string[] | null
+          name: string
+          rarity: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          base_price?: number
+          category: string
+          created_at?: string | null
+          danger_level?: number | null
+          description?: string | null
+          facts?: string[] | null
+          icon?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          locations?: string[] | null
+          name: string
+          rarity?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          base_price?: number
+          category?: string
+          created_at?: string | null
+          danger_level?: number | null
+          description?: string | null
+          facts?: string[] | null
+          icon?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          locations?: string[] | null
+          name?: string
+          rarity?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
@@ -811,6 +1057,92 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      white_label_configs: {
+        Row: {
+          brand_name: string
+          created_at: string | null
+          custom_certificate_template: Json | null
+          custom_domain: string | null
+          id: string
+          is_active: boolean | null
+          logo_url: string | null
+          partner_id: string | null
+          pricing_markup: number | null
+          primary_color: string | null
+          secondary_color: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          brand_name: string
+          created_at?: string | null
+          custom_certificate_template?: Json | null
+          custom_domain?: string | null
+          id?: string
+          is_active?: boolean | null
+          logo_url?: string | null
+          partner_id?: string | null
+          pricing_markup?: number | null
+          primary_color?: string | null
+          secondary_color?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          brand_name?: string
+          created_at?: string | null
+          custom_certificate_template?: Json | null
+          custom_domain?: string | null
+          id?: string
+          is_active?: boolean | null
+          logo_url?: string | null
+          partner_id?: string | null
+          pricing_markup?: number | null
+          primary_color?: string | null
+          secondary_color?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "white_label_configs_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partner_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wholesale_tiers: {
+        Row: {
+          created_at: string | null
+          discount_percentage: number
+          features: string[] | null
+          id: string
+          is_active: boolean | null
+          min_quantity: number
+          price_per_unit: number
+          tier_name: string
+        }
+        Insert: {
+          created_at?: string | null
+          discount_percentage: number
+          features?: string[] | null
+          id?: string
+          is_active?: boolean | null
+          min_quantity: number
+          price_per_unit: number
+          tier_name: string
+        }
+        Update: {
+          created_at?: string | null
+          discount_percentage?: number
+          features?: string[] | null
+          id?: string
+          is_active?: boolean | null
+          min_quantity?: number
+          price_per_unit?: number
+          tier_name?: string
+        }
+        Relationships: []
       }
     }
     Views: {

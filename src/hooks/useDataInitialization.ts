@@ -13,6 +13,8 @@ export const useDataInitialization = () => {
     setIsInitializing(true);
     
     try {
+      console.log('Starting data initialization...');
+      
       // Check if data already exists
       const { data: existingOopsies } = await supabase
         .from('oopsies')
@@ -26,6 +28,8 @@ export const useDataInitialization = () => {
         return;
       }
 
+      console.log('No existing data found, inserting initial AI fails...');
+
       // Insert initial AI fails data
       const oopsiesData = initialAIFails.map(fail => ({
         id: fail.id,
@@ -33,7 +37,7 @@ export const useDataInitialization = () => {
         description: fail.description,
         category: fail.category,
         image_url: fail.image_url,
-        user_id: null, // System generated content
+        user_id: null, // System generated content - now allowed
         status: fail.status,
         likes: fail.likes,
         comments: fail.comments,
@@ -46,6 +50,8 @@ export const useDataInitialization = () => {
         review_status: 'approved'
       }));
 
+      console.log(`Inserting ${oopsiesData.length} AI fails...`);
+
       const { error: oopsiesError } = await supabase
         .from('oopsies')
         .insert(oopsiesData);
@@ -54,6 +60,8 @@ export const useDataInitialization = () => {
         console.error('Error inserting oopsies:', oopsiesError);
         throw oopsiesError;
       }
+
+      console.log('Successfully inserted AI fails data');
 
       // Initialize Printify settings
       const { error: printifyError } = await supabase

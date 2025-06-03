@@ -131,6 +131,80 @@ export type Database = {
         }
         Relationships: []
       }
+      comments: {
+        Row: {
+          content: string
+          created_at: string | null
+          fail_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          fail_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          fail_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comments_fail_id_fkey"
+            columns: ["fail_id"]
+            isOneToOne: false
+            referencedRelation: "oopsies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_posts: {
+        Row: {
+          certificate_id: string | null
+          comments_count: number
+          content: string
+          created_at: string
+          id: string
+          image_url: string | null
+          likes_count: number
+          location: string | null
+          shares_count: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          certificate_id?: string | null
+          comments_count?: number
+          content: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          likes_count?: number
+          location?: string | null
+          shares_count?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          certificate_id?: string | null
+          comments_count?: number
+          content?: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          likes_count?: number
+          location?: string | null
+          shares_count?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       content_sources: {
         Row: {
           created_at: string | null
@@ -265,6 +339,35 @@ export type Database = {
           requirements?: string[]
         }
         Relationships: []
+      }
+      likes: {
+        Row: {
+          created_at: string | null
+          fail_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          fail_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          fail_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "likes_fail_id_fkey"
+            columns: ["fail_id"]
+            isOneToOne: false
+            referencedRelation: "oopsies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       link_health: {
         Row: {
@@ -613,6 +716,35 @@ export type Database = {
         }
         Relationships: []
       }
+      post_likes: {
+        Row: {
+          created_at: string
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_likes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "community_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       predator_encounters: {
         Row: {
           animal_id: string
@@ -851,6 +983,36 @@ export type Database = {
           updated_at?: string
           user_id?: string
           username?: string
+        }
+        Relationships: []
+      }
+      scheduled_tasks: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_running: boolean | null
+          last_run: string | null
+          next_run: string | null
+          task_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_running?: boolean | null
+          last_run?: string | null
+          next_run?: string | null
+          task_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_running?: boolean | null
+          last_run?: string | null
+          next_run?: string | null
+          task_name?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -1112,6 +1274,27 @@ export type Database = {
         }
         Relationships: []
       }
+      user_follows: {
+        Row: {
+          created_at: string
+          follower_id: string
+          following_id: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          follower_id: string
+          following_id: string
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          follower_id?: string
+          following_id?: string
+          id?: string
+        }
+        Relationships: []
+      }
       viral_metrics: {
         Row: {
           comments_count: number | null
@@ -1259,9 +1442,17 @@ export type Database = {
         }
         Returns: number
       }
+      decrement_likes: {
+        Args: { fail_id: string }
+        Returns: undefined
+      }
       generate_daily_challenge: {
         Args: { challenge_date: string }
         Returns: string
+      }
+      increment_likes: {
+        Args: { fail_id: string }
+        Returns: undefined
       }
       increment_oopsie_likes: {
         Args: { oopsie_id: string }

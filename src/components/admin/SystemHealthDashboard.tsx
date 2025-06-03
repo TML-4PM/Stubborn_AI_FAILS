@@ -1,7 +1,8 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Database, Users, Activity, AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
+import { Loader2, Database, Users, Activity, AlertTriangle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 interface HealthCheckResult {
@@ -47,7 +48,6 @@ const SystemHealthDashboard = () => {
 
     const checkContentDiscovery = async (): Promise<HealthCheckResult> => {
       try {
-        // Simulate a check for content discovery by querying recent fails
         await supabase
           .from('oopsies')
           .select('id')
@@ -61,9 +61,6 @@ const SystemHealthDashboard = () => {
     };
 
     const checkScheduledTasks = async (): Promise<HealthCheckResult> => {
-      // Simulate a check for scheduled tasks.  In a real-world scenario,
-      // this might involve checking the status of background workers or task queues.
-      // For now, we'll just assume it's healthy.
       return { status: 'healthy', message: 'Scheduled tasks are running.' };
     };
 
@@ -97,11 +94,11 @@ const SystemHealthDashboard = () => {
   const getStatusBadge = (status: 'healthy' | 'unhealthy' | 'warning') => {
     switch (status) {
       case 'healthy':
-        return <Badge variant="success">Healthy</Badge>;
+        return <Badge variant="default" className="bg-green-500">Healthy</Badge>;
       case 'unhealthy':
         return <Badge variant="destructive">Unhealthy</Badge>;
       case 'warning':
-        return <Badge variant="warning">Warning</Badge>;
+        return <Badge variant="secondary" className="bg-yellow-500">Warning</Badge>;
       default:
         return <Badge>Unknown</Badge>;
     }

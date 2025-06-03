@@ -34,20 +34,23 @@ const CommentSection = ({ failId }: CommentSectionProps) => {
     try {
       const { data, error } = await supabase
         .from('comments')
-        .select('*, profiles(username, avatar_url)')
+        .select(`
+          *,
+          profiles(username, avatar_url)
+        `)
         .eq('fail_id', failId)
         .order('created_at', { ascending: false });
         
       if (error) throw error;
       
       // Transform data to match our Comment interface
-      const transformedComments = data.map(comment => ({
+      const transformedComments = (data || []).map(comment => ({
         id: comment.id,
         content: comment.content,
         created_at: comment.created_at,
         user_id: comment.user_id,
-        username: comment.profiles?.username || 'Anonymous',
-        avatar_url: comment.profiles?.avatar_url
+        username: (comment.profiles as any)?.username || 'Anonymous',
+        avatar_url: (comment.profiles as any)?.avatar_url
       }));
       
       setComments(transformedComments);

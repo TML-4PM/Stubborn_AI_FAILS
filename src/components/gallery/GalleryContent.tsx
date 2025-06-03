@@ -1,5 +1,5 @@
+
 import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import FailCard from '@/components/FailCard';
 import { Button } from '@/components/ui/button';
@@ -33,7 +33,10 @@ const GalleryContent = ({ category, query }: GalleryContentProps) => {
     
     let dbQuery = supabase
       .from('oopsies')
-      .select('*')
+      .select(`
+        *,
+        profiles(username)
+      `)
       .eq('status', 'approved')
       .order('created_at', { ascending: false })
       .range((page - 1) * itemsPerPage, page * itemsPerPage - 1);
@@ -46,7 +49,7 @@ const GalleryContent = ({ category, query }: GalleryContentProps) => {
       dbQuery = dbQuery.ilike('title', `%${query}%`);
     }
     
-    const { data, error, count } = await dbQuery;
+    const { data, error } = await dbQuery;
     
     if (error) {
       console.error('Error fetching fails:', error);
@@ -54,13 +57,26 @@ const GalleryContent = ({ category, query }: GalleryContentProps) => {
     }
     
     setIsLoading(false);
-    return data || [];
+    
+    // Transform the data to match the expected interface
+    const transformedData = (data || []).map(item => ({
+      id: item.id,
+      title: item.title,
+      description: item.description,
+      image_url: item.image_url,
+      likes: item.likes || 0,
+      created_at: item.created_at,
+      status: item.status,
+      username: (item.profiles as any)?.username || 'Anonymous'
+    }));
+    
+    return transformedData;
   };
   
   useEffect(() => {
-    setFails([]); // Clear existing fails when category or query changes
-    setPage(1); // Reset page to 1
-    setHasMore(true); // Reset hasMore to true
+    setFails([]);
+    setPage(1);
+    setHasMore(true);
   }, [category, query]);
   
   useEffect(() => {

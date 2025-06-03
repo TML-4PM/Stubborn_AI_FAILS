@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -41,7 +42,10 @@ const CommentForm = ({ failId, onCommentAdded, onAuthModalOpen }: CommentFormPro
           content: commentText,
           user_id: user.id
         })
-        .select('*, profiles(username, avatar_url)')
+        .select(`
+          *,
+          profiles(username, avatar_url)
+        `)
         .single();
         
       if (error) throw error;
@@ -52,8 +56,8 @@ const CommentForm = ({ failId, onCommentAdded, onAuthModalOpen }: CommentFormPro
         content: comment.content,
         created_at: comment.created_at,
         user_id: comment.user_id,
-        username: comment.profiles?.username || 'Anonymous',
-        avatar_url: comment.profiles?.avatar_url
+        username: (comment.profiles as any)?.username || 'Anonymous',
+        avatar_url: (comment.profiles as any)?.avatar_url
       };
       
       onCommentAdded(transformedComment);

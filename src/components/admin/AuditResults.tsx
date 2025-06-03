@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -27,6 +28,31 @@ import ImageAuditResults from './ImageAuditResults';
 interface AuditResultsProps {
   auditId: string;
 }
+
+// Type guards for audit data
+const isAuditSummary = (data: any): data is {
+  totalPages: number;
+  totalErrors: number;
+  averageLoadTime: number;
+  brokenLinks: number;
+  brokenImages: number;
+  imageAnalysis?: {
+    totalImages: number;
+    unoptimizedImages: number;
+    imagesWithoutAlt: number;
+    largeImages: number;
+    optimizationScore: number;
+  };
+} => {
+  return data && typeof data === 'object' && typeof data.totalPages === 'number';
+};
+
+const isAuditResults = (data: any): data is {
+  pages: any[];
+  errors: any[];
+} => {
+  return data && typeof data === 'object' && Array.isArray(data.pages);
+};
 
 const AuditResults = ({ auditId }: AuditResultsProps) => {
   const [selectedPage, setSelectedPage] = useState<string | null>(null);
@@ -89,6 +115,23 @@ const AuditResults = ({ auditId }: AuditResultsProps) => {
     );
   }
 
+  const parsedSummary = isAuditSummary(summary) ? summary : { 
+    totalPages: 0, 
+    totalErrors: 0, 
+    averageLoadTime: 0,
+    brokenLinks: 0, 
+    brokenImages: 0, 
+    imageAnalysis: {
+      totalImages: 0,
+      unoptimizedImages: 0,
+      imagesWithoutAlt: 0,
+      largeImages: 0,
+      optimizationScore: 0
+    }
+  };
+
+  const parsedResults = isAuditResults(results) ? results : { pages: [], errors: [] };
+
   const getScoreColor = (score: number) => {
     if (score >= 90) return "text-green-600";
     if (score >= 75) return "text-blue-600";
@@ -120,15 +163,15 @@ const AuditResults = ({ auditId }: AuditResultsProps) => {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">{summary.totalPages}</div>
+              <div className="text-2xl font-bold text-blue-600">{parsedSummary.totalPages}</div>
               <div className="text-sm text-muted-foreground">Pages Analyzed</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-red-600">{summary.totalErrors}</div>
+              <div className="text-2xl font-bold text-red-600">{parsedSummary.totalErrors}</div>
               <div className="text-sm text-muted-foreground">Issues Found</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">{summary.averageLoadTime}ms</div>
+              <div className="text-2xl font-bold text-green-600">{parsedSummary.averageLoadTime}ms</div>
               <div className="text-sm text-muted-foreground">Avg Load Time</div>
             </div>
             <div className="text-center">
@@ -179,13 +222,13 @@ const AuditResults = ({ auditId }: AuditResultsProps) => {
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Images</span>
                 <div className="flex items-center gap-1">
-                  {getScoreIcon(summary.imageAnalysis?.optimizationScore || 0)}
-                  <span className={`font-medium ${getScoreColor(summary.imageAnalysis?.optimizationScore || 0)}`}>
-                    {summary.imageAnalysis?.optimizationScore || 0}%
+                  {getScoreIcon(parsedSummary.imageAnalysis?.optimizationScore || 0)}
+                  <span className={`font-medium ${getScoreColor(parsedSummary.imageAnalysis?.optimizationScore || 0)}`}>
+                    {parsedSummary.imageAnalysis?.optimizationScore || 0}%
                   </span>
                 </div>
               </div>
-              <Progress value={summary.imageAnalysis?.optimizationScore || 0} className="h-2" />
+              <Progress value={parsedSummary.imageAnalysis?.optimizationScore || 0} className="h-2" />
             </div>
           </div>
         </CardContent>
@@ -194,14 +237,13 @@ const AuditResults = ({ auditId }: AuditResultsProps) => {
       <Tabs defaultValue="overview" className="w-full">
         <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview">📊 Overview</TabsTrigger>
-          <TabsTrigger value="images">🖼️ Images ({summary.imageAnalysis?.totalImages || 0})</TabsTrigger>
+          <TabsTrigger value="images">🖼️ Images ({parsedSummary.imageAnalysis?.totalImages || 0})</TabsTrigger>
           <TabsTrigger value="pages">📄 Pages</TabsTrigger>
           <TabsTrigger value="errors">🚨 Issues</TabsTrigger>
           <TabsTrigger value="recommendations">💡 Tips</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
-          {/* ... keep existing code (overview content) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card>
               <CardHeader>
@@ -213,19 +255,19 @@ const AuditResults = ({ auditId }: AuditResultsProps) => {
               <CardContent className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-sm">Average Load Time:</span>
-                  <span className="text-sm font-medium">{summary.averageLoadTime}ms</span>
+                  <span className="text-sm font-medium">{parsedSummary.averageLoadTime}ms</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm">Total Pages:</span>
-                  <span className="text-sm font-medium">{summary.totalPages}</span>
+                  <span className="text-sm font-medium">{parsedSummary.totalPages}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm">Broken Links:</span>
-                  <span className="text-sm font-medium text-red-600">{summary.brokenLinks}</span>
+                  <span className="text-sm font-medium text-red-600">{parsedSummary.brokenLinks}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm">Broken Images:</span>
-                  <span className="text-sm font-medium text-red-600">{summary.brokenImages}</span>
+                  <span className="text-sm font-medium text-red-600">{parsedSummary.brokenImages}</span>
                 </div>
               </CardContent>
             </Card>
@@ -240,19 +282,19 @@ const AuditResults = ({ auditId }: AuditResultsProps) => {
               <CardContent className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-sm">Total Images:</span>
-                  <span className="text-sm font-medium">{summary.imageAnalysis?.totalImages || 0}</span>
+                  <span className="text-sm font-medium">{parsedSummary.imageAnalysis?.totalImages || 0}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm">Unoptimized:</span>
-                  <span className="text-sm font-medium text-red-600">{summary.imageAnalysis?.unoptimizedImages || 0}</span>
+                  <span className="text-sm font-medium text-red-600">{parsedSummary.imageAnalysis?.unoptimizedImages || 0}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm">Missing Alt Text:</span>
-                  <span className="text-sm font-medium text-orange-600">{summary.imageAnalysis?.imagesWithoutAlt || 0}</span>
+                  <span className="text-sm font-medium text-orange-600">{parsedSummary.imageAnalysis?.imagesWithoutAlt || 0}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm">Large Images:</span>
-                  <span className="text-sm font-medium text-yellow-600">{summary.imageAnalysis?.largeImages || 0}</span>
+                  <span className="text-sm font-medium text-yellow-600">{parsedSummary.imageAnalysis?.largeImages || 0}</span>
                 </div>
               </CardContent>
             </Card>
@@ -260,7 +302,7 @@ const AuditResults = ({ auditId }: AuditResultsProps) => {
         </TabsContent>
 
         <TabsContent value="images">
-          {summary.imageAnalysis ? (
+          {parsedSummary.imageAnalysis ? (
             <ImageAuditResults auditResults={results} />
           ) : (
             <Card>
@@ -273,7 +315,6 @@ const AuditResults = ({ auditId }: AuditResultsProps) => {
         </TabsContent>
 
         <TabsContent value="pages" className="space-y-4">
-          {/* ... keep existing code (pages content) */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -282,9 +323,9 @@ const AuditResults = ({ auditId }: AuditResultsProps) => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {results.pages && results.pages.length > 0 ? (
+              {parsedResults.pages && parsedResults.pages.length > 0 ? (
                 <div className="space-y-4">
-                  {results.pages.map((page: any, index: number) => (
+                  {parsedResults.pages.map((page: any, index: number) => (
                     <div
                       key={index}
                       className="border rounded-lg p-4 hover:bg-muted/50 transition-colors cursor-pointer"
@@ -332,7 +373,6 @@ const AuditResults = ({ auditId }: AuditResultsProps) => {
         </TabsContent>
 
         <TabsContent value="errors" className="space-y-4">
-          {/* ... keep existing code (errors content) */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -341,9 +381,9 @@ const AuditResults = ({ auditId }: AuditResultsProps) => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {results.errors && results.errors.length > 0 ? (
+              {parsedResults.errors && parsedResults.errors.length > 0 ? (
                 <div className="space-y-3">
-                  {results.errors.map((error: any, index: number) => (
+                  {parsedResults.errors.map((error: any, index: number) => (
                     <div key={index} className="border rounded-lg p-4">
                       <div className="flex items-start gap-3">
                         <AlertTriangle className={`h-4 w-4 mt-0.5 ${
@@ -356,13 +396,13 @@ const AuditResults = ({ auditId }: AuditResultsProps) => {
                               error.severity === 'critical' ? 'destructive' : 
                               error.severity === 'warning' ? 'secondary' : 'outline'
                             }>
-                              {error.type.replace('_', ' ')}
+                              {error.type?.replace('_', ' ') || 'Unknown'}
                             </Badge>
                             <Badge variant="outline" className="capitalize">
-                              {error.severity}
+                              {error.severity || 'info'}
                             </Badge>
                           </div>
-                          <p className="text-sm">{error.message}</p>
+                          <p className="text-sm">{error.message || 'No description available'}</p>
                           {error.url && (
                             <p className="text-xs text-muted-foreground mt-1">
                               Page: {error.url}
@@ -401,14 +441,14 @@ const AuditResults = ({ auditId }: AuditResultsProps) => {
 
               <div className="space-y-4">
                 {/* Image Recommendations */}
-                {summary.imageAnalysis && summary.imageAnalysis.unoptimizedImages > 0 && (
+                {parsedSummary.imageAnalysis && parsedSummary.imageAnalysis.unoptimizedImages > 0 && (
                   <div className="border rounded-lg p-4">
                     <h4 className="font-medium mb-2 flex items-center gap-2">
                       <FileImage className="h-4 w-4" />
                       Image Optimization
                     </h4>
                     <p className="text-sm text-muted-foreground mb-3">
-                      {summary.imageAnalysis.unoptimizedImages} images need optimization
+                      {parsedSummary.imageAnalysis.unoptimizedImages} images need optimization
                     </p>
                     <ul className="space-y-1 text-sm">
                       <li className="flex items-center gap-2">
@@ -432,14 +472,14 @@ const AuditResults = ({ auditId }: AuditResultsProps) => {
                 )}
 
                 {/* Performance Recommendations */}
-                {summary.averageLoadTime > 3000 && (
+                {parsedSummary.averageLoadTime > 3000 && (
                   <div className="border rounded-lg p-4">
                     <h4 className="font-medium mb-2 flex items-center gap-2">
                       <Zap className="h-4 w-4" />
                       Performance Optimization
                     </h4>
                     <p className="text-sm text-muted-foreground mb-3">
-                      Average load time is {summary.averageLoadTime}ms (target: &lt;3000ms)
+                      Average load time is {parsedSummary.averageLoadTime}ms (target: &lt;3000ms)
                     </p>
                     <ul className="space-y-1 text-sm">
                       <li className="flex items-center gap-2">

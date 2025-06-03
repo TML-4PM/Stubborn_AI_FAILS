@@ -1,103 +1,153 @@
-import { useEffect } from "react";
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { UserProvider } from "@/contexts/UserContext";
-import { initLocalization } from "@/utils/localization";
-import { register as registerSW, setupInstallPrompt } from "@/utils/serviceWorker";
-import { preloadCriticalResources } from "@/utils/seoUtils";
-import ErrorBoundary from "@/components/ErrorBoundary";
-import Index from "./pages/Index";
-import Gallery from "./pages/Gallery";
-import Submit from "./pages/Submit";
-import About from "./pages/About";
-import Donate from "./pages/Donate";
-import FailDetail from "./pages/FailDetail";
-import Profile from "./pages/Profile";
-import Admin from "./pages/Admin";
-import NotFound from "./pages/NotFound";
-import Privacy from "./pages/Privacy";
-import Terms from "./pages/Terms";
-import TestLauncher from "./components/TestLauncher";
 
-// Create a new QueryClient instance outside of the component
+import React from 'react';
+import { Routes, Route } from 'react-router-dom';
+import { Toaster } from '@/components/ui/toaster';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ThemeProvider } from './components/ThemeProvider';
+import PageTransition from './components/PageTransition';
+
+// Page imports
+import Index from './pages/Index';
+import NotFound from './pages/NotFound';
+import Gallery from './pages/Gallery';
+import FailDetail from './pages/FailDetail';
+import Submit from './pages/Submit';
+import About from './pages/About';
+import Terms from './pages/Terms';
+import Privacy from './pages/Privacy';
+import YouTubePage from './pages/YouTubePage';
+import Profile from './pages/Profile';
+import Donate from './pages/Donate';
+import Admin from './pages/Admin';
+import Shop from './pages/Shop';
+
+// Create a client
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: 3,
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      refetchOnWindowFocus: false,
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      retry: 1,
     },
   },
 });
 
-const App = () => {
-  useEffect(() => {
-    // Initialize localization
-    initLocalization();
-
-    // Register service worker for offline capabilities
-    registerSW({
-      onSuccess: () => {
-        console.log('Service worker registered successfully');
-      },
-      onUpdate: () => {
-        console.log('New content available, please refresh');
-        // Could show a toast notification here
-      }
-    });
-
-    // Setup PWA install prompt
-    setupInstallPrompt();
-
-    // Preload critical resources for better performance
-    preloadCriticalResources([
-      '/placeholder.svg', // Critical images
-      // Add other critical assets here
-    ]);
-
-    // Performance monitoring
-    if ('performance' in window) {
-      window.addEventListener('load', () => {
-        setTimeout(() => {
-          const perfData = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
-          console.log('Page load time:', perfData.loadEventEnd - perfData.fetchStart, 'ms');
-        }, 0);
-      });
-    }
-  }, []);
-
+function App() {
   return (
-    <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <UserProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/gallery" element={<Gallery />} />
-                <Route path="/submit" element={<Submit />} />
-                <Route path="/about" element={<About />} />
-                <Route path="/donate" element={<Donate />} />
-                <Route path="/fail/:id" element={<FailDetail />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/admin" element={<Admin />} />
-                <Route path="/privacy" element={<Privacy />} />
-                <Route path="/terms" element={<Terms />} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-              <TestLauncher />
-            </BrowserRouter>
-          </TooltipProvider>
-        </UserProvider>
-      </QueryClientProvider>
-    </ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
+        <ErrorBoundary>
+          <Routes>
+            <Route
+              path="/"
+              element={
+                <PageTransition>
+                  <Index />
+                </PageTransition>
+              }
+            />
+            <Route
+              path="/gallery"
+              element={
+                <PageTransition>
+                  <Gallery />
+                </PageTransition>
+              }
+            />
+            <Route
+              path="/fail/:id"
+              element={
+                <PageTransition>
+                  <FailDetail />
+                </PageTransition>
+              }
+            />
+            <Route
+              path="/submit"
+              element={
+                <PageTransition>
+                  <Submit />
+                </PageTransition>
+              }
+            />
+            <Route
+              path="/about"
+              element={
+                <PageTransition>
+                  <About />
+                </PageTransition>
+              }
+            />
+            <Route
+              path="/terms"
+              element={
+                <PageTransition>
+                  <Terms />
+                </PageTransition>
+              }
+            />
+            <Route
+              path="/privacy"
+              element={
+                <PageTransition>
+                  <Privacy />
+                </PageTransition>
+              }
+            />
+            <Route
+              path="/youtube"
+              element={
+                <PageTransition>
+                  <YouTubePage />
+                </PageTransition>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <PageTransition>
+                  <Profile />
+                </PageTransition>
+              }
+            />
+            <Route
+              path="/donate"
+              element={
+                <PageTransition>
+                  <Donate />
+                </PageTransition>
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                <PageTransition>
+                  <Admin />
+                </PageTransition>
+              }
+            />
+            <Route
+              path="/shop"
+              element={
+                <PageTransition>
+                  <Shop />
+                </PageTransition>
+              }
+            />
+            <Route
+              path="*"
+              element={
+                <PageTransition>
+                  <NotFound />
+                </PageTransition>
+              }
+            />
+          </Routes>
+        </ErrorBoundary>
+        <Toaster />
+      </ThemeProvider>
+    </QueryClientProvider>
   );
-};
+}
 
 export default App;

@@ -1,93 +1,138 @@
-
-import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/lib/supabase';
-
-interface ScheduleConfig {
-  enabled: boolean;
-  intervalHours: number;
-  lastRun?: Date;
-  nextRun?: Date;
-}
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 
 export const useScheduledDiscovery = () => {
-  const [schedule, setSchedule] = useState<ScheduleConfig>({
-    enabled: false,
-    intervalHours: 6,
-  });
   const [isRunning, setIsRunning] = useState(false);
+  const [lastRun, setLastRun] = useState<string | null>(null);
+  const [nextRun, setNextRun] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const calculateNextRun = useCallback((lastRun: Date, intervalHours: number) => {
-    return new Date(lastRun.getTime() + intervalHours * 60 * 60 * 1000);
+  useEffect(() => {
+    fetchDiscoveryStatus();
   }, []);
 
-  const runDiscovery = useCallback(async () => {
-    setIsRunning(true);
+  const fetchDiscoveryStatus = async () => {
+    setIsLoading(true);
     try {
-      console.log('Starting scheduled discovery run...');
-      
-      // Call the Supabase Edge Function
-      const { data, error } = await supabase.functions.invoke('discover-ai-fails', {
-        body: { source: 'scheduled' }
-      });
+      const { data, error } = await supabase
+        .from('scheduled_tasks')
+        .select('*')
+        .eq('task_name', 'ai_fail_discovery')
+        .single();
 
       if (error) {
-        throw error;
+        console.error('Error fetching discovery status:', error);
+        toast({
+          title: 'Error fetching discovery status',
+          description: error.message,
+          variant: 'destructive',
+        });
+        return;
       }
 
-      console.log('Scheduled discovery completed:', data);
-      
-      // Update last run time
-      const now = new Date();
-      setSchedule(prev => ({
-        ...prev,
-        lastRun: now,
-        nextRun: calculateNextRun(now, prev.intervalHours),
-      }));
-
-      return data;
+      setIsRunning(data?.is_running || false);
+      setLastRun(data?.last_run || null);
+      setNextRun(data?.next_run || null);
     } catch (error) {
-      console.error('Scheduled discovery failed:', error);
-      throw error;
+      console.error('Error fetching discovery status:', error);
+      toast({
+        title: 'Error fetching discovery status',
+        description: 'Failed to fetch discovery status. Please try again.',
+        variant: 'destructive',
+      });
     } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const startDiscovery = async () => {
+    setIsRunning(true);
+    try {
+      const { error } = await supabase.functions.invoke('start-ai-discovery');
+
+      if (error) {
+        console.error('Error starting discovery:', error);
+        toast({
+          title: 'Error starting discovery',
+          description: error.message,
+          variant: 'destructive',
+        });
+        setIsRunning(false);
+        return;
+      }
+
+      toast({
+        title: 'Discovery started',
+        description: 'AI fail discovery has been initiated.',
+      });
+
+      // Optimistically update the state
+      setIsRunning(true);
+      setNextRun('Starting...');
+
+      // Refresh status after a delay to allow the function to update the database
+      setTimeout(() => {
+        fetchDiscoveryStatus();
+      }, 5000);
+    } catch (error) {
+      console.error('Error starting discovery:', error);
+      toast({
+        title: 'Error starting discovery',
+        description: 'Failed to start AI fail discovery. Please try again.',
+        variant: 'destructive',
+      });
       setIsRunning(false);
     }
-  }, [calculateNextRun]);
+  };
 
-  const updateSchedule = useCallback((newConfig: Partial<ScheduleConfig>) => {
-    setSchedule(prev => {
-      const updated = { ...prev, ...newConfig };
-      
-      // Recalculate next run if interval changed
-      if (newConfig.intervalHours && updated.lastRun) {
-        updated.nextRun = calculateNextRun(updated.lastRun, updated.intervalHours);
+  const stopDiscovery = async () => {
+    setIsRunning(false);
+    try {
+      const { error } = await supabase.functions.invoke('stop-ai-discovery');
+
+      if (error) {
+        console.error('Error stopping discovery:', error);
+        toast({
+          title: 'Error stopping discovery',
+          description: error.message,
+          variant: 'destructive',
+        });
+        setIsRunning(true);
+        return;
       }
-      
-      return updated;
-    });
-  }, [calculateNextRun]);
 
-  const checkAndRunScheduledDiscovery = useCallback(async () => {
-    if (!schedule.enabled || !schedule.nextRun || isRunning) {
-      return;
+      toast({
+        title: 'Discovery stopped',
+        description: 'AI fail discovery has been stopped.',
+      });
+
+      // Optimistically update the state
+      setIsRunning(false);
+      setNextRun(null);
+
+      // Refresh status after a delay to allow the function to update the database
+      setTimeout(() => {
+        fetchDiscoveryStatus();
+      }, 5000);
+    } catch (error) {
+      console.error('Error stopping discovery:', error);
+      toast({
+        title: 'Error stopping discovery',
+        description: 'Failed to stop AI fail discovery. Please try again.',
+        variant: 'destructive',
+      });
+      setIsRunning(true);
     }
-
-    const now = new Date();
-    if (now >= schedule.nextRun) {
-      await runDiscovery();
-    }
-  }, [schedule.enabled, schedule.nextRun, isRunning, runDiscovery]);
-
-  // Check for scheduled runs every minute
-  useEffect(() => {
-    const interval = setInterval(checkAndRunScheduledDiscovery, 60 * 1000);
-    return () => clearInterval(interval);
-  }, [checkAndRunScheduledDiscovery]);
+  };
 
   return {
-    schedule,
     isRunning,
-    updateSchedule,
-    runDiscovery,
-    timeUntilNextRun: schedule.nextRun ? Math.max(0, schedule.nextRun.getTime() - Date.now()) : 0,
+    lastRun,
+    nextRun,
+    isLoading,
+    startDiscovery,
+    stopDiscovery,
+    fetchDiscoveryStatus,
   };
 };

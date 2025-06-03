@@ -1,9 +1,8 @@
-
 import { useState, useEffect } from 'react';
-import { useUser } from '@/contexts/UserContext';
-import { supabase } from '@/lib/supabase';
-import { Button } from '@/components/ui/button';
 import { Heart } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
+import { useUser } from '@/contexts/UserContext';
 import { toast } from '@/hooks/use-toast';
 import AuthModal from '@/components/auth/AuthModal';
 

@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { MessageSquare } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import AuthModal from '@/components/auth/AuthModal';

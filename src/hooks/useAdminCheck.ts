@@ -1,7 +1,6 @@
-
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useUser } from '@/contexts/UserContext';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 
 export const useAdminCheck = () => {
   const { user, isLoading } = useUser();

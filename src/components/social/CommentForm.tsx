@@ -1,79 +1,71 @@
-
 import { useState } from 'react';
-import { useUser } from '@/contexts/UserContext';
-import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useUser } from '@/contexts/UserContext';
 import { toast } from '@/hooks/use-toast';
-
-interface Comment {
-  id: string;
-  content: string;
-  created_at: string;
-  user_id: string;
-  username: string;
-  avatar_url?: string;
-}
+import { Send } from 'lucide-react';
 
 interface CommentFormProps {
   failId: string;
-  onCommentAdded: (comment: Comment) => void;
+  onCommentAdded: (comment: any) => void;
   onAuthModalOpen: () => void;
 }
 
 const CommentForm = ({ failId, onCommentAdded, onAuthModalOpen }: CommentFormProps) => {
-  const { user } = useUser();
-  const [newComment, setNewComment] = useState('');
+  const [commentText, setCommentText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { user } = useUser();
   
-  const handleSubmitComment = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const handleSubmit = async () => {
     if (!user) {
       onAuthModalOpen();
       return;
     }
     
-    if (!newComment.trim()) return;
+    if (!commentText.trim()) {
+      toast({
+        title: "Please enter a comment",
+        variant: "destructive",
+      });
+      return;
+    }
     
     setIsSubmitting(true);
+    
     try {
-      const { data, error } = await supabase
+      const { data: comment, error } = await supabase
         .from('comments')
         .insert({
           fail_id: failId,
-          user_id: user.id,
-          content: newComment.trim(),
-          created_at: new Date().toISOString()
+          content: commentText,
+          user_id: user.id
         })
         .select('*, profiles(username, avatar_url)')
         .single();
         
       if (error) throw error;
       
-      // Add the new comment to the list
-      const newCommentObj: Comment = {
-        id: data.id,
-        content: data.content,
-        created_at: data.created_at,
-        user_id: data.user_id,
-        username: data.profiles?.username || user.username || 'Anonymous',
-        avatar_url: data.profiles?.avatar_url || user.avatar_url
+      // Transform the comment data to match the expected format
+      const transformedComment = {
+        id: comment.id,
+        content: comment.content,
+        created_at: comment.created_at,
+        user_id: comment.user_id,
+        username: comment.profiles?.username || 'Anonymous',
+        avatar_url: comment.profiles?.avatar_url
       };
       
-      onCommentAdded(newCommentObj);
-      setNewComment('');
-      
+      onCommentAdded(transformedComment);
+      setCommentText('');
       toast({
         title: "Comment added",
-        description: "Your comment has been added successfully.",
       });
     } catch (error) {
-      console.error('Error adding comment:', error);
+      console.error('Error submitting comment:', error);
       toast({
-        title: "Couldn't add comment",
-        description: "There was a problem adding your comment. Please try again.",
+        title: "Couldn't submit comment",
+        description: "There was a problem submitting your comment. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -82,36 +74,33 @@ const CommentForm = ({ failId, onCommentAdded, onAuthModalOpen }: CommentFormPro
   };
   
   return (
-    <form onSubmit={handleSubmitComment} className="space-y-4">
+    <div className="space-y-2">
       <Textarea
-        placeholder={user ? "Add a comment..." : "Sign in to comment"}
-        value={newComment}
-        onChange={(e) => setNewComment(e.target.value)}
-        className="min-h-[100px]"
-        disabled={!user || isSubmitting}
+        value={commentText}
+        onChange={(e) => setCommentText(e.target.value)}
+        placeholder="Add your comment..."
+        rows={3}
+        disabled={isSubmitting}
       />
       <div className="flex justify-end">
-        {user ? (
-          <Button 
-            type="submit" 
-            disabled={isSubmitting || !newComment.trim()}
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Posting...
-              </>
-            ) : (
-              'Post Comment'
-            )}
-          </Button>
-        ) : (
-          <Button type="button" onClick={onAuthModalOpen}>
-            Sign In to Comment
-          </Button>
-        )}
+        <Button 
+          onClick={handleSubmit}
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? (
+            <>
+              <Send className="mr-2 h-4 w-4 animate-spin" />
+              Posting...
+            </>
+          ) : (
+            <>
+              Post Comment
+              <Send className="ml-2 h-4 w-4" />
+            </>
+          )}
+        </Button>
       </div>
-    </form>
+    </div>
   );
 };
 

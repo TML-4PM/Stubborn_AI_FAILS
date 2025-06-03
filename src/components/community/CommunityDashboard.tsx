@@ -2,7 +2,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import { Trophy, Users, Calendar, Target, Crown, Medal, Award } from 'lucide-react';
 import { useCommunityFeatures } from '@/hooks/useCommunityFeatures';
 import { formatDistanceToNow } from 'date-fns';
@@ -137,7 +136,7 @@ const CommunityDashboard = () => {
                       {getRankIcon(entry.rank)}
                       <div>
                         <p className="font-medium">
-                          {entry.profiles?.username || 'Anonymous'}
+                          {entry.username}
                         </p>
                         <p className="text-sm text-muted-foreground">
                           {entry.score} karma points

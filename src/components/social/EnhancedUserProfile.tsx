@@ -24,6 +24,7 @@ import UserReputationCard from '@/components/gamification/UserReputationCard';
 
 interface ProfileData {
   id: string;
+  user_id: string;
   username: string;
   full_name: string;
   avatar_url: string;

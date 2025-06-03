@@ -252,7 +252,7 @@ const AdvancedSearchPanel = () => {
                     {result.description}
                   </p>
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>By {result.profiles?.username || 'Anonymous'}</span>
+                    <span>By {result.username}</span>
                     <div className="flex items-center gap-2">
                       <span className="flex items-center gap-1">
                         <Heart className="h-3 w-3" />

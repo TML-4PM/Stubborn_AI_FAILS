@@ -19,7 +19,7 @@ interface LeaderboardEntry {
   user_id: string;
   score: number;
   rank: number;
-  profiles?: { username: string } | null;
+  username?: string;
 }
 
 export const useCommunityFeatures = () => {
@@ -54,23 +54,38 @@ export const useCommunityFeatures = () => {
 
   const fetchLeaderboard = async () => {
     try {
-      const { data, error } = await supabase
+      const { data: reputationData, error } = await supabase
         .from('user_reputation')
-        .select(`
-          user_id,
-          total_karma,
-          profiles(username)
-        `)
+        .select('user_id, total_karma')
         .order('total_karma', { ascending: false })
         .limit(10);
 
       if (error) throw error;
       
-      const leaderboardData = (data || []).map((entry, index) => ({
+      // Get user profiles separately
+      const userIds = reputationData?.map(entry => entry.user_id) || [];
+      let profilesData: { [key: string]: string } = {};
+
+      if (userIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('user_id, username')
+          .in('user_id', userIds);
+
+        if (profiles) {
+          profilesData = profiles.reduce((acc, profile) => {
+            acc[profile.user_id] = profile.username;
+            return acc;
+          }, {} as { [key: string]: string });
+        }
+      }
+
+      // Combine the data
+      const leaderboardData = (reputationData || []).map((entry, index) => ({
         user_id: entry.user_id,
         score: entry.total_karma,
         rank: index + 1,
-        profiles: entry.profiles
+        username: profilesData[entry.user_id] || 'Anonymous'
       }));
       
       setLeaderboard(leaderboardData);

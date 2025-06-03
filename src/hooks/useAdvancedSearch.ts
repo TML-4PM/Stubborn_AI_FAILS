@@ -26,7 +26,8 @@ interface SearchResult {
   viral_score: number;
   created_at: string;
   is_featured: boolean;
-  profiles?: { username: string } | null;
+  user_id: string;
+  username?: string;
 }
 
 export const useAdvancedSearch = () => {
@@ -50,10 +51,7 @@ export const useAdvancedSearch = () => {
     try {
       let query = supabase
         .from('oopsies')
-        .select(`
-          *,
-          profiles(username)
-        `)
+        .select('*')
         .eq('status', 'approved');
 
       // Apply filters
@@ -111,10 +109,48 @@ export const useAdvancedSearch = () => {
           break;
       }
 
-      const { data, error } = await query.limit(50);
+      const { data: oopsiesData, error } = await query.limit(50);
 
       if (error) throw error;
-      setResults(data || []);
+
+      // Get user profiles separately
+      const userIds = [...new Set(oopsiesData?.map(item => item.user_id).filter(Boolean) || [])];
+      let profilesData: { [key: string]: string } = {};
+
+      if (userIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('user_id, username')
+          .in('user_id', userIds);
+
+        if (profiles) {
+          profilesData = profiles.reduce((acc, profile) => {
+            acc[profile.user_id] = profile.username;
+            return acc;
+          }, {} as { [key: string]: string });
+        }
+      }
+
+      // Combine the data
+      const combinedResults = (oopsiesData || []).map(item => ({
+        id: item.id,
+        title: item.title,
+        description: item.description,
+        image_url: item.image_url,
+        category: item.category,
+        tags: item.tags || [],
+        likes: item.likes,
+        comments: item.comments,
+        shares: item.shares,
+        trending_score: item.trending_score || 0,
+        viral_score: item.viral_score || 0,
+        created_at: item.created_at,
+        is_featured: item.is_featured,
+        user_id: item.user_id,
+        username: profilesData[item.user_id] || 'Anonymous'
+      }));
+
+      setResults(combinedResults);
     } catch (error) {
       console.error('Search error:', error);
       setResults([]);

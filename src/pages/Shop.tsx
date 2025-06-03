@@ -41,7 +41,7 @@ const Shop = () => {
         image: product.image_url || '',
         variants: product.variants?.sizes || [],
         colors: product.variants?.colors || [],
-        featured: product.featured
+        featured: product.featured || false
       }));
     },
     staleTime: 1000 * 60 * 5, // 5 minutes

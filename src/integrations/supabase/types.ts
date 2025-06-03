@@ -671,52 +671,61 @@ export type Database = {
       }
       products: {
         Row: {
-          base_price: number
           category: string
           created_at: string | null
           danger_level: number | null
           description: string | null
           facts: string[] | null
+          featured: boolean | null
           icon: string | null
           id: string
           image_url: string | null
           is_active: boolean | null
           locations: string[] | null
           name: string
+          price: number
           rarity: string | null
+          stripe_price_id: string | null
           updated_at: string | null
+          variants: Json | null
         }
         Insert: {
-          base_price?: number
           category: string
           created_at?: string | null
           danger_level?: number | null
           description?: string | null
           facts?: string[] | null
+          featured?: boolean | null
           icon?: string | null
           id?: string
           image_url?: string | null
           is_active?: boolean | null
           locations?: string[] | null
           name: string
+          price: number
           rarity?: string | null
+          stripe_price_id?: string | null
           updated_at?: string | null
+          variants?: Json | null
         }
         Update: {
-          base_price?: number
           category?: string
           created_at?: string | null
           danger_level?: number | null
           description?: string | null
           facts?: string[] | null
+          featured?: boolean | null
           icon?: string | null
           id?: string
           image_url?: string | null
           is_active?: boolean | null
           locations?: string[] | null
           name?: string
+          price?: number
           rarity?: string | null
+          stripe_price_id?: string | null
           updated_at?: string | null
+          variants?: Json | null
         }
         Relationships: []
       }

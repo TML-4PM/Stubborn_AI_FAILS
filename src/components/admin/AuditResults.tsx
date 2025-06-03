@@ -21,6 +21,27 @@ interface AuditResultsProps {
   auditId: string;
 }
 
+interface AuditError {
+  type: string;
+  message: string;
+  url?: string;
+}
+
+interface AuditPage {
+  url: string;
+  status: number;
+  loadTime: number;
+  title?: string;
+  links?: Array<{ url: string; text: string }>;
+  images?: Array<{ url: string; alt: string }>;
+  errors?: AuditError[];
+}
+
+interface AuditResultsData {
+  errors?: AuditError[];
+  pages?: AuditPage[];
+}
+
 const AuditResults = ({ auditId }: AuditResultsProps) => {
   const { data: audit, isLoading } = useQuery({
     queryKey: ['audit-results', auditId],
@@ -65,13 +86,18 @@ const AuditResults = ({ auditId }: AuditResultsProps) => {
     return "text-red-600";
   };
 
-  const getProgressColor = (score: number) => {
-    if (score >= 80) return "bg-green-500";
-    if (score >= 60) return "bg-yellow-500";
-    return "bg-red-500";
+  // Type guard and safe parsing for JSONB data
+  const parseAuditResults = (results: any): AuditResultsData => {
+    if (!results || typeof results !== 'object') {
+      return { errors: [], pages: [] };
+    }
+    return {
+      errors: Array.isArray(results.errors) ? results.errors : [],
+      pages: Array.isArray(results.pages) ? results.pages : []
+    };
   };
 
-  const results = audit.results || {};
+  const results = parseAuditResults(audit.results);
   const summary = audit.summary || {};
 
   return (
@@ -196,7 +222,7 @@ const AuditResults = ({ auditId }: AuditResultsProps) => {
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {results.errors.slice(0, 10).map((error: any, index: number) => (
+              {results.errors.slice(0, 10).map((error: AuditError, index: number) => (
                 <Alert key={index} variant="destructive">
                   <AlertTriangle className="h-4 w-4" />
                   <AlertDescription>
@@ -230,7 +256,7 @@ const AuditResults = ({ auditId }: AuditResultsProps) => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {results.pages.slice(0, 5).map((page: any, index: number) => (
+              {results.pages.slice(0, 5).map((page: AuditPage, index: number) => (
                 <div key={index} className="border-l-2 border-blue-200 pl-4">
                   <div className="flex items-center justify-between mb-2">
                     <h4 className="font-medium truncate">{page.url}</h4>

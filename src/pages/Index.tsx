@@ -1,5 +1,5 @@
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -9,13 +9,16 @@ import TrendingSection from '@/components/TrendingSection';
 import QuickActions from '@/components/QuickActions';
 import { supabase } from '@/integrations/supabase/client';
 import { useDataInitialization } from '@/hooks/useDataInitialization';
+import { getFeaturedFails, getAllFails } from '@/data/sampleFails';
 
 const Index = () => {
+  const [useFallbackData, setUseFallbackData] = useState(false);
+  
   // Initialize data on app load
   const { isInitialized } = useDataInitialization();
 
-  // Fetch featured AI fails from the database
-  const { data: featuredFails, isLoading } = useQuery({
+  // Fetch featured AI fails from the database with fallback
+  const { data: featuredFails, isLoading: featuredLoading, error: featuredError } = useQuery({
     queryKey: ['featured-fails'],
     queryFn: async () => {
       console.log('Fetching featured AI fails...');
@@ -33,12 +36,13 @@ const Index = () => {
       
       return data;
     },
-    enabled: isInitialized, // Only fetch when data is initialized
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    enabled: isInitialized && !useFallbackData,
+    staleTime: 1000 * 60 * 5,
+    retry: false,
   });
 
-  // Fetch trending fails
-  const { data: trendingFails } = useQuery({
+  // Fetch trending fails with fallback
+  const { data: trendingFails, isLoading: trendingLoading, error: trendingError } = useQuery({
     queryKey: ['trending-fails'],
     queryFn: async () => {
       console.log('Fetching trending AI fails...');
@@ -57,9 +61,46 @@ const Index = () => {
       
       return data;
     },
-    enabled: isInitialized,
+    enabled: isInitialized && !useFallbackData,
     staleTime: 1000 * 60 * 5,
+    retry: false,
   });
+
+  // Use fallback data if database queries fail or return empty
+  useEffect(() => {
+    if (featuredError || trendingError || (isInitialized && !featuredFails?.length && !trendingFails?.length)) {
+      console.log('Using fallback static data due to database issues');
+      setUseFallbackData(true);
+    }
+  }, [featuredError, trendingError, featuredFails, trendingFails, isInitialized]);
+
+  // Convert sample data to match expected format
+  const convertSampleToDatabase = (sampleFails: any[]) => {
+    return sampleFails.map(fail => ({
+      id: fail.id,
+      title: fail.title,
+      description: fail.description,
+      category: fail.category || 'General',
+      image_url: fail.imageUrl,
+      likes: fail.likes,
+      comments: fail.comments || 0,
+      shares: fail.shares || 0,
+      viral_score: fail.likes || 0,
+      created_at: fail.date,
+      status: 'approved'
+    }));
+  };
+
+  // Get data (either from database or fallback)
+  const displayFeaturedFails = useFallbackData 
+    ? convertSampleToDatabase(getFeaturedFails())
+    : featuredFails;
+
+  const displayTrendingFails = useFallbackData 
+    ? convertSampleToDatabase(getAllFails().slice(0, 8))
+    : trendingFails;
+
+  const isLoading = !useFallbackData && (featuredLoading || trendingLoading);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -72,9 +113,16 @@ const Index = () => {
         <Hero />
         <div className="container mx-auto px-4 py-12 space-y-16">
           <QuickActions />
-          <FeaturedFails fails={featuredFails} isLoading={isLoading} />
-          <TrendingSection fails={trendingFails} isLoading={isLoading} />
+          <FeaturedFails fails={displayFeaturedFails} isLoading={isLoading} />
+          <TrendingSection fails={displayTrendingFails} isLoading={isLoading} />
         </div>
+        {useFallbackData && (
+          <div className="container mx-auto px-4 pb-4">
+            <div className="text-center text-sm text-muted-foreground">
+              <p>Currently displaying sample content. Database initialization in progress.</p>
+            </div>
+          </div>
+        )}
       </main>
       <Footer />
     </div>

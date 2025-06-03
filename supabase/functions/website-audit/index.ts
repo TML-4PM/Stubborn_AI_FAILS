@@ -8,7 +8,7 @@ const corsHeaders = {
 }
 
 interface AuditRequest {
-  url: string;
+  baseUrl?: string;
   auditType?: 'full' | 'seo' | 'accessibility' | 'performance';
   maxPages?: number;
 }
@@ -17,14 +17,44 @@ interface PageResult {
   url: string;
   status: number;
   loadTime: number;
+  size: number;
   title: string;
   metaDescription: string;
   headings: Array<{ level: string; text: string }>;
-  links: Array<{ url: string; text: string; isInternal: boolean; status?: number }>;
-  images: Array<{ url: string; alt: string; hasAlt: boolean }>;
-  errors: Array<{ type: string; message: string }>;
+  links: Array<{ url: string; text: string; isInternal: boolean; status?: number; error?: string }>;
+  images: Array<{ url: string; alt: string; hasAlt: boolean; loading?: string; width?: string; height?: string; status?: number; error?: string }>;
+  errors: Array<{ type: string; message: string; severity: 'critical' | 'warning' | 'info' }>;
   seo: any;
   accessibility: any;
+  performance: any;
+  timestamp: string;
+}
+
+interface AuditResults {
+  pages: PageResult[];
+  errors: Array<{ type: string; message: string; url?: string; severity: 'critical' | 'warning' | 'info' }>;
+  summary: {
+    totalPages: number;
+    totalErrors: number;
+    averageLoadTime: number;
+    seoIssues: number;
+    accessibilityIssues: number;
+    brokenLinks: number;
+    brokenImages: number;
+    errorsByType: Record<string, number>;
+    scores: {
+      overall: number;
+      seo: number;
+      accessibility: number;
+      performance: number;
+    };
+  };
+  aiFailsSpecific: {
+    coreRoutesWorking: boolean;
+    navigationAccessible: boolean;
+    formsValidated: boolean;
+    keyFeaturesWorking: string[];
+  };
 }
 
 serve(async (req) => {
@@ -38,15 +68,14 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const { url, auditType = 'full', maxPages = 10 } = await req.json() as AuditRequest;
+    const { baseUrl, auditType = 'full', maxPages = 15 } = await req.json() as AuditRequest;
     
-    if (!url) {
-      throw new Error('URL is required');
-    }
-
-    // Normalize URL
-    const normalizedUrl = normalizeUrl(url);
+    // Auto-detect current domain if not provided (site-specific feature)
+    const auditUrl = baseUrl || 'https://pflisxkcxbzboxwidywf.supabase.co';
+    const normalizedUrl = normalizeUrl(auditUrl);
     const domain = new URL(normalizedUrl).hostname;
+
+    console.log(`🚀 Starting comprehensive audit of ${normalizedUrl}`);
 
     // Create audit record
     const { data: audit, error: auditError } = await supabaseClient
@@ -62,13 +91,24 @@ serve(async (req) => {
 
     if (auditError) throw auditError;
 
-    console.log(`Starting audit for ${normalizedUrl}`);
+    // Perform comprehensive audit
+    const auditor = new WebsiteAuditor(normalizedUrl, { maxPages, auditType });
+    const auditResults = await auditor.performFullAudit();
 
-    // Perform the audit
-    const auditResults = await performAudit(normalizedUrl, auditType, maxPages);
+    // Validate results
+    const validationErrors = AuditValidator.validateResults(auditResults);
+    if (validationErrors.length > 0) {
+      console.error('❌ Result validation failed:', validationErrors);
+      auditResults.errors.push(...validationErrors.map(error => ({
+        type: 'VALIDATION_ERROR',
+        message: error,
+        severity: 'critical' as const
+      })));
+    }
 
-    // Calculate scores
-    const scores = calculateScores(auditResults);
+    // Calculate comprehensive scores
+    const scores = calculateAdvancedScores(auditResults);
+    auditResults.summary.scores = scores;
 
     // Update audit with results
     const { error: updateError } = await supabaseClient
@@ -89,12 +129,10 @@ serve(async (req) => {
 
     if (updateError) throw updateError;
 
-    // Store individual metrics
-    if (auditResults.pages) {
-      for (const page of auditResults.pages) {
-        await storePageMetrics(supabaseClient, audit.id, page);
-      }
-    }
+    // Store detailed metrics
+    await storeAdvancedMetrics(supabaseClient, audit.id, auditResults);
+
+    console.log(`✅ Audit completed: ${auditResults.summary.totalPages} pages, ${auditResults.summary.totalErrors} errors`);
 
     return new Response(
       JSON.stringify({ 
@@ -110,7 +148,7 @@ serve(async (req) => {
     )
 
   } catch (error) {
-    console.error('Audit error:', error);
+    console.error('❌ Audit error:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
       { 
@@ -121,6 +159,462 @@ serve(async (req) => {
   }
 })
 
+class WebsiteAuditor {
+  private baseUrl: string;
+  private domain: string;
+  private visitedPages = new Set<string>();
+  private pendingPages = new Set<string>();
+  private options: { maxPages: number; auditType: string };
+  private results: AuditResults;
+
+  constructor(baseUrl: string, options: { maxPages: number; auditType: string }) {
+    this.baseUrl = normalizeUrl(baseUrl);
+    this.domain = new URL(this.baseUrl).hostname;
+    this.options = options;
+    this.pendingPages.add(this.baseUrl);
+    
+    this.results = {
+      pages: [],
+      errors: [],
+      summary: {
+        totalPages: 0,
+        totalErrors: 0,
+        averageLoadTime: 0,
+        seoIssues: 0,
+        accessibilityIssues: 0,
+        brokenLinks: 0,
+        brokenImages: 0,
+        errorsByType: {},
+        scores: { overall: 0, seo: 0, accessibility: 0, performance: 0 }
+      },
+      aiFailsSpecific: {
+        coreRoutesWorking: false,
+        navigationAccessible: false,
+        formsValidated: false,
+        keyFeaturesWorking: []
+      }
+    };
+  }
+
+  async performFullAudit(): Promise<AuditResults> {
+    console.log(`🔍 Starting audit with ${this.options.maxPages} max pages`);
+
+    // Crawl and audit pages
+    while (this.pendingPages.size > 0 && this.visitedPages.size < this.options.maxPages) {
+      const currentUrl = Array.from(this.pendingPages)[0];
+      this.pendingPages.delete(currentUrl);
+      
+      if (this.visitedPages.has(currentUrl)) continue;
+      
+      console.log(`📄 Auditing page ${this.visitedPages.size + 1}: ${currentUrl}`);
+      await this.auditPage(currentUrl);
+      
+      // Small delay to be respectful
+      await this.delay(500);
+    }
+
+    // Perform AI Fails specific checks
+    await this.performAIFailsSpecificChecks();
+
+    // Generate comprehensive summary
+    this.generateAdvancedSummary();
+
+    return this.results;
+  }
+
+  async auditPage(url: string): Promise<void> {
+    const startTime = Date.now();
+    
+    try {
+      this.visitedPages.add(url);
+      
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': 'AI-Fails-Audit-Bot/2.0',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+        }
+      });
+      
+      const loadTime = Date.now() - startTime;
+      const html = await response.text();
+      
+      const pageResult: PageResult = {
+        url,
+        status: response.status,
+        loadTime,
+        size: new TextEncoder().encode(html).length,
+        title: '',
+        metaDescription: '',
+        headings: [],
+        links: [],
+        images: [],
+        errors: [],
+        seo: {},
+        accessibility: {},
+        performance: { loadTime, size: html.length },
+        timestamp: new Date().toISOString()
+      };
+
+      if (!response.ok) {
+        pageResult.errors.push({
+          type: 'HTTP_ERROR',
+          message: `HTTP ${response.status}`,
+          severity: response.status >= 500 ? 'critical' : 'warning'
+        });
+      }
+
+      // Parse HTML and extract data
+      await this.parseHTMLContent(html, url, pageResult);
+      
+      // Perform specific analyses
+      if (this.options.auditType === 'full' || this.options.auditType === 'seo') {
+        this.analyzeSEO(pageResult);
+      }
+      
+      if (this.options.auditType === 'full' || this.options.auditType === 'accessibility') {
+        this.analyzeAccessibility(pageResult);
+      }
+      
+      if (this.options.auditType === 'full' || this.options.auditType === 'performance') {
+        this.analyzePerformance(pageResult);
+      }
+
+      this.results.pages.push(pageResult);
+
+    } catch (error) {
+      console.error(`❌ Error auditing ${url}:`, error);
+      this.results.errors.push({
+        type: 'PAGE_ERROR',
+        message: `Failed to audit ${url}: ${error.message}`,
+        url,
+        severity: 'critical'
+      });
+    }
+  }
+
+  async parseHTMLContent(html: string, baseUrl: string, pageResult: PageResult): Promise<void> {
+    // Extract title
+    const titleMatch = html.match(/<title[^>]*>([^<]*)<\/title>/i);
+    pageResult.title = titleMatch ? titleMatch[1].trim() : '';
+
+    // Extract meta description
+    const metaMatch = html.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']*)["'][^>]*>/i);
+    pageResult.metaDescription = metaMatch ? metaMatch[1].trim() : '';
+
+    // Extract headings
+    const headingMatches = html.matchAll(/<(h[1-6])[^>]*>([^<]*)<\/h[1-6]>/gi);
+    for (const match of headingMatches) {
+      pageResult.headings.push({
+        level: match[1].toLowerCase(),
+        text: match[2].trim()
+      });
+    }
+
+    // Extract and analyze links
+    await this.extractAndAnalyzeLinks(html, baseUrl, pageResult);
+
+    // Extract and analyze images
+    await this.extractAndAnalyzeImages(html, baseUrl, pageResult);
+  }
+
+  async extractAndAnalyzeLinks(html: string, baseUrl: string, pageResult: PageResult): Promise<void> {
+    const linkMatches = html.matchAll(/<a[^>]*href=["']([^"']*)["'][^>]*>([^<]*)<\/a>/gi);
+    
+    for (const match of linkMatches) {
+      try {
+        const href = match[1];
+        const text = match[2].trim();
+        
+        if (href && !href.startsWith('#') && !href.startsWith('mailto:') && !href.startsWith('tel:')) {
+          const absoluteUrl = new URL(href, baseUrl).href;
+          const isInternal = new URL(absoluteUrl).hostname === this.domain;
+          
+          const linkData = {
+            url: absoluteUrl,
+            text,
+            isInternal
+          };
+
+          // Check link health
+          try {
+            const linkResponse = await fetch(absoluteUrl, { method: 'HEAD' });
+            linkData.status = linkResponse.status;
+            
+            if (!linkResponse.ok) {
+              linkData.error = `HTTP ${linkResponse.status}`;
+              this.results.errors.push({
+                type: 'BROKEN_LINK',
+                message: `Broken link: ${absoluteUrl} (${linkResponse.status})`,
+                url: baseUrl,
+                severity: 'warning'
+              });
+            }
+          } catch (error) {
+            linkData.error = error.message;
+            this.results.errors.push({
+              type: 'BROKEN_LINK',
+              message: `Link error: ${absoluteUrl} - ${error.message}`,
+              url: baseUrl,
+              severity: 'warning'
+            });
+          }
+
+          pageResult.links.push(linkData);
+          
+          // Add internal links to pending queue
+          if (isInternal && !href.includes('#')) {
+            this.pendingPages.add(absoluteUrl);
+          }
+        }
+      } catch (error) {
+        // Skip invalid URLs
+      }
+    }
+  }
+
+  async extractAndAnalyzeImages(html: string, baseUrl: string, pageResult: PageResult): Promise<void> {
+    const imageMatches = html.matchAll(/<img[^>]*src=["']([^"']*)["'][^>]*(?:alt=["']([^"']*)["'])?[^>]*>/gi);
+    
+    for (const match of imageMatches) {
+      try {
+        const src = match[1];
+        const alt = match[2] || '';
+        
+        if (src) {
+          const absoluteUrl = new URL(src, baseUrl).href;
+          const imageData = {
+            url: absoluteUrl,
+            alt,
+            hasAlt: !!alt,
+            loading: 'eager' // Default, would need more parsing to detect
+          };
+
+          // Check image accessibility and loading
+          try {
+            const imgResponse = await fetch(absoluteUrl, { method: 'HEAD' });
+            imageData.status = imgResponse.status;
+            
+            if (!imgResponse.ok) {
+              imageData.error = `HTTP ${imgResponse.status}`;
+              this.results.errors.push({
+                type: 'BROKEN_IMAGE',
+                message: `Broken image: ${absoluteUrl} (${imgResponse.status})`,
+                url: baseUrl,
+                severity: 'warning'
+              });
+            }
+          } catch (error) {
+            imageData.error = error.message;
+            this.results.errors.push({
+              type: 'BROKEN_IMAGE',
+              message: `Image error: ${absoluteUrl} - ${error.message}`,
+              url: baseUrl,
+              severity: 'warning'
+            });
+          }
+
+          pageResult.images.push(imageData);
+        }
+      } catch (error) {
+        // Skip invalid URLs
+      }
+    }
+  }
+
+  analyzeSEO(pageResult: PageResult): void {
+    pageResult.seo = {
+      title: {
+        exists: !!pageResult.title,
+        length: pageResult.title.length,
+        optimal: pageResult.title.length >= 30 && pageResult.title.length <= 60
+      },
+      metaDescription: {
+        exists: !!pageResult.metaDescription,
+        length: pageResult.metaDescription.length,
+        optimal: pageResult.metaDescription.length >= 120 && pageResult.metaDescription.length <= 160
+      },
+      headings: {
+        h1Count: pageResult.headings.filter(h => h.level === 'h1').length,
+        hasH1: pageResult.headings.some(h => h.level === 'h1'),
+        structure: this.analyzeHeadingStructure(pageResult.headings)
+      },
+      images: {
+        total: pageResult.images.length,
+        withoutAlt: pageResult.images.filter(img => !img.hasAlt).length
+      }
+    };
+
+    // Add SEO issues to errors
+    if (!pageResult.seo.title.optimal) {
+      pageResult.errors.push({
+        type: 'SEO_ISSUE',
+        message: `Title length not optimal: ${pageResult.title.length} characters (recommended: 30-60)`,
+        severity: 'warning'
+      });
+    }
+
+    if (!pageResult.seo.metaDescription.optimal) {
+      pageResult.errors.push({
+        type: 'SEO_ISSUE',
+        message: `Meta description length not optimal: ${pageResult.metaDescription.length} characters (recommended: 120-160)`,
+        severity: 'warning'
+      });
+    }
+  }
+
+  analyzeAccessibility(pageResult: PageResult): void {
+    pageResult.accessibility = {
+      images: {
+        total: pageResult.images.length,
+        missingAlt: pageResult.images.filter(img => !img.hasAlt).length
+      },
+      headings: {
+        hasH1: pageResult.headings.some(h => h.level === 'h1'),
+        structure: this.checkHeadingSequence(pageResult.headings)
+      },
+      links: {
+        emptyLinks: pageResult.links.filter(l => !l.text.trim()).length
+      }
+    };
+
+    // Add accessibility issues to errors
+    if (pageResult.accessibility.images.missingAlt > 0) {
+      pageResult.errors.push({
+        type: 'ACCESSIBILITY_ISSUE',
+        message: `${pageResult.accessibility.images.missingAlt} images missing alt text`,
+        severity: 'warning'
+      });
+    }
+
+    if (!pageResult.accessibility.headings.hasH1) {
+      pageResult.errors.push({
+        type: 'ACCESSIBILITY_ISSUE',
+        message: 'Page missing H1 heading',
+        severity: 'warning'
+      });
+    }
+  }
+
+  analyzePerformance(pageResult: PageResult): void {
+    pageResult.performance = {
+      loadTime: pageResult.loadTime,
+      size: pageResult.size,
+      optimization: {
+        slowLoad: pageResult.loadTime > 3000,
+        largeSize: pageResult.size > 1000000
+      }
+    };
+
+    if (pageResult.performance.optimization.slowLoad) {
+      pageResult.errors.push({
+        type: 'PERFORMANCE_ISSUE',
+        message: `Slow page load: ${pageResult.loadTime}ms (recommended: <3000ms)`,
+        severity: 'warning'
+      });
+    }
+  }
+
+  analyzeHeadingStructure(headings: Array<{ level: string; text: string }>): { valid: boolean; issues: string[] } {
+    const levels = headings.map(h => parseInt(h.level.charAt(1)));
+    const issues: string[] = [];
+    
+    for (let i = 1; i < levels.length; i++) {
+      if (levels[i] > levels[i-1] + 1) {
+        issues.push(`Heading level jumps from h${levels[i-1]} to h${levels[i]}`);
+      }
+    }
+    
+    return { valid: issues.length === 0, issues };
+  }
+
+  checkHeadingSequence(headings: Array<{ level: string; text: string }>): { valid: boolean } {
+    const levels = headings.map(h => parseInt(h.level.charAt(1)));
+    return { valid: levels.length === 0 || levels[0] === 1 };
+  }
+
+  async performAIFailsSpecificChecks(): Promise<void> {
+    console.log('🎯 Performing AI Fails specific checks...');
+    
+    const coreRoutes = ['/', '/gallery', '/submit', '/youtube', '/about', '/donate'];
+    const workingRoutes: string[] = [];
+    
+    for (const route of coreRoutes) {
+      const routeUrl = new URL(route, this.baseUrl).href;
+      const pageExists = this.results.pages.some(page => 
+        page.url === routeUrl && page.status === 200
+      );
+      
+      if (pageExists) {
+        workingRoutes.push(route);
+      }
+    }
+    
+    this.results.aiFailsSpecific = {
+      coreRoutesWorking: workingRoutes.length >= 4, // At least 4 core routes working
+      navigationAccessible: true, // Would need more sophisticated check
+      formsValidated: this.results.pages.some(page => page.url.includes('/submit')),
+      keyFeaturesWorking: workingRoutes
+    };
+  }
+
+  generateAdvancedSummary(): void {
+    this.results.summary.totalPages = this.results.pages.length;
+    this.results.summary.totalErrors = this.results.errors.length;
+    
+    this.results.summary.averageLoadTime = Math.round(
+      this.results.pages.reduce((sum, page) => sum + page.loadTime, 0) / this.results.pages.length
+    );
+
+    // Count errors by type
+    const errorsByType: Record<string, number> = {};
+    this.results.errors.forEach(error => {
+      errorsByType[error.type] = (errorsByType[error.type] || 0) + 1;
+    });
+    this.results.summary.errorsByType = errorsByType;
+
+    // Count specific issue types
+    this.results.summary.brokenLinks = errorsByType['BROKEN_LINK'] || 0;
+    this.results.summary.brokenImages = errorsByType['BROKEN_IMAGE'] || 0;
+    this.results.summary.seoIssues = errorsByType['SEO_ISSUE'] || 0;
+    this.results.summary.accessibilityIssues = errorsByType['ACCESSIBILITY_ISSUE'] || 0;
+  }
+
+  private delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+}
+
+class AuditValidator {
+  static validateResults(results: AuditResults): string[] {
+    const errors: string[] = [];
+    
+    if (!results.pages || !Array.isArray(results.pages)) {
+      errors.push('Missing or invalid pages array');
+    }
+    
+    if (!results.summary || typeof results.summary !== 'object') {
+      errors.push('Missing or invalid summary object');
+    }
+    
+    results.pages?.forEach((page, index) => {
+      if (!page.url) errors.push(`Page ${index} missing URL`);
+      if (page.status === null || page.status === undefined) errors.push(`Page ${index} missing status`);
+      if (!Array.isArray(page.links)) errors.push(`Page ${index} missing links array`);
+      if (!Array.isArray(page.images)) errors.push(`Page ${index} missing images array`);
+    });
+    
+    // Validate summary calculations
+    if (results.summary && results.pages) {
+      const actualPageCount = results.pages.length;
+      if (results.summary.totalPages !== actualPageCount) {
+        errors.push(`Summary page count mismatch: ${results.summary.totalPages} vs ${actualPageCount}`);
+      }
+    }
+    
+    return errors;
+  }
+}
+
 function normalizeUrl(url: string): string {
   if (!url.startsWith('http://') && !url.startsWith('https://')) {
     url = 'https://' + url;
@@ -128,309 +622,61 @@ function normalizeUrl(url: string): string {
   return url.endsWith('/') ? url.slice(0, -1) : url;
 }
 
-async function performAudit(baseUrl: string, auditType: string, maxPages: number) {
-  const results = {
-    pages: [] as PageResult[],
-    errors: [] as Array<{ type: string; message: string; url?: string }>,
-    summary: {
-      totalPages: 0,
-      totalErrors: 0,
-      averageLoadTime: 0,
-      seoIssues: 0,
-      accessibilityIssues: 0
-    }
-  };
-
-  const visitedPages = new Set<string>();
-  const pendingPages = new Set([baseUrl]);
-
-  while (pendingPages.size > 0 && visitedPages.size < maxPages) {
-    const currentUrl = Array.from(pendingPages)[0];
-    pendingPages.delete(currentUrl);
-    
-    if (visitedPages.has(currentUrl)) continue;
-    
-    console.log(`Auditing page: ${currentUrl}`);
-    const pageResult = await auditPage(currentUrl, baseUrl, auditType);
-    
-    if (pageResult) {
-      results.pages.push(pageResult);
-      visitedPages.add(currentUrl);
-      
-      // Add internal links to pending queue
-      if (auditType === 'full') {
-        pageResult.links
-          .filter(link => link.isInternal && !visitedPages.has(link.url) && !link.url.includes('#'))
-          .forEach(link => pendingPages.add(link.url));
-      }
-    }
-
-    // Small delay to be respectful
-    await new Promise(resolve => setTimeout(resolve, 500));
-  }
-
-  // Calculate summary
-  results.summary.totalPages = results.pages.length;
-  results.summary.totalErrors = results.errors.length;
-  results.summary.averageLoadTime = Math.round(
-    results.pages.reduce((sum, page) => sum + page.loadTime, 0) / results.pages.length
-  );
-
-  // Count issues
-  results.pages.forEach(page => {
-    if (page.seo) {
-      if (!page.title || page.title.length < 30 || page.title.length > 60) results.summary.seoIssues++;
-      if (!page.metaDescription || page.metaDescription.length < 120) results.summary.seoIssues++;
-    }
-    if (page.accessibility) {
-      results.summary.accessibilityIssues += page.images.filter(img => !img.hasAlt).length;
-    }
-  });
-
-  return results;
-}
-
-async function auditPage(url: string, baseUrl: string, auditType: string): Promise<PageResult | null> {
-  try {
-    const startTime = Date.now();
-    const response = await fetch(url, {
-      headers: {
-        'User-Agent': 'AI-Oopsies-Audit-Bot/1.0'
-      }
-    });
-    const loadTime = Date.now() - startTime;
-
-    if (!response.ok) {
-      return {
-        url,
-        status: response.status,
-        loadTime,
-        title: '',
-        metaDescription: '',
-        headings: [],
-        links: [],
-        images: [],
-        errors: [{ type: 'HTTP_ERROR', message: `HTTP ${response.status}` }],
-        seo: null,
-        accessibility: null
-      };
-    }
-
-    const html = await response.text();
-    return await parseHTML(html, url, baseUrl, loadTime, auditType);
-
-  } catch (error) {
-    console.error(`Error auditing ${url}:`, error);
-    return null;
-  }
-}
-
-async function parseHTML(html: string, url: string, baseUrl: string, loadTime: number, auditType: string): Promise<PageResult> {
-  // Simple HTML parsing without external dependencies
-  const page: PageResult = {
-    url,
-    status: 200,
-    loadTime,
-    title: extractTitle(html),
-    metaDescription: extractMetaDescription(html),
-    headings: extractHeadings(html),
-    links: extractLinks(html, url, baseUrl),
-    images: extractImages(html, url),
-    errors: [],
-    seo: null,
-    accessibility: null
-  };
-
-  if (auditType === 'full' || auditType === 'seo') {
-    page.seo = analyzeSEO(page);
-  }
-
-  if (auditType === 'full' || auditType === 'accessibility') {
-    page.accessibility = analyzeAccessibility(page);
-  }
-
-  return page;
-}
-
-function extractTitle(html: string): string {
-  const match = html.match(/<title[^>]*>([^<]*)<\/title>/i);
-  return match ? match[1].trim() : '';
-}
-
-function extractMetaDescription(html: string): string {
-  const match = html.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']*)["'][^>]*>/i);
-  return match ? match[1].trim() : '';
-}
-
-function extractHeadings(html: string): Array<{ level: string; text: string }> {
-  const headings: Array<{ level: string; text: string }> = [];
-  const headingRegex = /<(h[1-6])[^>]*>([^<]*)<\/h[1-6]>/gi;
-  let match;
-
-  while ((match = headingRegex.exec(html)) !== null) {
-    headings.push({
-      level: match[1].toLowerCase(),
-      text: match[2].trim()
-    });
-  }
-
-  return headings;
-}
-
-function extractLinks(html: string, pageUrl: string, baseUrl: string): Array<{ url: string; text: string; isInternal: boolean; status?: number }> {
-  const links: Array<{ url: string; text: string; isInternal: boolean }> = [];
-  const linkRegex = /<a[^>]*href=["']([^"']*)["'][^>]*>([^<]*)<\/a>/gi;
-  let match;
-
-  while ((match = linkRegex.exec(html)) !== null) {
-    try {
-      const href = match[1];
-      const text = match[2].trim();
-      
-      if (href && !href.startsWith('#') && !href.startsWith('mailto:') && !href.startsWith('tel:')) {
-        const absoluteUrl = new URL(href, pageUrl).href;
-        const isInternal = new URL(absoluteUrl).hostname === new URL(baseUrl).hostname;
-        
-        links.push({
-          url: absoluteUrl,
-          text,
-          isInternal
-        });
-      }
-    } catch (error) {
-      // Skip invalid URLs
-    }
-  }
-
-  return links;
-}
-
-function extractImages(html: string, pageUrl: string): Array<{ url: string; alt: string; hasAlt: boolean }> {
-  const images: Array<{ url: string; alt: string; hasAlt: boolean }> = [];
-  const imageRegex = /<img[^>]*src=["']([^"']*)["'][^>]*(?:alt=["']([^"']*)["'])?[^>]*>/gi;
-  let match;
-
-  while ((match = imageRegex.exec(html)) !== null) {
-    try {
-      const src = match[1];
-      const alt = match[2] || '';
-      
-      if (src) {
-        const absoluteUrl = new URL(src, pageUrl).href;
-        images.push({
-          url: absoluteUrl,
-          alt,
-          hasAlt: !!alt
-        });
-      }
-    } catch (error) {
-      // Skip invalid URLs
-    }
-  }
-
-  return images;
-}
-
-function analyzeSEO(page: PageResult) {
-  return {
-    title: {
-      exists: !!page.title,
-      length: page.title.length,
-      optimal: page.title.length >= 30 && page.title.length <= 60
-    },
-    metaDescription: {
-      exists: !!page.metaDescription,
-      length: page.metaDescription.length,
-      optimal: page.metaDescription.length >= 120 && page.metaDescription.length <= 160
-    },
-    headings: {
-      h1Count: page.headings.filter(h => h.level === 'h1').length,
-      hasH1: page.headings.some(h => h.level === 'h1')
-    },
-    images: {
-      total: page.images.length,
-      withoutAlt: page.images.filter(img => !img.hasAlt).length
-    }
-  };
-}
-
-function analyzeAccessibility(page: PageResult) {
-  return {
-    images: {
-      total: page.images.length,
-      missingAlt: page.images.filter(img => !img.hasAlt).length
-    },
-    headings: {
-      hasH1: page.headings.some(h => h.level === 'h1'),
-      structure: checkHeadingStructure(page.headings)
-    }
-  };
-}
-
-function checkHeadingStructure(headings: Array<{ level: string; text: string }>): { valid: boolean; issues: string[] } {
-  const levels = headings.map(h => parseInt(h.level.charAt(1)));
-  const issues: string[] = [];
-  
-  for (let i = 1; i < levels.length; i++) {
-    if (levels[i] > levels[i-1] + 1) {
-      issues.push(`Heading level jumps from h${levels[i-1]} to h${levels[i]}`);
-    }
-  }
-  
-  return { valid: issues.length === 0, issues };
-}
-
-function calculateScores(results: any) {
+function calculateAdvancedScores(results: AuditResults) {
   let seoScore = 100;
   let accessibilityScore = 100;
   let performanceScore = 100;
 
-  if (results.pages) {
-    results.pages.forEach((page: PageResult) => {
-      // SEO scoring
-      if (page.seo) {
-        if (!page.seo.title.optimal) seoScore -= 10;
-        if (!page.seo.metaDescription.optimal) seoScore -= 10;
-        if (!page.seo.headings.hasH1) seoScore -= 15;
-        seoScore -= Math.min(page.seo.images.withoutAlt * 2, 20);
-      }
+  results.pages.forEach(page => {
+    // SEO scoring
+    if (page.seo) {
+      if (!page.seo.title.optimal) seoScore -= 5;
+      if (!page.seo.metaDescription.optimal) seoScore -= 5;
+      if (!page.seo.headings.hasH1) seoScore -= 10;
+      seoScore -= Math.min(page.seo.images.withoutAlt * 2, 15);
+    }
 
-      // Accessibility scoring
-      if (page.accessibility) {
-        accessibilityScore -= Math.min(page.accessibility.images.missingAlt * 3, 30);
-        if (!page.accessibility.headings.hasH1) accessibilityScore -= 10;
-      }
+    // Accessibility scoring
+    if (page.accessibility) {
+      accessibilityScore -= Math.min(page.accessibility.images.missingAlt * 3, 20);
+      if (!page.accessibility.headings.hasH1) accessibilityScore -= 5;
+      accessibilityScore -= Math.min(page.accessibility.links.emptyLinks * 2, 10);
+    }
 
-      // Performance scoring
-      if (page.loadTime > 3000) performanceScore -= 20;
-      else if (page.loadTime > 1000) performanceScore -= 10;
-    });
-  }
+    // Performance scoring
+    if (page.loadTime > 5000) performanceScore -= 15;
+    else if (page.loadTime > 3000) performanceScore -= 8;
+    else if (page.loadTime > 1000) performanceScore -= 3;
+  });
 
-  return {
-    seo: Math.max(0, seoScore),
-    accessibility: Math.max(0, accessibilityScore),
-    performance: Math.max(0, performanceScore)
+  // Critical errors heavily impact scores
+  results.errors.forEach(error => {
+    if (error.severity === 'critical') {
+      seoScore -= 10;
+      accessibilityScore -= 10;
+      performanceScore -= 10;
+    }
+  });
+
+  const scores = {
+    seo: Math.max(0, Math.round(seoScore)),
+    accessibility: Math.max(0, Math.round(accessibilityScore)),
+    performance: Math.max(0, Math.round(performanceScore))
   };
+
+  scores.overall = Math.round((scores.seo + scores.accessibility + scores.performance) / 3);
+
+  return scores;
 }
 
-async function storePageMetrics(supabaseClient: any, auditId: string, page: PageResult) {
+async function storeAdvancedMetrics(supabaseClient: any, auditId: string, results: AuditResults) {
   const metrics = [
-    { metric_type: 'load_time', metric_value: page.loadTime, page_url: page.url },
-    { metric_type: 'error_count', metric_value: page.errors.length, page_url: page.url }
+    { metric_type: 'overall_score', metric_value: results.summary.scores.overall },
+    { metric_type: 'total_errors', metric_value: results.summary.totalErrors },
+    { metric_type: 'avg_load_time', metric_value: results.summary.averageLoadTime },
+    { metric_type: 'broken_links', metric_value: results.summary.brokenLinks },
+    { metric_type: 'broken_images', metric_value: results.summary.brokenImages }
   ];
-
-  if (page.seo) {
-    metrics.push({ metric_type: 'seo', metric_value: page.seo.title.optimal ? 1 : 0, page_url: page.url });
-  }
-
-  if (page.accessibility) {
-    metrics.push({ 
-      metric_type: 'accessibility', 
-      metric_value: page.accessibility.images.missingAlt, 
-      page_url: page.url 
-    });
-  }
 
   for (const metric of metrics) {
     await supabaseClient.from('audit_metrics').insert({

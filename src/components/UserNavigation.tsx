@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { User, LogOut, Settings } from 'lucide-react';
 import AuthModal from './auth/AuthModal';
-import NotificationPanel from './notifications/NotificationPanel';
+import RealtimeNotificationPanel from './notifications/RealtimeNotificationPanel';
 
 const UserNavigation = () => {
   const { user, signOut } = useUser();
@@ -35,7 +35,7 @@ const UserNavigation = () => {
     return (
       <>
         <div className="flex items-center gap-2">
-          <NotificationPanel />
+          <RealtimeNotificationPanel />
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

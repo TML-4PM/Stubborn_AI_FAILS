@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, X, Zap, Settings } from 'lucide-react';
+import { Menu, X, Zap, Settings, Search, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useUser } from '@/contexts/UserContext';
 import UserNavigation from './UserNavigation';
@@ -11,16 +11,18 @@ const Navbar = () => {
   const { user } = useUser();
 
   const navigation = [
-    { name: 'Home', href: '/' },
-    { name: 'Gallery', href: '/gallery' },
-    { name: 'Shop', href: '/shop' },
-    { name: 'Submit', href: '/submit' },
-    { name: 'Donate', href: '/donate' },
+    { name: 'Home', href: '/', icon: null },
+    { name: 'Gallery', href: '/gallery', icon: null },
+    { name: 'Search', href: '/search', icon: Search },
+    { name: 'Community', href: '/community', icon: Users },
+    { name: 'Shop', href: '/shop', icon: null },
+    { name: 'Submit', href: '/submit', icon: null },
+    { name: 'Donate', href: '/donate', icon: null },
   ];
 
   // Add admin link for authenticated users
   if (user) {
-    navigation.push({ name: 'Admin', href: '/admin' });
+    navigation.push({ name: 'Admin', href: '/admin', icon: Settings });
   }
 
   return (
@@ -42,7 +44,7 @@ const Navbar = () => {
                 to={item.href}
                 className="text-foreground/80 hover:text-foreground transition-colors flex items-center gap-2"
               >
-                {item.name === 'Admin' && <Settings className="h-4 w-4" />}
+                {item.icon && <item.icon className="h-4 w-4" />}
                 {item.name}
               </Link>
             ))}
@@ -74,7 +76,7 @@ const Navbar = () => {
                   className="block px-3 py-2 text-foreground/80 hover:text-foreground transition-colors flex items-center gap-2"
                   onClick={() => setIsOpen(false)}
                 >
-                  {item.name === 'Admin' && <Settings className="h-4 w-4" />}
+                  {item.icon && <item.icon className="h-4 w-4" />}
                   {item.name}
                 </Link>
               ))}

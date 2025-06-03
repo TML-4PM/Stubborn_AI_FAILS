@@ -22,6 +22,9 @@ import Profile from './pages/Profile';
 import Donate from './pages/Donate';
 import Admin from './pages/Admin';
 import Shop from './pages/Shop';
+import Search from './pages/Search';
+import Community from './pages/Community';
+import UserProfile from './pages/UserProfile';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -69,6 +72,30 @@ function App() {
                 element={
                   <PageTransition>
                     <Submit />
+                  </PageTransition>
+                }
+              />
+              <Route
+                path="/search"
+                element={
+                  <PageTransition>
+                    <Search />
+                  </PageTransition>
+                }
+              />
+              <Route
+                path="/community"
+                element={
+                  <PageTransition>
+                    <Community />
+                  </PageTransition>
+                }
+              />
+              <Route
+                path="/user/:userId"
+                element={
+                  <PageTransition>
+                    <UserProfile />
                   </PageTransition>
                 }
               />

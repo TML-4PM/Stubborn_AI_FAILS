@@ -1,6 +1,7 @@
 
 import { useParams } from 'react-router-dom';
 import EnhancedUserProfile from '@/components/social/EnhancedUserProfile';
+import Breadcrumbs from '@/components/navigation/Breadcrumbs';
 
 const UserProfile = () => {
   const { userId } = useParams<{ userId: string }>();
@@ -8,6 +9,7 @@ const UserProfile = () => {
   if (!userId) {
     return (
       <div className="container mx-auto px-4 py-8 text-center">
+        <Breadcrumbs />
         <h1 className="text-2xl font-bold mb-4">User Not Found</h1>
         <p className="text-muted-foreground">The requested user profile could not be found.</p>
       </div>
@@ -16,6 +18,7 @@ const UserProfile = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      <Breadcrumbs />
       <EnhancedUserProfile userId={userId} />
     </div>
   );

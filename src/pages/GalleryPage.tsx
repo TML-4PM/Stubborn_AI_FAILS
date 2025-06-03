@@ -10,9 +10,10 @@ const GalleryPage = () => {
 
   const handleRefresh = () => {
     // Refresh functionality will be handled by GalleryContent
+    window.location.reload();
   };
 
-  const content = <GalleryContent onRefresh={handleRefresh} />;
+  const content = <GalleryContent />;
 
   return (
     <div className="min-h-screen flex flex-col">

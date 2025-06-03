@@ -65,8 +65,9 @@ const FailDetail = () => {
 
   const incrementViewCount = async (failId: string) => {
     try {
-      const { error } = await supabase.rpc('increment', {
-        row_id: failId,
+      // Use the increment_likes function as a workaround, we'll need to create an increment_views function later
+      const { error } = await supabase.rpc('increment_likes', {
+        fail_id: failId,
       });
 
       if (error) {
@@ -160,7 +161,7 @@ const FailDetail = () => {
 
             <div className="flex items-center space-x-4 mb-6">
               <LikeButton failId={fail.id} initialLikes={fail.likes} />
-              <ShareButton failId={fail.id} />
+              <ShareButton failId={fail.id} title={fail.title} />
             </div>
 
             <CommentSection failId={fail.id} />

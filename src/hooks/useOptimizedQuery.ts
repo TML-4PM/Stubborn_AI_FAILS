@@ -2,7 +2,7 @@
 import { useQuery, UseQueryOptions } from '@tanstack/react-query';
 import { performanceCache } from '@/utils/performanceCache';
 
-interface OptimizedQueryOptions<T> extends UseQueryOptions<T> {
+interface OptimizedQueryOptions<T> extends Omit<UseQueryOptions<T>, 'queryKey' | 'queryFn'> {
   cacheNamespace?: string;
   enablePerformanceCache?: boolean;
   backgroundRefresh?: boolean;

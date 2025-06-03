@@ -28,6 +28,17 @@ export const preloadCriticalResources = () => {
   });
 };
 
+// Preload critical content
+export const preloadCriticalContent = async () => {
+  try {
+    // Preload featured content
+    console.log('Preloading critical content...');
+    // This would be implemented with actual API calls
+  } catch (error) {
+    console.error('Failed to preload critical content:', error);
+  }
+};
+
 // Optimize bundle loading
 export const optimizeBundleLoading = () => {
   // Enable module preloading for modern browsers

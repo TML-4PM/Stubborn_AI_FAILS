@@ -127,7 +127,7 @@ class PerformanceCache {
 
 export const performanceCache = new PerformanceCache();
 
-// Preload critical content
+// Preload critical content - moved here from performanceOptimizer to avoid circular imports
 export const preloadCriticalContent = async () => {
   try {
     // Preload featured content

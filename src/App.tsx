@@ -1,182 +1,110 @@
 
-import React from 'react';
+import { Suspense, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { Toaster } from '@/components/ui/toaster';
-import ErrorBoundary from './components/ErrorBoundary';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ThemeProvider } from './components/ThemeProvider';
-import { UserProvider } from './contexts/UserContext';
-import PageTransition from './components/PageTransition';
+import { Toaster } from '@/components/ui/toaster';
+import { ThemeProvider } from '@/components/ThemeProvider';
+import { UserProvider } from '@/contexts/UserContext';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
+import ErrorBoundary from '@/components/ErrorBoundary';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import PerformanceMonitor from '@/components/ui/PerformanceMonitor';
+import { initializePerformanceOptimizations, preloadCriticalContent } from '@/utils/performanceOptimizer';
 
-// Page imports
-import Index from './pages/Index';
-import NotFound from './pages/NotFound';
-import GalleryPage from './pages/GalleryPage';
-import FailDetail from './pages/FailDetail';
-import Submit from './pages/Submit';
-import About from './pages/About';
-import Terms from './pages/Terms';
-import Privacy from './pages/Privacy';
-import YouTubePage from './pages/YouTubePage';
-import Profile from './pages/Profile';
-import Donate from './pages/Donate';
-import Admin from './pages/Admin';
-import Shop from './pages/Shop';
-import Search from './pages/Search';
-import Community from './pages/Community';
-import UserProfile from './pages/UserProfile';
+// Lazy load pages for better performance
+import { lazy } from 'react';
 
-// Create a client
+const Index = lazy(() => import('@/pages/Index'));
+const Gallery = lazy(() => import('@/pages/Gallery'));
+const Search = lazy(() => import('@/pages/Search'));
+const Community = lazy(() => import('@/pages/Community'));
+const Submit = lazy(() => import('@/pages/Submit'));
+const Shop = lazy(() => import('@/pages/Shop'));
+const Donate = lazy(() => import('@/pages/Donate'));
+const Admin = lazy(() => import('@/pages/Admin'));
+const Profile = lazy(() => import('@/pages/Profile'));
+const UserProfile = lazy(() => import('@/pages/UserProfile'));
+const FailDetail = lazy(() => import('@/pages/FailDetail'));
+const About = lazy(() => import('@/pages/About'));
+const Terms = lazy(() => import('@/pages/Terms'));
+const Privacy = lazy(() => import('@/pages/Privacy'));
+const YouTubePage = lazy(() => import('@/pages/YouTubePage'));
+const NotFound = lazy(() => import('@/pages/NotFound'));
+
+// Create query client with optimized settings
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      retry: 1,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 30 * 60 * 1000, // 30 minutes
+      refetchOnWindowFocus: false,
+      retry: (failureCount, error) => {
+        if (failureCount < 2) return true;
+        return false;
+      }
     },
-  },
+    mutations: {
+      retry: 1
+    }
+  }
 });
 
 function App() {
+  useEffect(() => {
+    // Initialize performance optimizations
+    const networkOptimizations = initializePerformanceOptimizations();
+    
+    // Preload critical content
+    preloadCriticalContent();
+    
+    // Log performance optimizations
+    console.log('Performance optimizations initialized:', networkOptimizations);
+  }, []);
+
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
-        <UserProvider>
-          <ErrorBoundary>
-            <Routes>
-              <Route
-                path="/"
-                element={
-                  <PageTransition>
-                    <Index />
-                  </PageTransition>
-                }
-              />
-              <Route
-                path="/gallery"
-                element={
-                  <PageTransition>
-                    <GalleryPage />
-                  </PageTransition>
-                }
-              />
-              <Route
-                path="/fail/:id"
-                element={
-                  <PageTransition>
-                    <FailDetail />
-                  </PageTransition>
-                }
-              />
-              <Route
-                path="/submit"
-                element={
-                  <PageTransition>
-                    <Submit />
-                  </PageTransition>
-                }
-              />
-              <Route
-                path="/search"
-                element={
-                  <PageTransition>
-                    <Search />
-                  </PageTransition>
-                }
-              />
-              <Route
-                path="/community"
-                element={
-                  <PageTransition>
-                    <Community />
-                  </PageTransition>
-                }
-              />
-              <Route
-                path="/user/:userId"
-                element={
-                  <PageTransition>
-                    <UserProfile />
-                  </PageTransition>
-                }
-              />
-              <Route
-                path="/about"
-                element={
-                  <PageTransition>
-                    <About />
-                  </PageTransition>
-                }
-              />
-              <Route
-                path="/terms"
-                element={
-                  <PageTransition>
-                    <Terms />
-                  </PageTransition>
-                }
-              />
-              <Route
-                path="/privacy"
-                element={
-                  <PageTransition>
-                    <Privacy />
-                  </PageTransition>
-                }
-              />
-              <Route
-                path="/youtube"
-                element={
-                  <PageTransition>
-                    <YouTubePage />
-                  </PageTransition>
-                }
-              />
-              <Route
-                path="/profile"
-                element={
-                  <PageTransition>
-                    <Profile />
-                  </PageTransition>
-                }
-              />
-              <Route
-                path="/donate"
-                element={
-                  <PageTransition>
-                    <Donate />
-                  </PageTransition>
-                }
-              />
-              <Route
-                path="/admin"
-                element={
-                  <PageTransition>
-                    <Admin />
-                  </PageTransition>
-                }
-              />
-              <Route
-                path="/shop"
-                element={
-                  <PageTransition>
-                    <Shop />
-                  </PageTransition>
-                }
-              />
-              <Route
-                path="*"
-                element={
-                  <PageTransition>
-                    <NotFound />
-                  </PageTransition>
-                }
-              />
-            </Routes>
-          </ErrorBoundary>
-          <Toaster />
-        </UserProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider defaultTheme="system" storageKey="app-theme">
+          <UserProvider>
+            <div className="min-h-screen bg-background flex flex-col">
+              <Navbar />
+              <main className="flex-1 pt-16">
+                <Suspense 
+                  fallback={
+                    <div className="flex items-center justify-center min-h-[400px]">
+                      <LoadingSpinner size="lg" />
+                    </div>
+                  }
+                >
+                  <Routes>
+                    <Route path="/" element={<Index />} />
+                    <Route path="/gallery" element={<Gallery />} />
+                    <Route path="/search" element={<Search />} />
+                    <Route path="/community" element={<Community />} />
+                    <Route path="/submit" element={<Submit />} />
+                    <Route path="/shop" element={<Shop />} />
+                    <Route path="/donate" element={<Donate />} />
+                    <Route path="/admin" element={<Admin />} />
+                    <Route path="/profile" element={<Profile />} />
+                    <Route path="/user/:userId" element={<UserProfile />} />
+                    <Route path="/fail/:id" element={<FailDetail />} />
+                    <Route path="/about" element={<About />} />
+                    <Route path="/terms" element={<Terms />} />
+                    <Route path="/privacy" element={<Privacy />} />
+                    <Route path="/youtube" element={<YouTubePage />} />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </Suspense>
+              </main>
+              <Footer />
+            </div>
+            <Toaster />
+            <PerformanceMonitor />
+          </UserProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 

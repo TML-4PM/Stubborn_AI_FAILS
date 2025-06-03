@@ -9,6 +9,87 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      activity_feeds: {
+        Row: {
+          activity_type: string
+          created_at: string
+          id: string
+          metadata: Json | null
+          target_id: string | null
+          target_type: string | null
+          user_id: string
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          target_id?: string | null
+          target_type?: string | null
+          user_id: string
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          target_id?: string | null
+          target_type?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      adventure_stories: {
+        Row: {
+          certificate_id: string | null
+          content: string
+          created_at: string
+          id: string
+          image_urls: Json | null
+          is_featured: boolean
+          likes_count: number
+          location: string | null
+          predator_type: string | null
+          shares_count: number
+          title: string
+          updated_at: string
+          user_id: string
+          views_count: number
+        }
+        Insert: {
+          certificate_id?: string | null
+          content: string
+          created_at?: string
+          id?: string
+          image_urls?: Json | null
+          is_featured?: boolean
+          likes_count?: number
+          location?: string | null
+          predator_type?: string | null
+          shares_count?: number
+          title: string
+          updated_at?: string
+          user_id: string
+          views_count?: number
+        }
+        Update: {
+          certificate_id?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          image_urls?: Json | null
+          is_featured?: boolean
+          likes_count?: number
+          location?: string | null
+          predator_type?: string | null
+          shares_count?: number
+          title?: string
+          updated_at?: string
+          user_id?: string
+          views_count?: number
+        }
+        Relationships: []
+      }
       animals: {
         Row: {
           category: string
@@ -1419,6 +1500,69 @@ export type Database = {
         }
         Relationships: []
       }
+      referral_codes: {
+        Row: {
+          code: string
+          created_at: string
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          max_uses: number | null
+          user_id: string
+          uses_count: number
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          max_uses?: number | null
+          user_id: string
+          uses_count?: number
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          max_uses?: number | null
+          user_id?: string
+          uses_count?: number
+        }
+        Relationships: []
+      }
+      referral_tracking: {
+        Row: {
+          conversion_type: string
+          created_at: string
+          id: string
+          referral_code: string
+          referred_id: string
+          referrer_id: string
+          reward_points: number | null
+        }
+        Insert: {
+          conversion_type: string
+          created_at?: string
+          id?: string
+          referral_code: string
+          referred_id: string
+          referrer_id: string
+          reward_points?: number | null
+        }
+        Update: {
+          conversion_type?: string
+          created_at?: string
+          id?: string
+          referral_code?: string
+          referred_id?: string
+          referrer_id?: string
+          reward_points?: number | null
+        }
+        Relationships: []
+      }
       scheduled_tasks: {
         Row: {
           created_at: string | null
@@ -1886,6 +2030,42 @@ export type Database = {
           },
         ]
       }
+      user_presence_extended: {
+        Row: {
+          activity_status: string | null
+          created_at: string
+          current_location: string | null
+          id: string
+          last_seen: string
+          metadata: Json | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          activity_status?: string | null
+          created_at?: string
+          current_location?: string | null
+          id?: string
+          last_seen?: string
+          metadata?: Json | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          activity_status?: string | null
+          created_at?: string
+          current_location?: string | null
+          id?: string
+          last_seen?: string
+          metadata?: Json | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_reputation: {
         Row: {
           comment_karma: number | null
@@ -1916,6 +2096,39 @@ export type Database = {
           total_karma?: number | null
           updated_at?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      user_rewards: {
+        Row: {
+          created_at: string
+          id: string
+          last_activity_at: string | null
+          points_balance: number
+          tier_level: string
+          total_points_earned: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_activity_at?: string | null
+          points_balance?: number
+          tier_level?: string
+          total_points_earned?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_activity_at?: string | null
+          points_balance?: number
+          tier_level?: string
+          total_points_earned?: number
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }

@@ -7,19 +7,26 @@ import { useToast } from './use-toast';
 export const useDataInitialization = () => {
   const [isInitializing, setIsInitializing] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
   const initializeData = async () => {
     setIsInitializing(true);
+    setError(null);
     
     try {
       console.log('Starting data initialization...');
       
       // Check if data already exists
-      const { data: existingOopsies } = await supabase
+      const { data: existingOopsies, error: checkError } = await supabase
         .from('oopsies')
         .select('id')
         .limit(1);
+
+      if (checkError) {
+        console.error('Error checking existing data:', checkError);
+        throw new Error(`Database check failed: ${checkError.message}`);
+      }
 
       if (existingOopsies && existingOopsies.length > 0) {
         console.log('Data already initialized');
@@ -30,13 +37,13 @@ export const useDataInitialization = () => {
 
       console.log('No existing data found, inserting initial AI fails...');
 
-      // Insert initial AI fails data - let database generate UUIDs if needed
+      // Insert initial AI fails data - remove id field to let database generate UUIDs
       const oopsiesData = initialAIFails.map(fail => ({
         title: fail.title,
         description: fail.description,
         category: fail.category,
         image_url: fail.image_url,
-        user_id: null, // System generated content - now allowed
+        user_id: null, // System generated content
         status: fail.status,
         likes: fail.likes,
         comments: fail.comments,
@@ -49,18 +56,26 @@ export const useDataInitialization = () => {
         review_status: 'approved'
       }));
 
-      console.log(`Inserting ${oopsiesData.length} AI fails...`);
+      console.log(`Attempting to insert ${oopsiesData.length} AI fails...`);
+      console.log('Sample data item:', oopsiesData[0]);
 
-      const { error: oopsiesError } = await supabase
+      const { data: insertedData, error: oopsiesError } = await supabase
         .from('oopsies')
-        .insert(oopsiesData);
+        .insert(oopsiesData)
+        .select('id, title');
 
       if (oopsiesError) {
         console.error('Error inserting oopsies:', oopsiesError);
-        throw oopsiesError;
+        console.error('Error details:', {
+          message: oopsiesError.message,
+          details: oopsiesError.details,
+          hint: oopsiesError.hint,
+          code: oopsiesError.code
+        });
+        throw new Error(`Failed to insert AI fails: ${oopsiesError.message}. Details: ${oopsiesError.details || 'No details'}`);
       }
 
-      console.log('Successfully inserted AI fails data');
+      console.log('Successfully inserted AI fails:', insertedData?.length || 0, 'records');
 
       // Initialize Printify settings
       const { error: printifyError } = await supabase
@@ -71,7 +86,8 @@ export const useDataInitialization = () => {
         });
 
       if (printifyError && !printifyError.message.includes('duplicate')) {
-        console.error('Error initializing Printify settings:', printifyError);
+        console.warn('Error initializing Printify settings:', printifyError);
+        // Don't throw here, as this is not critical for basic functionality
       }
 
       console.log('Initial data loaded successfully');
@@ -79,14 +95,17 @@ export const useDataInitialization = () => {
       
       toast({
         title: "Data Initialized",
-        description: "Sample AI fails and settings have been loaded."
+        description: `Successfully loaded ${insertedData?.length || 0} sample AI fails.`
       });
 
     } catch (error) {
       console.error('Error initializing data:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      setError(errorMessage);
+      
       toast({
         title: "Initialization Failed",
-        description: "Failed to load initial data. Please try again.",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
@@ -102,6 +121,7 @@ export const useDataInitialization = () => {
   return {
     isInitializing,
     isInitialized,
+    error,
     initializeData
   };
 };

@@ -3,19 +3,38 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { initialAIFails } from '@/data/initialAIFails';
 import { useToast } from './use-toast';
+import { useErrorTracking } from './useErrorTracking';
 
 export const useDataInitialization = () => {
   const [isInitializing, setIsInitializing] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [initializationProgress, setInitializationProgress] = useState<string>('');
   const { toast } = useToast();
+  const { logError } = useErrorTracking();
+
+  const updateProgress = (message: string) => {
+    console.log(`📊 Initialization Progress: ${message}`);
+    setInitializationProgress(message);
+  };
 
   const initializeData = async () => {
     setIsInitializing(true);
     setError(null);
+    updateProgress('Starting initialization...');
     
     try {
-      console.log('Starting data initialization...');
+      updateProgress('Checking authentication status...');
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      
+      if (authError) {
+        throw new Error(`Authentication check failed: ${authError.message}`);
+      }
+
+      console.log('🔐 Auth status:', user ? 'Authenticated' : 'Anonymous');
+      
+      updateProgress('Checking existing data...');
+      console.log('🔍 Checking if data already exists...');
       
       // Check if data already exists
       const { data: existingOopsies, error: checkError } = await supabase
@@ -24,80 +43,101 @@ export const useDataInitialization = () => {
         .limit(1);
 
       if (checkError) {
-        console.error('Error checking existing data:', checkError);
+        console.error('❌ Error checking existing data:', checkError);
+        logError(new Error(checkError.message), 'Database Check', user?.id);
         throw new Error(`Database check failed: ${checkError.message}`);
       }
 
       if (existingOopsies && existingOopsies.length > 0) {
-        console.log('Data already initialized');
+        console.log('✅ Data already initialized');
+        updateProgress('Data already exists');
         setIsInitialized(true);
         setIsInitializing(false);
         return;
       }
 
-      console.log('No existing data found, inserting initial AI fails...');
+      updateProgress('Preparing sample data...');
+      console.log('📝 No existing data found, preparing initial AI fails...');
+
+      // Validate initialAIFails data
+      if (!initialAIFails || !Array.isArray(initialAIFails) || initialAIFails.length === 0) {
+        throw new Error('Initial AI fails data is invalid or empty');
+      }
+
+      console.log(`📊 Found ${initialAIFails.length} initial AI fails to insert`);
 
       // Prepare oopsies data with explicit system user assignment
-      const oopsiesData = initialAIFails.map(fail => {
+      const oopsiesData = initialAIFails.map((fail, index) => {
+        console.log(`🔧 Preparing fail ${index + 1}: ${fail.title}`);
+        
         const data = {
-          title: fail.title,
-          description: fail.description,
-          category: fail.category,
-          image_url: fail.image_url,
+          title: fail.title || `AI Fail ${index + 1}`,
+          description: fail.description || 'No description provided',
+          category: fail.category || 'General',
+          image_url: fail.image_url || null,
           user_id: null, // Explicitly set to null for system content
           status: 'approved', // Set directly to approved
-          likes: fail.likes || 0,
-          comments: fail.comments || 0,
-          shares: fail.shares || 0,
-          viral_score: fail.viral_score || 0,
+          likes: Math.max(0, fail.likes || 0),
+          comments: Math.max(0, fail.comments || 0),
+          shares: Math.max(0, fail.shares || 0),
+          viral_score: Math.max(0, fail.viral_score || 0),
           source_platform: fail.source_platform || 'system',
           source_url: fail.source_url || null,
           auto_generated: true, // Mark as auto-generated
-          confidence_score: fail.confidence_score || 0.95,
+          confidence_score: Math.min(1, Math.max(0, fail.confidence_score || 0.95)),
           review_status: 'approved' // Pre-approve system content
         };
         
-        console.log('Prepared oopsie data:', { title: data.title, user_id: data.user_id, status: data.status });
+        console.log(`✅ Prepared oopsie data for: ${data.title}`);
         return data;
       });
 
-      console.log(`Attempting to insert ${oopsiesData.length} AI fails...`);
+      updateProgress(`Inserting ${oopsiesData.length} AI fails...`);
+      console.log(`🚀 Attempting to insert ${oopsiesData.length} AI fails...`);
 
       // Insert in smaller batches to avoid potential issues
-      const batchSize = 3;
+      const batchSize = 2; // Smaller batches for better error tracking
       let insertedCount = 0;
       
       for (let i = 0; i < oopsiesData.length; i += batchSize) {
         const batch = oopsiesData.slice(i, i + batchSize);
-        console.log(`Inserting batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(oopsiesData.length / batchSize)}...`);
+        const batchNumber = Math.floor(i / batchSize) + 1;
+        const totalBatches = Math.ceil(oopsiesData.length / batchSize);
         
-        const { data: batchResult, error: batchError } = await supabase
-          .from('oopsies')
-          .insert(batch)
-          .select('id, title');
+        updateProgress(`Inserting batch ${batchNumber}/${totalBatches}...`);
+        console.log(`📦 Inserting batch ${batchNumber}/${totalBatches} (${batch.length} items)...`);
+        
+        try {
+          const { data: batchResult, error: batchError } = await supabase
+            .from('oopsies')
+            .insert(batch)
+            .select('id, title, status');
 
-        if (batchError) {
-          console.error(`Error inserting batch ${Math.floor(i / batchSize) + 1}:`, batchError);
-          console.error('Batch error details:', {
-            message: batchError.message,
-            details: batchError.details,
-            hint: batchError.hint,
-            code: batchError.code
-          });
-          throw new Error(`Failed to insert batch: ${batchError.message}`);
+          if (batchError) {
+            console.error(`❌ Error inserting batch ${batchNumber}:`, batchError);
+            logError(new Error(batchError.message), `Batch Insert ${batchNumber}`, user?.id);
+            throw new Error(`Failed to insert batch ${batchNumber}: ${batchError.message}`);
+          }
+
+          insertedCount += batchResult?.length || 0;
+          console.log(`✅ Successfully inserted batch ${batchNumber}, total so far: ${insertedCount}`);
+          
+          // Small delay between batches to prevent overwhelming the database
+          if (i + batchSize < oopsiesData.length) {
+            await new Promise(resolve => setTimeout(resolve, 200));
+          }
+        } catch (batchErr) {
+          console.error(`💥 Batch ${batchNumber} failed:`, batchErr);
+          throw batchErr;
         }
-
-        insertedCount += batchResult?.length || 0;
-        console.log(`Successfully inserted batch ${Math.floor(i / batchSize) + 1}, total so far: ${insertedCount}`);
-        
-        // Small delay between batches
-        await new Promise(resolve => setTimeout(resolve, 100));
       }
 
-      console.log(`Successfully inserted all ${insertedCount} AI fails`);
+      updateProgress('Finalizing initialization...');
+      console.log(`🎉 Successfully inserted all ${insertedCount} AI fails`);
 
       // Initialize Printify settings (non-critical)
       try {
+        updateProgress('Setting up Printify integration...');
         const { error: printifyError } = await supabase
           .from('printify_settings')
           .insert({
@@ -106,15 +146,16 @@ export const useDataInitialization = () => {
           });
 
         if (printifyError && !printifyError.message.includes('duplicate')) {
-          console.warn('Warning: Could not initialize Printify settings:', printifyError);
+          console.warn('⚠️ Warning: Could not initialize Printify settings:', printifyError);
         } else {
-          console.log('Printify settings initialized');
+          console.log('✅ Printify settings initialized');
         }
       } catch (printifyErr) {
-        console.warn('Non-critical: Printify settings initialization failed:', printifyErr);
+        console.warn('⚠️ Non-critical: Printify settings initialization failed:', printifyErr);
       }
 
-      console.log('Data initialization completed successfully');
+      updateProgress('Initialization completed successfully!');
+      console.log('🏁 Data initialization completed successfully');
       setIsInitialized(true);
       
       toast({
@@ -123,9 +164,11 @@ export const useDataInitialization = () => {
       });
 
     } catch (error) {
-      console.error('Error during data initialization:', error);
+      console.error('💥 Error during data initialization:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred during initialization';
       setError(errorMessage);
+      logError(error instanceof Error ? error : new Error(String(error)), 'Data Initialization');
+      updateProgress(`Failed: ${errorMessage}`);
       
       toast({
         title: "Initialization Failed",
@@ -137,15 +180,45 @@ export const useDataInitialization = () => {
     }
   };
 
+  // Check initialization status on mount
   useEffect(() => {
-    // Auto-initialize on first load
-    initializeData();
+    const checkInitializationStatus = async () => {
+      try {
+        updateProgress('Checking initialization status...');
+        const { data, error } = await supabase
+          .from('oopsies')
+          .select('id')
+          .limit(1);
+
+        if (error) {
+          console.error('❌ Error checking initialization status:', error);
+          return;
+        }
+
+        const alreadyInitialized = data && data.length > 0;
+        setIsInitialized(alreadyInitialized);
+        
+        if (alreadyInitialized) {
+          updateProgress('Already initialized');
+          console.log('✅ Database already initialized');
+        } else {
+          updateProgress('Ready to initialize');
+          console.log('⏳ Database ready for initialization');
+        }
+      } catch (err) {
+        console.error('💥 Failed to check initialization status:', err);
+        updateProgress('Status check failed');
+      }
+    };
+
+    checkInitializationStatus();
   }, []);
 
   return {
     isInitializing,
     isInitialized,
     error,
+    initializationProgress,
     initializeData
   };
 };

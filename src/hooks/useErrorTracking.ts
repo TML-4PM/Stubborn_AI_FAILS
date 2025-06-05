@@ -8,6 +8,8 @@ interface ErrorLog {
   error: Error;
   context: string;
   userId?: string;
+  stack?: string;
+  userAgent?: string;
 }
 
 export const useErrorTracking = () => {
@@ -20,16 +22,25 @@ export const useErrorTracking = () => {
       error,
       context,
       userId,
+      stack: error.stack,
+      userAgent: navigator.userAgent,
     };
 
     setErrors(prev => [...prev.slice(-99), errorLog]); // Keep last 100 errors
     
-    console.error(`[${context}] Error:`, error);
+    // Enhanced console logging with more details
+    console.group(`🚨 [${context}] Error Details`);
+    console.error('Error:', error.message);
+    console.error('Stack:', error.stack);
+    console.error('Context:', context);
+    console.error('User ID:', userId);
+    console.error('Timestamp:', errorLog.timestamp.toISOString());
+    console.groupEnd();
     
     // Show user-friendly error message
     toast({
       title: "Something went wrong",
-      description: "We've logged this issue and will look into it.",
+      description: `Error in ${context}: ${error.message}`,
       variant: "destructive",
     });
 
@@ -41,10 +52,15 @@ export const useErrorTracking = () => {
     setErrors([]);
   }, []);
 
+  const getLastError = useCallback(() => {
+    return errors[errors.length - 1];
+  }, [errors]);
+
   return {
     errors,
     logError,
     clearErrors,
+    getLastError,
     errorCount: errors.length,
   };
 };

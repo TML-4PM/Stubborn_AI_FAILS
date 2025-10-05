@@ -2,6 +2,9 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
+// ✅ SAFE: This is the PUBLIC anon key, designed to be in client code
+// ❌ NEVER commit SUPABASE_SERVICE_ROLE_KEY to client code
+// All security is enforced via RLS policies, not key secrecy
 const SUPABASE_URL = "https://pflisxkcxbzboxwidywf.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBmbGlzeGtjeGJ6Ym94d2lkeXdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI2MzMwNTgsImV4cCI6MjA1ODIwOTA1OH0.wv3NvIapXMK49aj7XNrWavWzXJi64nxSQEfPSJBvIeI";
 

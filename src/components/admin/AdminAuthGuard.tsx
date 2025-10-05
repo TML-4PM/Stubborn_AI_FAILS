@@ -26,12 +26,14 @@ const AdminAuthGuard = ({ children }: AdminAuthGuardProps) => {
       }
 
       try {
-        // Check if user is the first registered user or has admin email
-        const { data: profiles, error } = await supabase
-          .from('profiles')
-          .select('user_id, created_at')
-          .order('created_at', { ascending: true })
-          .limit(1);
+        // SECURITY: Check user_roles table for admin role
+        // This is a client-side check for UI only - actual security is enforced server-side via RLS
+        const { data: roles, error } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id)
+          .eq('role', 'admin')
+          .maybeSingle();
 
         if (error) {
           console.error('Error checking admin status:', error);
@@ -39,19 +41,13 @@ const AdminAuthGuard = ({ children }: AdminAuthGuardProps) => {
           return;
         }
 
-        // Check if current user is the first user or has admin email
-        const isFirstUser = profiles?.[0]?.user_id === user.id;
-        const hasAdminEmail = user.email?.includes('admin') || user.email?.includes('test');
-        
         console.log('Admin check results:', {
-          isFirstUser,
-          hasAdminEmail,
+          hasAdminRole: !!roles,
           userEmail: user.email,
-          firstUserId: profiles?.[0]?.user_id,
-          currentUserId: user.id
+          userId: user.id
         });
         
-        setIsAdmin(isFirstUser || hasAdminEmail || false);
+        setIsAdmin(!!roles);
       } catch (error) {
         console.error('Error in admin check:', error);
         setIsAdmin(false);

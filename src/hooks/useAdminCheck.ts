@@ -2,6 +2,11 @@ import { useState, useEffect } from 'react';
 import { useUser } from '@/contexts/UserContext';
 import { supabase } from '@/integrations/supabase/client';
 
+/**
+ * SECURITY: Admin status is enforced server-side via RLS policies using the user_roles table.
+ * This client-side check is ONLY for UI/UX purposes. All sensitive operations are protected 
+ * by database-level RLS policies that cannot be bypassed from the client.
+ */
 export const useAdminCheck = () => {
   const { user, isLoading } = useUser();
   const [isAdmin, setIsAdmin] = useState(false);
@@ -16,12 +21,14 @@ export const useAdminCheck = () => {
       }
 
       try {
-        // Check if user is the first registered user or has admin email
-        const { data: profiles, error } = await supabase
-          .from('profiles')
-          .select('user_id, created_at')
-          .order('created_at', { ascending: true })
-          .limit(1);
+        // Check user_roles table for admin role
+        // This is a client-side check for UI only - actual security is enforced server-side via RLS
+        const { data: roles, error } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id)
+          .eq('role', 'admin')
+          .maybeSingle();
 
         if (error) {
           console.error('Error checking admin status:', error);
@@ -30,11 +37,7 @@ export const useAdminCheck = () => {
           return;
         }
 
-        // Check if current user is the first user or has admin email
-        const isFirstUser = profiles?.[0]?.user_id === user.id;
-        const hasAdminEmail = user.email?.includes('admin') || user.email?.includes('test');
-        
-        setIsAdmin(isFirstUser || hasAdminEmail || false);
+        setIsAdmin(!!roles);
       } catch (error) {
         console.error('Error in admin check:', error);
         setIsAdmin(false);

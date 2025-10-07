@@ -15,10 +15,9 @@ const Hero = () => {
   }, []);
 
   return (
-    <div className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
+    <div className="relative min-h-[90vh] flex items-center justify-center overflow-hidden gradient-mesh">
       {/* Background pattern */}
-      <div className="absolute inset-0 bg-gradient-to-b from-fail-light/50 to-transparent opacity-50"></div>
-      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiMzYjgyZjYiIGZpbGwtb3BhY2l0eT0iMC4wNCI+PHBhdGggZD0iTTM2IDM0djZoNnYtNmgtNnptNiAwaDZ2LTZoLTZ2NnptLTYtNnYtNmg2djZoLTZ6bS02IDEydjZoNnYtNmgtNnptNiAwaDZ2LTZoLTZ2NnptLTYtNnYtNmg2djZoLTZ6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-25"></div>
+      <div className="absolute inset-0 bg-grid opacity-[0.02]"></div>
       
       {/* Floating elements animation */}
       <div className="absolute inset-0 pointer-events-none">
@@ -46,19 +45,16 @@ const Hero = () => {
               isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
             }`}
           >
-            <span className="inline-flex items-center px-3 py-1 text-xs font-medium bg-fail-light text-fail rounded-full mb-4">
-              <Sparkles className="w-3.5 h-3.5 mr-1.5" />
+            <span className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium glass rounded-full mb-6">
+              <Sparkles className="w-4 h-4 text-accent-foreground" />
               AI Fails Collection
             </span>
-            <h1 className="text-4xl md:text-6xl font-extrabold mb-4 leading-tight">
-              When AI Goes <span className="text-fail relative">
-                Off the Rails!
-                <svg className="absolute -bottom-1 left-0 w-full h-2 text-fail/30" preserveAspectRatio="none" viewBox="0 0 400 5" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M0 3C100 1 200 5 400 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                </svg>
+            <h1 className="text-5xl md:text-7xl font-extrabold mb-6 leading-tight">
+              When AI Goes <span className="gradient-text">
+                Off the Rails
               </span>
             </h1>
-            <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+            <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto leading-relaxed">
               AI is smart, but sometimes it's hilariously wrong! Post your best AI fails here and share the laughs.
             </p>
           </div>
@@ -70,16 +66,16 @@ const Hero = () => {
           >
             <button 
               onClick={() => navigate('/submit')}
-              className="relative px-6 py-3 bg-fail hover:bg-fail-dark text-white rounded-full flex items-center justify-center font-medium transition-all duration-300 transform hover:scale-105 hover:shadow-lg w-full sm:w-auto overflow-hidden group"
+              className="group relative px-8 py-4 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl flex items-center justify-center font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-xl w-full sm:w-auto overflow-hidden"
             >
-              <span className="absolute inset-0 w-full h-full bg-gradient-to-br from-fail-light/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-              <Bot className="mr-2 h-4 w-4 opacity-90" />
+              <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></span>
+              <Bot className="mr-2 h-5 w-5" />
               Submit Your AI Fail
-              <ArrowRight className="ml-2 h-4 w-4" />
+              <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
             </button>
             <button 
               onClick={() => navigate('/gallery')}
-              className="px-6 py-3 bg-white hover:bg-gray-100 text-foreground rounded-full flex items-center justify-center font-medium transition-all duration-300 shadow-sm border border-gray-200 w-full sm:w-auto"
+              className="px-8 py-4 glass hover:bg-accent/80 text-foreground rounded-xl flex items-center justify-center font-semibold transition-all duration-300 hover:shadow-lg w-full sm:w-auto"
             >
               Browse Gallery
             </button>
@@ -88,8 +84,8 @@ const Hero = () => {
       </div>
       
       {/* Abstract shapes */}
-      <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-fail/5 rounded-full blur-3xl"></div>
-      <div className="absolute top-20 -right-20 w-80 h-80 bg-fail/10 rounded-full blur-3xl"></div>
+      <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-primary/5 rounded-full blur-3xl"></div>
+      <div className="absolute top-20 -right-20 w-80 h-80 bg-accent/5 rounded-full blur-3xl"></div>
       
       {/* Animated particle effects */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">

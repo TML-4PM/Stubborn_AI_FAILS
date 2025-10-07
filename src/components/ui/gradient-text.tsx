@@ -10,11 +10,11 @@ interface GradientTextProps extends React.HTMLAttributes<HTMLElement> {
 const GradientText = React.forwardRef<any, GradientTextProps>(
   ({ className, gradient = 'primary', as: Component = 'span', children, ...props }, ref) => {
     const gradientClasses = {
-      primary: 'bg-gradient-to-r from-primary to-primary/70',
-      fail: 'bg-gradient-to-r from-fail to-fail-dark',
-      rainbow: 'bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500',
-      fire: 'bg-gradient-to-r from-orange-500 via-red-500 to-pink-500',
-      ocean: 'bg-gradient-to-r from-blue-500 via-teal-500 to-green-500'
+      primary: 'bg-[linear-gradient(135deg,hsl(var(--primary)),hsl(var(--accent)))]',
+      fail: 'bg-[linear-gradient(135deg,hsl(var(--destructive)),hsl(var(--primary)))]',
+      rainbow: 'bg-[linear-gradient(135deg,#ec4899,#a855f7,#6366f1)]',
+      fire: 'bg-[linear-gradient(135deg,#f97316,#ef4444,#ec4899)]',
+      ocean: 'bg-[linear-gradient(135deg,#3b82f6,#14b8a6,#10b981)]'
     }
 
     return (

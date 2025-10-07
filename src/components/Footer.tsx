@@ -7,17 +7,17 @@ const Footer = () => {
   const currentYear = new Date().getFullYear();
   
   return (
-    <footer className="border-t bg-card/50">
+    <footer className="border-t border-border/50 bg-background/80 backdrop-blur-lg">
       {/* Brand Carousel Section */}
       <BrandCarousel />
       
       {/* Main Footer Content */}
-      <div className="py-8">
+      <div className="py-12">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center mb-4 md:mb-0">
-              <Heart className="text-fail h-5 w-5 mr-2" />
-              <span className="text-lg font-bold tracking-tight">AI Oopsies</span>
+              <Heart className="text-primary h-5 w-5 mr-2" />
+              <span className="text-lg font-bold tracking-tight gradient-text">AI Oopsies</span>
             </div>
             
             <div className="flex flex-wrap justify-center gap-6 mb-4 md:mb-0">
@@ -49,7 +49,7 @@ const Footer = () => {
                 href="https://instagram.com" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-center p-2 rounded-full bg-secondary hover:bg-secondary/80 transition-colors"
+                className="inline-flex items-center justify-center p-2 rounded-xl bg-secondary hover:bg-secondary/80 transition-all hover:scale-110"
                 aria-label="Instagram"
               >
                 <Instagram className="h-5 w-5" />
@@ -58,7 +58,7 @@ const Footer = () => {
                 href="https://tiktok.com" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-center p-2 rounded-full bg-secondary hover:bg-secondary/80 transition-colors"
+                className="inline-flex items-center justify-center p-2 rounded-xl bg-secondary hover:bg-secondary/80 transition-all hover:scale-110"
                 aria-label="TikTok"
               >
                 {/* Custom TikTok SVG icon */}
@@ -74,7 +74,7 @@ const Footer = () => {
                 href="https://twitter.com" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-center p-2 rounded-full bg-secondary hover:bg-secondary/80 transition-colors"
+                className="inline-flex items-center justify-center p-2 rounded-xl bg-secondary hover:bg-secondary/80 transition-all hover:scale-110"
                 aria-label="X (Twitter)"
               >
                 <X className="h-5 w-5" />
@@ -83,7 +83,7 @@ const Footer = () => {
                 href="https://whatsapp.com" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-center p-2 rounded-full bg-secondary hover:bg-secondary/80 transition-colors"
+                className="inline-flex items-center justify-center p-2 rounded-xl bg-secondary hover:bg-secondary/80 transition-all hover:scale-110"
                 aria-label="WhatsApp"
               >
                 <Phone className="h-5 w-5" />
@@ -92,7 +92,7 @@ const Footer = () => {
                 href="https://wechat.com" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-center p-2 rounded-full bg-secondary hover:bg-secondary/80 transition-colors"
+                className="inline-flex items-center justify-center p-2 rounded-xl bg-secondary hover:bg-secondary/80 transition-all hover:scale-110"
                 aria-label="WeChat"
               >
                 <MessageSquare className="h-5 w-5" />

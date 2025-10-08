@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { X, Play, Check, XCircle } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import { testRunner, testFormValidation, testButtonFunctionality, 
          testComponentRendering, testImageUploader, testDonationAmount,
          testUserAuth, TestResult } from '@/utils/testUtils';
@@ -14,6 +15,8 @@ interface TestControllerProps {
 const TestController = ({ onClose }: TestControllerProps) => {
   const [isRunning, setIsRunning] = useState(false);
   const [testResults, setTestResults] = useState<TestResult[]>([]);
+  const [isDiscovering, setIsDiscovering] = useState(false);
+  const [discoverySummary, setDiscoverySummary] = useState<string | null>(null);
   
   const runAllTests = async () => {
     setIsRunning(true);
@@ -59,6 +62,34 @@ const TestController = ({ onClose }: TestControllerProps) => {
     setIsRunning(false);
   };
   
+  const runDiscoveryNow = async () => {
+    try {
+      setIsDiscovering(true);
+      const { data, error } = await supabase.functions.invoke('schedule-discovery', { body: {} });
+      if (error) {
+        testRunner.addResult('Content Discovery', false, `Error: ${error.message || error}`);
+        setDiscoverySummary(null);
+      } else {
+        const results = (data?.results ?? []) as any[];
+        const totals = results.reduce((acc, r) => {
+          const res = r.result || {};
+          acc.discovered += Number(res.discovered || 0);
+          acc.stored += Number(res.stored || 0);
+          return acc;
+        }, { discovered: 0, stored: 0 });
+        const msg = `Platforms: ${results.map(r=>r.platform).join(', ')} • discovered ${totals.discovered}, stored ${totals.stored}`;
+        testRunner.addResult('Content Discovery', true, msg);
+        setDiscoverySummary(JSON.stringify(data, null, 2));
+      }
+    } catch (e: any) {
+      testRunner.addResult('Content Discovery', false, `Exception: ${e?.message || String(e)}`);
+      setDiscoverySummary(null);
+    } finally {
+      setIsDiscovering(false);
+      setTestResults([...testRunner.results]);
+    }
+  };
+  
   return (
     <div className="fixed right-4 bottom-4 z-50 w-96 max-w-[calc(100vw-2rem)] bg-background border rounded-lg shadow-lg overflow-hidden">
       <div className="p-4 border-b flex items-center justify-between">
@@ -80,6 +111,17 @@ const TestController = ({ onClose }: TestControllerProps) => {
         >
           {isRunning ? "Running Tests..." : "Run All Tests"}
         </Button>
+        <Button 
+          onClick={runDiscoveryNow}
+          disabled={isDiscovering}
+          className="w-full mb-4"
+        >
+          {isDiscovering ? "Running Discovery..." : "Run Content Discovery Now"}
+        </Button>
+        {discoverySummary && (
+          <pre className="text-xs bg-muted rounded p-2 mb-4 max-h-40 overflow-auto">{discoverySummary}</pre>
+        )}
+
         
         {testResults.length > 0 && (
           <>

@@ -10,6 +10,7 @@ import Footer from '@/components/Footer';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import PerformanceMonitor from '@/components/ui/PerformanceMonitor';
+import TestLauncher from '@/components/TestLauncher';
 import { initializePerformanceOptimizations, preloadCriticalContent } from '@/utils/performanceOptimizer';
 
 // Lazy load pages for better performance
@@ -100,10 +101,11 @@ function App() {
                 </Suspense>
               </main>
               <Footer />
-            </div>
-            <Toaster />
-            <PerformanceMonitor />
-          </UserProvider>
+              </div>
+              <TestLauncher />
+              <Toaster />
+              <PerformanceMonitor />
+            </UserProvider>
         </ThemeProvider>
       </QueryClientProvider>
     </ErrorBoundary>

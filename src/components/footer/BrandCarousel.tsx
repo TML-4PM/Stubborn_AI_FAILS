@@ -34,16 +34,22 @@ const brands: Brand[] = [
     url: 'https://aussiegirlmath.com'
   },
   {
-    id: 'tech',
-    name: 'techfails.io',
-    logo: 'TF',
-    url: 'https://techfails.io'
+    id: 'wfai',
+    name: 'workfamilyai.org',
+    logo: 'WFA',
+    url: 'https://www.workfamilyai.org/'
   },
   {
-    id: 'ai',
-    name: 'aiglitches.net',
-    logo: 'AG',
-    url: 'https://aiglitches.net'
+    id: 'freeagents',
+    name: 'free-agents.augmentedhumanity.coach',
+    logo: 'FA',
+    url: 'https://free-agents.augmentedhumanity.coach/'
+  },
+  {
+    id: 'ahc',
+    name: 'augmentedhumanity.coach',
+    logo: 'AHC',
+    url: 'https://www.augmentedhumanity.coach/'
   }
 ];
 

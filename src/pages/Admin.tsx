@@ -23,34 +23,8 @@ import ContentModerationPanel from '@/components/admin/ContentModerationPanel';
 import ContentAnalytics from '@/components/admin/ContentAnalytics';
 import ContentDiscoveryManager from '@/components/admin/ContentDiscoveryManager';
 
-const DEV_MODE = import.meta.env.DEV;
-
 const Admin = () => {
-  const { user } = useUser();
   const [activeTab, setActiveTab] = useState('setup');
-
-  if (!user && !DEV_MODE) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Navbar />
-        <main className="pt-16">
-          <div className="container mx-auto px-4 py-8">
-            <Card>
-              <CardContent className="pt-6">
-                <div className="text-center">
-                  <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h2 className="text-xl font-semibold mb-2">Authentication Required</h2>
-                  <p className="text-muted-foreground">
-                    Please sign in to access the admin dashboard.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </main>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-background">

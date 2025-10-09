@@ -5,30 +5,25 @@ import { Navigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Shield, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { DEV_BYPASS } from '@/utils/devBypass';
 
 interface AdminAuthGuardProps {
   children: React.ReactNode;
 }
 
-// DEV MODE: Set to true to bypass admin checks during development
-const DEV_MODE = import.meta.env.DEV;
-
 const AdminAuthGuard = ({ children }: AdminAuthGuardProps) => {
+  // DEV BYPASS: Grant immediate access in development
+  if (DEV_BYPASS) {
+    return <>{children}</>;
+  }
+
   const { user, isLoading } = useUser();
   const [isAdmin, setIsAdmin] = useState(false);
   const [checkingPermissions, setCheckingPermissions] = useState(true);
 
   useEffect(() => {
     const checkAdminStatus = async () => {
-      console.log('Checking admin status for user:', user?.id, 'DEV_MODE:', DEV_MODE);
-      
-      // DEV MODE: Skip admin check and grant access immediately
-      if (DEV_MODE) {
-        console.log('DEV MODE: Bypassing admin check - granting admin access');
-        setIsAdmin(true);
-        setCheckingPermissions(false);
-        return;
-      }
+      console.log('Checking admin status for user:', user?.id);
       
       if (!user) {
         console.log('No user found');
@@ -70,12 +65,7 @@ const AdminAuthGuard = ({ children }: AdminAuthGuardProps) => {
     checkAdminStatus();
   }, [user]);
 
-  console.log('AdminAuthGuard state:', { isLoading, checkingPermissions, isAdmin, user: !!user, DEV_MODE });
-
-  // DEV MODE: Grant immediate access
-  if (DEV_MODE) {
-    return <>{children}</>;
-  }
+  console.log('AdminAuthGuard state:', { isLoading, checkingPermissions, isAdmin, user: !!user });
 
   if (isLoading || checkingPermissions) {
     return (

@@ -12,6 +12,7 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import PerformanceMonitor from '@/components/ui/PerformanceMonitor';
 import TestLauncher from '@/components/TestLauncher';
 import { initializePerformanceOptimizations, preloadCriticalContent } from '@/utils/performanceOptimizer';
+import { ENABLE_TEST_LAUNCHER } from '@/utils/devBypass';
 
 // Lazy load pages for better performance
 import { lazy } from 'react';
@@ -102,7 +103,7 @@ function App() {
               </main>
               <Footer />
               </div>
-              <TestLauncher />
+              {ENABLE_TEST_LAUNCHER && <TestLauncher />}
               <Toaster />
               <PerformanceMonitor />
             </UserProvider>

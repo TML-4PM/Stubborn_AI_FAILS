@@ -62,12 +62,12 @@ const PerformanceMonitor = () => {
   }, []);
 
   // Only show in development
-  if (process.env.NODE_ENV !== 'development') {
+  if (!import.meta.env.DEV) {
     return null;
   }
 
   return (
-    <div className="fixed bottom-4 right-4 bg-black/80 text-white p-2 rounded text-xs font-mono z-50">
+    <div className="pointer-events-none fixed bottom-4 left-4 bg-black/80 text-white p-2 rounded text-xs font-mono z-40">
       <div className="space-y-1">
         {metrics.fcp && <div>FCP: {Math.round(metrics.fcp)}ms</div>}
         {metrics.lcp && <div>LCP: {Math.round(metrics.lcp)}ms</div>}

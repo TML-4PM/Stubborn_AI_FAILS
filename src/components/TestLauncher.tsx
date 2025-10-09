@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
 import { Beaker } from 'lucide-react';
+import { FloatingActionButton } from '@/components/ui/floating-action-button';
 import TestController from './TestController';
 
 const TestLauncher = () => {
@@ -9,15 +9,15 @@ const TestLauncher = () => {
   
   return (
     <>
-      <Button
-        variant="outline"
-        size="sm"
-        className="fixed right-4 bottom-4 z-50 rounded-full h-12 w-12 p-0 shadow-lg bg-primary text-primary-foreground hover:bg-primary/90"
+      <FloatingActionButton
+        position="bottom-right"
+        size="md"
+        className="z-[60]"
         onClick={() => setIsOpen(true)}
+        aria-label="Open Test Controller"
       >
-        <Beaker className="h-5 w-5" />
-        <span className="sr-only">Open Test Controller</span>
-      </Button>
+        <Beaker className="h-6 w-6" />
+      </FloatingActionButton>
       
       {isOpen && <TestController onClose={() => setIsOpen(false)} />}
     </>

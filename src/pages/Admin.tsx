@@ -22,6 +22,7 @@ import QuickSetup from '@/components/admin/QuickSetup';
 import ContentModerationPanel from '@/components/admin/ContentModerationPanel';
 import ContentAnalytics from '@/components/admin/ContentAnalytics';
 import ContentDiscoveryManager from '@/components/admin/ContentDiscoveryManager';
+import AutoDataRunner from '@/components/admin/AutoDataRunner';
 
 const Admin = () => {
   const [activeTab, setActiveTab] = useState('setup');
@@ -31,6 +32,7 @@ const Admin = () => {
       <Navbar />
       <main className="pt-16">
         <AdminAuthGuard>
+          <AutoDataRunner />
           <div className="container mx-auto px-4 py-8">
             <div className="flex items-center gap-3 mb-8">
               <Settings className="h-8 w-8" />

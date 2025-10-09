@@ -70,7 +70,12 @@ const AdminAuthGuard = ({ children }: AdminAuthGuardProps) => {
     checkAdminStatus();
   }, [user]);
 
-  console.log('AdminAuthGuard state:', { isLoading, checkingPermissions, isAdmin, user: !!user });
+  console.log('AdminAuthGuard state:', { isLoading, checkingPermissions, isAdmin, user: !!user, DEV_MODE });
+
+  // DEV MODE: Grant immediate access
+  if (DEV_MODE) {
+    return <>{children}</>;
+  }
 
   if (isLoading || checkingPermissions) {
     return (
@@ -83,11 +88,11 @@ const AdminAuthGuard = ({ children }: AdminAuthGuardProps) => {
     );
   }
 
-  if (!user && !DEV_MODE) {
+  if (!user) {
     return <Navigate to="/" replace />;
   }
 
-  if (!isAdmin && !DEV_MODE) {
+  if (!isAdmin) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <Card className="w-full max-w-md">

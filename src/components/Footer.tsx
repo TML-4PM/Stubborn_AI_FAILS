@@ -1,10 +1,27 @@
 
 import { Heart, X, Instagram, MessageSquare, Phone } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useState } from 'react';
 import BrandCarousel from './footer/BrandCarousel';
+import { Button } from '@/components/ui/button';
+import AuthModal from '@/components/auth/AuthModal';
+import { useUser } from '@/contexts/UserContext';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
+  const { user } = useUser();
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authView, setAuthView] = useState<'signIn' | 'signUp'>('signIn');
+  
+  const openSignIn = () => {
+    setAuthView('signIn');
+    setIsAuthModalOpen(true);
+  };
+  
+  const openSignUp = () => {
+    setAuthView('signUp');
+    setIsAuthModalOpen(true);
+  };
   
   return (
     <footer className="border-t border-border/50 bg-background/80 backdrop-blur-lg">
@@ -100,12 +117,30 @@ const Footer = () => {
             </div>
           </div>
           
+          {/* Auth buttons for non-logged in users */}
+          {!user && (
+            <div className="flex items-center justify-center gap-3 mt-6 pt-6 border-t border-border/50">
+              <Button variant="ghost" size="sm" onClick={openSignIn}>
+                Sign In
+              </Button>
+              <Button size="sm" onClick={openSignUp}>
+                Sign Up
+              </Button>
+            </div>
+          )}
+          
           <div className="text-center mt-8 text-sm text-muted-foreground">
             <p>© {currentYear} AI Oopsies. All rights reserved.</p>
             <p className="mt-1">Made with ❤️ by the AI Oopsies team.</p>
           </div>
         </div>
       </div>
+      
+      <AuthModal 
+        isOpen={isAuthModalOpen} 
+        onClose={() => setIsAuthModalOpen(false)} 
+        defaultView={authView}
+      />
     </footer>
   );
 };

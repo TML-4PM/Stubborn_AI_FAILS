@@ -11,7 +11,6 @@ const Navbar = () => {
   const { user } = useUser();
 
   const navigation = [
-    { name: 'Home', href: '/', icon: null },
     { name: 'Gallery', href: '/gallery', icon: null },
     { name: 'Search', href: '/search', icon: Search },
     { name: 'Community', href: '/community', icon: Users },

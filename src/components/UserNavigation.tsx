@@ -33,71 +33,53 @@ const UserNavigation = () => {
   
   if (user) {
     return (
-      <>
-        <div className="flex items-center gap-2">
-          <RealtimeNotificationPanel />
-          
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="relative h-8 w-8 rounded-full">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={user.avatar_url || undefined} alt={user.username || 'User'} />
-                  <AvatarFallback>
-                    {user.username ? user.username[0].toUpperCase() : <User className="h-4 w-4" />}
-                  </AvatarFallback>
-                </Avatar>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>
-                {user.username || user.full_name || 'User'}
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link to="/profile" className="cursor-pointer flex items-center">
-                  <User className="mr-2 h-4 w-4" />
-                  Profile
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link to="/profile?tab=settings" className="cursor-pointer flex items-center">
-                  <Settings className="mr-2 h-4 w-4" />
-                  Settings
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem 
-                onClick={() => signOut()}
-                className="cursor-pointer text-destructive focus:text-destructive"
-              >
-                <LogOut className="mr-2 h-4 w-4" />
-                Sign Out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </>
+      <div className="flex items-center gap-2">
+        <RealtimeNotificationPanel />
+        
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm" className="relative h-8 w-8 rounded-full">
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={user.avatar_url || undefined} alt={user.username || 'User'} />
+                <AvatarFallback>
+                  {user.username ? user.username[0].toUpperCase() : <User className="h-4 w-4" />}
+                </AvatarFallback>
+              </Avatar>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>
+              {user.username || user.full_name || 'User'}
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link to="/profile" className="cursor-pointer flex items-center">
+                <User className="mr-2 h-4 w-4" />
+                Profile
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link to="/profile?tab=settings" className="cursor-pointer flex items-center">
+                <Settings className="mr-2 h-4 w-4" />
+                Settings
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem 
+              onClick={() => signOut()}
+              className="cursor-pointer text-destructive focus:text-destructive"
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              Sign Out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     );
   }
   
-  return (
-    <>
-      <div className="flex items-center gap-2">
-        <Button variant="ghost" size="sm" onClick={openSignIn}>
-          Sign In
-        </Button>
-        <Button size="sm" onClick={openSignUp}>
-          Sign Up
-        </Button>
-      </div>
-      
-      <AuthModal 
-        isOpen={isAuthModalOpen} 
-        onClose={() => setIsAuthModalOpen(false)} 
-        defaultView={authView}
-      />
-    </>
-  );
+  // Don't show sign in/up buttons for unauthenticated users (moved to Footer)
+  return null;
 };
 
 export default UserNavigation;

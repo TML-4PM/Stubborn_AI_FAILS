@@ -1,12 +1,13 @@
 
 import { useState, useEffect } from 'react';
-import { Heart, MessageCircle, ExternalLink, Share2, TrendingUp } from 'lucide-react';
+import { Heart, MessageCircle, ExternalLink, Share2, TrendingUp, Play, Link as LinkIcon } from 'lucide-react';
 import { AIFail } from '@/data/sampleFails';
 import { toast } from '@/hooks/use-toast';
 import EnhancedShareButton from '@/components/social/EnhancedShareButton';
 import { GlassCard } from '@/components/ui/glass-card';
 import { GradientText } from '@/components/ui/gradient-text';
 import { Badge } from '@/components/ui/badge';
+import { getPlatformName } from '@/utils/urlDetection';
 
 interface FailCardProps {
   id?: string;
@@ -19,6 +20,9 @@ interface FailCardProps {
   likeCount?: number;
   status?: string;
   delay?: number;
+  contentType?: string;
+  sourceUrl?: string;
+  metadata?: any;
 }
 
 const FailCard: React.FC<FailCardProps> = ({ 
@@ -31,7 +35,10 @@ const FailCard: React.FC<FailCardProps> = ({
   name,
   likeCount,
   status,
-  delay = 0 
+  delay = 0,
+  contentType = 'image',
+  sourceUrl,
+  metadata
 }) => {
   // Use values from individual props if provided, otherwise use values from the fail object
   const title = name || fail?.title || '';
@@ -128,13 +135,27 @@ const FailCard: React.FC<FailCardProps> = ({
           <div className="absolute inset-0 bg-gradient-to-br from-muted via-muted/80 to-muted animate-pulse" />
         )}
         <img
-          src={imageUrl}
+          src={metadata?.thumbnail || imageUrl}
           alt={title}
           className={`w-full h-full object-cover transition-all duration-700 ${
             imageLoaded ? 'opacity-100' : 'opacity-0'
           } ${isHovered ? 'scale-110' : 'scale-100'} group-hover:brightness-110`}
           onLoad={() => setImageLoaded(true)}
         />
+        
+        {/* Content type overlays */}
+        {contentType === 'video' && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+            <div className="w-12 h-12 bg-white/90 rounded-full flex items-center justify-center">
+              <Play className="w-6 h-6 text-red-600 ml-1" />
+            </div>
+          </div>
+        )}
+        {(contentType === 'article' || contentType === 'social') && (
+          <div className="absolute top-2 right-2 p-1.5 bg-black/60 backdrop-blur-sm rounded-full">
+            <LinkIcon className="w-4 h-4 text-white" />
+          </div>
+        )}
         
         {/* Enhanced overlay */}
         <div className={`absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 transition-all duration-500 ${isHovered ? 'opacity-100' : ''}`}></div>

@@ -835,30 +835,93 @@ export type Database = {
       anonymous_assessments: {
         Row: {
           assessment_data: Json
+          benefits_from_scaffolding: boolean | null
           completed_at: string
           created_at: string
+          domain_tests: Json | null
           id: string
+          metacognitive_accuracy: number | null
+          novel_learning_slope: number | null
+          overreliance_errors_caught: number | null
+          overreliance_risk: string | null
+          pattern_recognition_avg_response_time: number | null
+          pattern_recognition_pattern_complexity: number | null
+          pattern_recognition_total_correct: number | null
+          processing_speed_avg_response_time: number | null
+          processing_speed_error_rate: number | null
+          processing_speed_total_correct: number | null
           results: Json
           session_id: string
+          stress_response_baseline_span: number | null
+          stress_response_decline: number | null
+          stress_response_post_stress_span: number | null
+          stress_vulnerability: string | null
+          sustained_attention_decline: number | null
+          sustained_attention_dprime: number | null
+          sustained_attention_variability: number | null
           topic_slug: string | null
+          wm_error_pattern: string | null
+          working_memory_span: number | null
         }
         Insert: {
           assessment_data: Json
+          benefits_from_scaffolding?: boolean | null
           completed_at?: string
           created_at?: string
+          domain_tests?: Json | null
           id?: string
+          metacognitive_accuracy?: number | null
+          novel_learning_slope?: number | null
+          overreliance_errors_caught?: number | null
+          overreliance_risk?: string | null
+          pattern_recognition_avg_response_time?: number | null
+          pattern_recognition_pattern_complexity?: number | null
+          pattern_recognition_total_correct?: number | null
+          processing_speed_avg_response_time?: number | null
+          processing_speed_error_rate?: number | null
+          processing_speed_total_correct?: number | null
           results: Json
           session_id: string
+          stress_response_baseline_span?: number | null
+          stress_response_decline?: number | null
+          stress_response_post_stress_span?: number | null
+          stress_vulnerability?: string | null
+          sustained_attention_decline?: number | null
+          sustained_attention_dprime?: number | null
+          sustained_attention_variability?: number | null
           topic_slug?: string | null
+          wm_error_pattern?: string | null
+          working_memory_span?: number | null
         }
         Update: {
           assessment_data?: Json
+          benefits_from_scaffolding?: boolean | null
           completed_at?: string
           created_at?: string
+          domain_tests?: Json | null
           id?: string
+          metacognitive_accuracy?: number | null
+          novel_learning_slope?: number | null
+          overreliance_errors_caught?: number | null
+          overreliance_risk?: string | null
+          pattern_recognition_avg_response_time?: number | null
+          pattern_recognition_pattern_complexity?: number | null
+          pattern_recognition_total_correct?: number | null
+          processing_speed_avg_response_time?: number | null
+          processing_speed_error_rate?: number | null
+          processing_speed_total_correct?: number | null
           results?: Json
           session_id?: string
+          stress_response_baseline_span?: number | null
+          stress_response_decline?: number | null
+          stress_response_post_stress_span?: number | null
+          stress_vulnerability?: string | null
+          sustained_attention_decline?: number | null
+          sustained_attention_dprime?: number | null
+          sustained_attention_variability?: number | null
           topic_slug?: string | null
+          wm_error_pattern?: string | null
+          working_memory_span?: number | null
         }
         Relationships: []
       }
@@ -1024,33 +1087,96 @@ export type Database = {
       assessment_results: {
         Row: {
           assessment_data: Json
+          benefits_from_scaffolding: boolean | null
           completed_at: string
           created_at: string
+          domain_tests: Json | null
           id: string
+          metacognitive_accuracy: number | null
+          novel_learning_slope: number | null
+          overreliance_errors_caught: number | null
+          overreliance_risk: string | null
+          pattern_recognition_avg_response_time: number | null
+          pattern_recognition_pattern_complexity: number | null
+          pattern_recognition_total_correct: number | null
+          processing_speed_avg_response_time: number | null
+          processing_speed_error_rate: number | null
+          processing_speed_total_correct: number | null
           results: Json
+          stress_response_baseline_span: number | null
+          stress_response_decline: number | null
+          stress_response_post_stress_span: number | null
+          stress_vulnerability: string | null
+          sustained_attention_decline: number | null
+          sustained_attention_dprime: number | null
+          sustained_attention_variability: number | null
           topic_slug: string | null
           updated_at: string
           user_id: string | null
+          wm_error_pattern: string | null
+          working_memory_span: number | null
         }
         Insert: {
           assessment_data: Json
+          benefits_from_scaffolding?: boolean | null
           completed_at?: string
           created_at?: string
+          domain_tests?: Json | null
           id?: string
+          metacognitive_accuracy?: number | null
+          novel_learning_slope?: number | null
+          overreliance_errors_caught?: number | null
+          overreliance_risk?: string | null
+          pattern_recognition_avg_response_time?: number | null
+          pattern_recognition_pattern_complexity?: number | null
+          pattern_recognition_total_correct?: number | null
+          processing_speed_avg_response_time?: number | null
+          processing_speed_error_rate?: number | null
+          processing_speed_total_correct?: number | null
           results: Json
+          stress_response_baseline_span?: number | null
+          stress_response_decline?: number | null
+          stress_response_post_stress_span?: number | null
+          stress_vulnerability?: string | null
+          sustained_attention_decline?: number | null
+          sustained_attention_dprime?: number | null
+          sustained_attention_variability?: number | null
           topic_slug?: string | null
           updated_at?: string
           user_id?: string | null
+          wm_error_pattern?: string | null
+          working_memory_span?: number | null
         }
         Update: {
           assessment_data?: Json
+          benefits_from_scaffolding?: boolean | null
           completed_at?: string
           created_at?: string
+          domain_tests?: Json | null
           id?: string
+          metacognitive_accuracy?: number | null
+          novel_learning_slope?: number | null
+          overreliance_errors_caught?: number | null
+          overreliance_risk?: string | null
+          pattern_recognition_avg_response_time?: number | null
+          pattern_recognition_pattern_complexity?: number | null
+          pattern_recognition_total_correct?: number | null
+          processing_speed_avg_response_time?: number | null
+          processing_speed_error_rate?: number | null
+          processing_speed_total_correct?: number | null
           results?: Json
+          stress_response_baseline_span?: number | null
+          stress_response_decline?: number | null
+          stress_response_post_stress_span?: number | null
+          stress_vulnerability?: string | null
+          sustained_attention_decline?: number | null
+          sustained_attention_dprime?: number | null
+          sustained_attention_variability?: number | null
           topic_slug?: string | null
           updated_at?: string
           user_id?: string | null
+          wm_error_pattern?: string | null
+          working_memory_span?: number | null
         }
         Relationships: []
       }
@@ -5990,6 +6116,7 @@ export type Database = {
           category: string
           comments: number
           confidence_score: number | null
+          content_type: string | null
           created_at: string
           description: string
           discovery_date: string | null
@@ -5999,6 +6126,7 @@ export type Database = {
           image_url: string | null
           is_featured: boolean
           likes: number
+          metadata: Json | null
           moderation_notes: string | null
           processed_at: string | null
           review_status: string | null
@@ -6022,6 +6150,7 @@ export type Database = {
           category: string
           comments?: number
           confidence_score?: number | null
+          content_type?: string | null
           created_at?: string
           description: string
           discovery_date?: string | null
@@ -6031,6 +6160,7 @@ export type Database = {
           image_url?: string | null
           is_featured?: boolean
           likes?: number
+          metadata?: Json | null
           moderation_notes?: string | null
           processed_at?: string | null
           review_status?: string | null
@@ -6054,6 +6184,7 @@ export type Database = {
           category?: string
           comments?: number
           confidence_score?: number | null
+          content_type?: string | null
           created_at?: string
           description?: string
           discovery_date?: string | null
@@ -6063,6 +6194,7 @@ export type Database = {
           image_url?: string | null
           is_featured?: boolean
           likes?: number
+          metadata?: Json | null
           moderation_notes?: string | null
           processed_at?: string | null
           review_status?: string | null
@@ -11192,6 +11324,14 @@ export type Database = {
       increment_view_count: {
         Args: { oopsie_id: string }
         Returns: undefined
+      }
+      is_active_partner_member: {
+        Args: { _partner_org_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_in_conversation: {
+        Args: { _conversation_id: string; _user_id: string }
+        Returns: boolean
       }
       list_tasks: {
         Args: { filter_status?: string }

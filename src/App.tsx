@@ -13,6 +13,7 @@ import PerformanceMonitor from '@/components/ui/PerformanceMonitor';
 import TestLauncher from '@/components/TestLauncher';
 import { initializePerformanceOptimizations, preloadCriticalContent } from '@/utils/performanceOptimizer';
 import { ENABLE_TEST_LAUNCHER } from '@/utils/devBypass';
+import { usePerformanceMonitor } from '@/hooks/usePerformanceMonitor';
 
 // Lazy load pages for better performance
 import { lazy } from 'react';
@@ -54,15 +55,11 @@ const queryClient = new QueryClient({
 });
 
 function App() {
+  const { isVisible: showPerformanceMonitor } = usePerformanceMonitor();
+  
   useEffect(() => {
-    // Initialize performance optimizations
-    const networkOptimizations = initializePerformanceOptimizations();
-    
-    // Preload critical content
+    initializePerformanceOptimizations();
     preloadCriticalContent();
-    
-    // Log performance optimizations
-    console.log('Performance optimizations initialized:', networkOptimizations);
   }, []);
 
   return (
@@ -102,11 +99,11 @@ function App() {
                 </Suspense>
               </main>
               <Footer />
-              </div>
-              {ENABLE_TEST_LAUNCHER && <TestLauncher />}
-              <Toaster />
-              <PerformanceMonitor />
-            </UserProvider>
+            </div>
+            <Toaster />
+            {showPerformanceMonitor && <PerformanceMonitor />}
+            {ENABLE_TEST_LAUNCHER && <TestLauncher />}
+          </UserProvider>
         </ThemeProvider>
       </QueryClientProvider>
     </ErrorBoundary>

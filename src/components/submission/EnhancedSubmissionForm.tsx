@@ -45,9 +45,12 @@ const EnhancedSubmissionForm = () => {
     errorMessage,
     handleImageChange,
     handleUrlChange,
+    handleMetadataFetched,
     handleSubmit,
     resetForm,
-    isUserLoggedIn
+    isUserLoggedIn,
+    contentType,
+    metadata
   } = useEnhancedSubmissionForm();
 
   const isFormValid = (): boolean => {

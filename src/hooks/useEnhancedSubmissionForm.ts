@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { toast } from '@/hooks/use-toast';
 import { useUser } from '@/contexts/UserContext';
 import { submitToSupabase, validateImageFile, processTags } from '@/utils/enhancedSubmissionUtils';
+import { type ContentType, type UrlMetadata } from '@/utils/urlDetection';
 
 export const useEnhancedSubmissionForm = () => {
   const { user } = useUser();
@@ -19,6 +20,8 @@ export const useEnhancedSubmissionForm = () => {
   const [isSuccess, setIsSuccess] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [contentType, setContentType] = useState<ContentType>('image');
+  const [metadata, setMetadata] = useState<UrlMetadata>({});
 
   // Set username from user if available
   useEffect(() => {
@@ -61,9 +64,24 @@ export const useEnhancedSubmissionForm = () => {
       setPreviewUrl(url);
     } else {
       setPreviewUrl(null);
+      setContentType('image');
+      setMetadata({});
     }
     
     setUploadProgress(0);
+  };
+
+  const handleMetadataFetched = (type: ContentType, meta: UrlMetadata) => {
+    setContentType(type);
+    setMetadata(meta);
+    
+    // Auto-fill title and description from metadata if empty
+    if (!title && meta.title) {
+      setTitle(meta.title);
+    }
+    if (!description && meta.description) {
+      setDescription(meta.description);
+    }
   };
 
   const showToast = (title: string, description: string, variant: "default" | "destructive" = "default") => {
@@ -89,6 +107,8 @@ export const useEnhancedSubmissionForm = () => {
     setIsSuccess(false);
     setUploadProgress(0);
     setErrorMessage(null);
+    setContentType('image');
+    setMetadata({});
   };
 
   const validateForm = (): boolean => {
@@ -136,7 +156,9 @@ export const useEnhancedSubmissionForm = () => {
         isUrl,
         user?.id,
         processedTags,
-        submissionNotes.trim()
+        submissionNotes.trim(),
+        contentType,
+        metadata
       );
 
       setUploadProgress(100);
@@ -193,8 +215,11 @@ export const useEnhancedSubmissionForm = () => {
     errorMessage,
     handleImageChange,
     handleUrlChange,
+    handleMetadataFetched,
     handleSubmit,
     resetForm,
-    isUserLoggedIn: !!user
+    isUserLoggedIn: !!user,
+    contentType,
+    metadata
   };
 };

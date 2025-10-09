@@ -1,5 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { type ContentType, type UrlMetadata } from '@/utils/urlDetection';
 
 export interface EnhancedSubmission {
   id?: string;
@@ -10,6 +11,9 @@ export interface EnhancedSubmission {
   tags?: string[];
   submission_notes?: string;
   user_id?: string;
+  content_type?: ContentType;
+  source_url?: string;
+  metadata?: UrlMetadata;
 }
 
 /**
@@ -24,7 +28,9 @@ export const submitToSupabase = async (
   isUrl: boolean,
   userId?: string,
   tags: string[] = [],
-  submissionNotes?: string
+  submissionNotes?: string,
+  contentType: ContentType = 'image',
+  metadata: UrlMetadata = {}
 ): Promise<void> => {
   let finalImageUrl = '';
 
@@ -70,12 +76,15 @@ export const submitToSupabase = async (
       submission_notes: submissionNotes,
       source_platform: 'user_submission',
       auto_generated: false,
-      confidence_score: 1.0
+      confidence_score: 1.0,
+      content_type: contentType,
+      source_url: isUrl ? imageUrl : null,
+      metadata: metadata as any // JSONB field accepts any valid JSON object
     };
 
     const { data, error } = await supabase
       .from('oopsies')
-      .insert(submissionData)
+      .insert([submissionData])
       .select()
       .single();
 

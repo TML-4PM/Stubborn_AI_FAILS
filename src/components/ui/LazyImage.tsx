@@ -12,6 +12,7 @@ interface LazyImageProps {
   height?: number;
   blurDataUrl?: string;
   priority?: boolean;
+  fallbackSrc?: string;
   onLoad?: () => void;
   onError?: () => void;
 }
@@ -24,6 +25,7 @@ const LazyImage = ({
   height,
   blurDataUrl,
   priority = false,
+  fallbackSrc = '/placeholder.svg',
   onLoad,
   onError
 }: LazyImageProps) => {
@@ -83,12 +85,14 @@ const LazyImage = ({
         />
       )}
 
-      {/* Error state */}
-      {hasError && (
-        <div className="absolute inset-0 flex items-center justify-center bg-muted text-muted-foreground">
-          <span className="text-sm">Failed to load image</span>
-        </div>
-      )}
+{/* Error state with fallback image */}
+{hasError && (
+  <img
+    src={fallbackSrc}
+    alt={alt}
+    className="absolute inset-0 w-full h-full object-cover"
+  />
+)}
 
       {/* Loading overlay */}
       {shouldLoad && !isLoaded && !hasError && (

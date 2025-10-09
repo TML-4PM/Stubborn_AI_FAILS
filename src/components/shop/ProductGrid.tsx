@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import ProductModal from './ProductModal';
+import LazyImage from '@/components/ui/LazyImage';
 
 interface Product {
   id: string;
@@ -28,7 +29,7 @@ interface ProductGridProps {
 const ProductGrid = ({ products, isLoading }: ProductGridProps) => {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
-  if (isLoading) {
+  if (isLoading && (!products || products.length === 0)) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {[...Array(8)].map((_, i) => (
@@ -73,11 +74,18 @@ const ProductGrid = ({ products, isLoading }: ProductGridProps) => {
                 </Badge>
               </div>
             )}
-            <div 
-              className={`aspect-square bg-cover bg-center cursor-pointer ${product.coming_soon ? 'opacity-75' : ''}`}
-              style={{ backgroundImage: `url(${product.image})` }}
+<div 
+              className={`aspect-square relative cursor-pointer ${product.coming_soon ? 'opacity-75' : ''}`}
               onClick={() => setSelectedProduct(product)}
-            ></div>
+            >
+              <img
+                src={product.image}
+                alt={product.name}
+                className="absolute inset-0 w-full h-full object-cover"
+                loading="lazy"
+                onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/placeholder.svg'; }}
+              />
+            </div>
             <CardContent className="p-4">
               <div className="flex justify-between items-start mb-2">
                 <h3 className="font-medium line-clamp-2">{product.name}</h3>

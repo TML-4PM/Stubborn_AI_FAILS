@@ -206,10 +206,14 @@ async function discoverFromReddit(): Promise<DiscoveredContent[]> {
         const post: RedditPost = postWrapper.data
         
         const analysis = analyzePostForAIFails(post);
-        if (analysis.isLikelyAIFail && analysis.confidence > 0.6) {
+        console.log(`Post: "${post.title.substring(0, 50)}..." - Confidence: ${analysis.confidence}, IsAIFail: ${analysis.isLikelyAIFail}`);
+        
+        // Lower threshold to 0.4 to get more results for initial data population
+        if (analysis.isLikelyAIFail && analysis.confidence > 0.4) {
           const content = await processRedditPost(post, analysis);
           if (content) {
             discoveries.push(content);
+            console.log(`✅ Added: ${content.title.substring(0, 60)}...`);
           }
         }
       }

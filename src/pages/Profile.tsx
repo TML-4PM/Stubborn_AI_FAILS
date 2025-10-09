@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -112,7 +112,6 @@ const Profile = () => {
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         </main>
-        <Footer />
       </div>
     );
   }
@@ -268,7 +267,7 @@ const Profile = () => {
         </div>
       </main>
       
-      <Footer />
+      
     </div>
   );
 };

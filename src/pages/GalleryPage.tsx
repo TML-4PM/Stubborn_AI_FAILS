@@ -1,6 +1,6 @@
 
 import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
+
 import { useIsMobile } from '@/hooks/use-mobile';
 import PullToRefresh from '@/components/ui/PullToRefresh';
 import GalleryContent from '@/components/gallery/GalleryContent';
@@ -27,7 +27,7 @@ const GalleryPage = () => {
         content
       )}
       
-      <Footer />
+      
     </div>
   );
 };

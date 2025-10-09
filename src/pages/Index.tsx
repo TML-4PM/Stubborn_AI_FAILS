@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
+
 import Hero from '@/components/Hero';
 import FeaturedFails from '@/components/FeaturedFails';
 import TrendingSection from '@/components/TrendingSection';
@@ -194,7 +194,7 @@ const Index = () => {
           </div>
         )}
       </main>
-      <Footer />
+      
     </div>
   );
 };

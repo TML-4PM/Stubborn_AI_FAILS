@@ -2,7 +2,7 @@
 import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
+
 import { useNavigate } from "react-router-dom";
 
 const NotFound = () => {
@@ -38,7 +38,7 @@ const NotFound = () => {
         </div>
       </main>
       
-      <Footer />
+      
     </div>
   );
 };

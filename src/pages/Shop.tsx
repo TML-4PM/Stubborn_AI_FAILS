@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
+
 import { useQuery } from '@tanstack/react-query';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -139,7 +139,7 @@ const Shop = () => {
           </Tabs>
         </div>
       </main>
-      <Footer />
+      
     </div>
   );
 };

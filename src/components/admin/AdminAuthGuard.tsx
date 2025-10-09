@@ -22,16 +22,16 @@ const AdminAuthGuard = ({ children }: AdminAuthGuardProps) => {
     const checkAdminStatus = async () => {
       console.log('Checking admin status for user:', user?.id, 'DEV_MODE:', DEV_MODE);
       
-      if (!user) {
-        console.log('No user found');
-        setCheckingPermissions(false);
-        return;
-      }
-
-      // DEV MODE: Skip admin check and grant access
+      // DEV MODE: Skip admin check and grant access immediately
       if (DEV_MODE) {
         console.log('DEV MODE: Bypassing admin check - granting admin access');
         setIsAdmin(true);
+        setCheckingPermissions(false);
+        return;
+      }
+      
+      if (!user) {
+        console.log('No user found');
         setCheckingPermissions(false);
         return;
       }
@@ -83,11 +83,11 @@ const AdminAuthGuard = ({ children }: AdminAuthGuardProps) => {
     );
   }
 
-  if (!user) {
+  if (!user && !DEV_MODE) {
     return <Navigate to="/" replace />;
   }
 
-  if (!isAdmin) {
+  if (!isAdmin && !DEV_MODE) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <Card className="w-full max-w-md">
@@ -99,9 +99,11 @@ const AdminAuthGuard = ({ children }: AdminAuthGuardProps) => {
             <p className="text-muted-foreground">
               You don't have permission to access the admin panel.
             </p>
-            <p className="text-sm text-muted-foreground mt-2">
-              Current user: {user.email}
-            </p>
+            {user?.email && (
+              <p className="text-sm text-muted-foreground mt-2">
+                Current user: {user.email}
+              </p>
+            )}
           </CardContent>
         </Card>
       </div>

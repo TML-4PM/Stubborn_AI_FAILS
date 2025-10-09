@@ -2,7 +2,7 @@
 import { useEffect } from 'react';
 import SubmissionForm from '@/components/SubmissionForm';
 import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
+
 
 const Submit = () => {
   useEffect(() => {
@@ -42,7 +42,7 @@ const Submit = () => {
         </div>
       </main>
       
-      <Footer />
+      
     </div>
   );
 };

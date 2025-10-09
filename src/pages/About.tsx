@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
+
 import { Mail, Github, Twitter, Loader2, CheckCircle2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
@@ -348,7 +348,7 @@ const About = () => {
         </div>
       </main>
       
-      <Footer />
+      
     </div>
   );
 };

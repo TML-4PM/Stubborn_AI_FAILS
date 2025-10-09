@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Calendar, Eye, Heart, MessageCircle, Share2 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
+
 import CommentSection from '@/components/social/CommentSection';
 import LikeButton from '@/components/social/LikeButton';
 import ShareButton from '@/components/social/ShareButton';
@@ -97,7 +97,6 @@ const FailDetail = () => {
             </div>
           </div>
         </main>
-        <Footer />
       </div>
     );
   }
@@ -116,7 +115,6 @@ const FailDetail = () => {
             </div>
           </div>
         </main>
-        <Footer />
       </div>
     );
   }
@@ -168,7 +166,7 @@ const FailDetail = () => {
           </div>
         </div>
       </main>
-      <Footer />
+      
     </div>
   );
 };

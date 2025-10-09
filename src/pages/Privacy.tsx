@@ -1,6 +1,6 @@
 
 import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
+
 import { ArrowRight } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -120,7 +120,7 @@ const Privacy = () => {
         </div>
       </main>
       
-      <Footer />
+      
     </div>
   );
 };

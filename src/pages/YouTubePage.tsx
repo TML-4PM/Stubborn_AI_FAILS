@@ -1,7 +1,7 @@
 
 import { useEffect } from 'react';
 import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
+
 import YouTubeChannel from '@/components/youtube/YouTubeChannel';
 import { updateSEOMetadata } from '@/utils/seoUtils';
 
@@ -43,7 +43,7 @@ const YouTubePage = () => {
         </div>
       </main>
       
-      <Footer />
+      
     </div>
   );
 };

@@ -23,11 +23,13 @@ import ContentModerationPanel from '@/components/admin/ContentModerationPanel';
 import ContentAnalytics from '@/components/admin/ContentAnalytics';
 import ContentDiscoveryManager from '@/components/admin/ContentDiscoveryManager';
 
+const DEV_MODE = import.meta.env.DEV;
+
 const Admin = () => {
   const { user } = useUser();
   const [activeTab, setActiveTab] = useState('setup');
 
-  if (!user) {
+  if (!user && !DEV_MODE) {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />

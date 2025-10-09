@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
+
 import StripeCheckout from '@/components/StripeCheckout';
 import { Input } from '@/components/ui/input';
 import { DollarSign, Heart, CreditCard, Check, Crown, Star, Trophy, Award } from 'lucide-react';
@@ -306,7 +306,7 @@ const Donate = () => {
         </DialogContent>
       </Dialog>
       
-      <Footer />
+      
     </div>
   );
 };

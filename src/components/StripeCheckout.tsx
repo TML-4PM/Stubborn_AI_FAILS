@@ -15,11 +15,11 @@ interface StripeCheckoutProps {
 }
 
 const getDonorTierInfo = (amount: number) => {
-  if (amount >= 1000000) return { label: 'Hall of Fame', icon: Crown, color: 'bg-gradient-to-r from-yellow-400 to-amber-400' };
+  if (amount >= 999999) return { label: 'Hall of Fame', icon: Crown, color: 'bg-gradient-to-r from-yellow-400 to-amber-400' };
+  if (amount >= 100000) return { label: 'Diamond', icon: Crown, color: 'bg-gradient-to-r from-cyan-400 to-blue-400' };
+  if (amount >= 10000) return { label: 'Platinum', icon: Crown, color: 'bg-gradient-to-r from-purple-500 to-indigo-500' };
   if (amount >= 1000) return { label: 'Champion', icon: Award, color: 'bg-gradient-to-r from-green-500 to-emerald-500' };
-  if (amount >= 500) return { label: 'Champion', icon: Award, color: 'bg-gradient-to-r from-green-500 to-emerald-500' };
   if (amount >= 100) return { label: 'Legend', icon: Trophy, color: 'bg-gradient-to-r from-orange-500 to-red-500' };
-  if (amount >= 25) return { label: 'Super Fan', icon: Star, color: 'bg-gradient-to-r from-purple-500 to-pink-500' };
   return { label: 'Supporter', icon: Heart, color: 'bg-primary' };
 };
 
@@ -120,7 +120,7 @@ const StripeCheckout = ({ amount, onSuccess }: StripeCheckoutProps) => {
               </span>
             )}
           </span>
-          {amount >= 1000000 && (
+          {amount >= 999999 && (
             <Crown className="ml-2 h-5 w-5 animate-pulse" />
           )}
         </>

@@ -26,6 +26,12 @@ interface ProductCardProps {
 
 const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }) => {
   const [isHovered, setIsHovered] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  
+  const handleImageError = () => {
+    console.error(`Failed to load image for product: ${product.name}`);
+    setImageError(true);
+  };
   
   return (
     <Card 
@@ -33,12 +39,21 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }) => {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div className="relative overflow-hidden aspect-square">
-        <img 
-          src={product.image} 
-          alt={product.name}
-          className={`w-full h-full object-cover transition-transform duration-500 ${isHovered ? 'scale-110' : 'scale-100'}`}
-        />
+      <div className="relative overflow-hidden aspect-square bg-secondary">
+        {imageError ? (
+          <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+            <div className="text-center">
+              <p className="text-sm">Image unavailable</p>
+            </div>
+          </div>
+        ) : (
+          <img 
+            src={product.image} 
+            alt={product.name}
+            onError={handleImageError}
+            className={`w-full h-full object-cover transition-transform duration-500 ${isHovered ? 'scale-110' : 'scale-100'}`}
+          />
+        )}
         {product.featured && (
           <Badge className="absolute top-2 right-2 bg-fail text-white">
             Featured

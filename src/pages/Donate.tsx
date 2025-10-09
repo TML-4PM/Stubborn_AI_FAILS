@@ -18,15 +18,12 @@ import {
 import { Button } from '@/components/ui/button';
 
 const DONATION_TIERS = [
-  { amount: 5, label: 'Supporter', icon: Heart, color: 'text-blue-500', bgColor: 'bg-blue-50' },
   { amount: 10, label: 'Supporter', icon: Heart, color: 'text-blue-500', bgColor: 'bg-blue-50' },
-  { amount: 25, label: 'Super Fan', icon: Star, color: 'text-purple-500', bgColor: 'bg-purple-50' },
-  { amount: 50, label: 'Super Fan', icon: Star, color: 'text-purple-500', bgColor: 'bg-purple-50' },
   { amount: 100, label: 'Legend', icon: Trophy, color: 'text-orange-500', bgColor: 'bg-orange-50' },
-  { amount: 250, label: 'Legend', icon: Trophy, color: 'text-orange-500', bgColor: 'bg-orange-50' },
-  { amount: 500, label: 'Champion', icon: Award, color: 'text-green-500', bgColor: 'bg-green-50' },
   { amount: 1000, label: 'Champion', icon: Award, color: 'text-green-500', bgColor: 'bg-green-50', premium: true },
-  { amount: 1000000, label: 'Hall of Fame', icon: Crown, color: 'text-yellow-500', bgColor: 'bg-gradient-to-r from-yellow-50 to-amber-50', premium: true, hallOfFame: true }
+  { amount: 10000, label: 'Platinum', icon: Crown, color: 'text-purple-500', bgColor: 'bg-purple-50', premium: true },
+  { amount: 100000, label: 'Diamond', icon: Crown, color: 'text-cyan-500', bgColor: 'bg-cyan-50', premium: true },
+  { amount: 999999, label: 'Hall of Fame', icon: Crown, color: 'text-yellow-500', bgColor: 'bg-gradient-to-r from-yellow-50 to-amber-50', premium: true, hallOfFame: true }
 ];
 
 const Donate = () => {
@@ -87,12 +84,12 @@ const Donate = () => {
   };
 
   const getDonorTier = (amount: number) => {
-    if (amount >= 1000000) return DONATION_TIERS.find(t => t.amount === 1000000);
+    if (amount >= 999999) return DONATION_TIERS.find(t => t.amount === 999999);
+    if (amount >= 100000) return DONATION_TIERS.find(t => t.amount === 100000);
+    if (amount >= 10000) return DONATION_TIERS.find(t => t.amount === 10000);
     if (amount >= 1000) return DONATION_TIERS.find(t => t.amount === 1000);
-    if (amount >= 500) return DONATION_TIERS.find(t => t.amount === 500);
     if (amount >= 100) return DONATION_TIERS.find(t => t.amount === 100);
-    if (amount >= 25) return DONATION_TIERS.find(t => t.amount === 25);
-    return DONATION_TIERS.find(t => t.amount === 5);
+    return DONATION_TIERS.find(t => t.amount === 10);
   };
 
   const handleDonationClick = (amount: number) => {
@@ -145,7 +142,7 @@ const Donate = () => {
                 <Crown className="h-8 w-8 text-yellow-500 ml-2" />
               </div>
               <p className="text-center text-yellow-600">
-                Join the exclusive Hall of Fame with a $1,000,000 donation and become a legend of AI Oopsies!
+                Join the exclusive Hall of Fame with a $999,999 donation and become a legend of AI Oopsies!
               </p>
             </div>
             
@@ -190,9 +187,9 @@ const Donate = () => {
                         >
                           <div className="flex flex-col items-center space-y-2">
                             <IconComponent className={`h-5 w-5 ${isSelected ? 'text-white' : tier.color}`} />
-                            <div className="font-bold">
-                              ${tier.amount === 1000000 ? '1M' : tier.amount.toLocaleString()}
-                            </div>
+                          <div className="font-bold">
+                            ${tier.amount >= 100000 ? (tier.amount / 1000).toFixed(0) + 'K' : tier.amount.toLocaleString()}
+                          </div>
                             <div className={`text-xs ${isSelected ? 'text-white/90' : 'text-muted-foreground'}`}>
                               {tier.label}
                             </div>
@@ -291,7 +288,7 @@ const Donate = () => {
             </DialogTitle>
             <DialogDescription>
               You're about to make a ${pendingAmount?.toLocaleString()} donation.
-              This will make you a {pendingAmount === 1000000 ? 'Hall of Fame' : 'Champion'} level supporter!
+              This will make you a {pendingAmount === 999999 ? 'Hall of Fame' : pendingAmount === 100000 ? 'Diamond' : pendingAmount === 10000 ? 'Platinum' : 'Champion'} level supporter!
               Are you sure you want to proceed?
             </DialogDescription>
           </DialogHeader>

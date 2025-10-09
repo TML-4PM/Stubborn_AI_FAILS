@@ -43,36 +43,31 @@ const About = () => {
     setIsSubmitting(true);
 
     try {
-      // Store in localStorage as a simple solution
-      localStorage.setItem(`contact_${Date.now()}`, JSON.stringify({
-        ...formData,
-        date: new Date().toISOString()
-      }));
+      const { supabase } = await import('@/integrations/supabase/client');
       
-      // Log the data that would be sent
-      console.log("Sending contact form to: troy.latter@4pm.net.au");
-      console.log("Form data:", formData);
-      
-      // Simulate API call with timeout
-      setTimeout(() => {
-        setIsSubmitting(false);
-        setIsSuccess(true);
-        toast({
-          title: "Message sent!",
-          description: "We've received your message and will respond soon.",
-        });
+      const { data, error } = await supabase.functions.invoke('send-contact-email', {
+        body: formData
+      });
 
-        // Reset form after successful submission
-        setTimeout(() => {
-          setFormData({
-            name: '',
-            email: '',
-            subject: '',
-            message: ''
-          });
-          setIsSuccess(false);
-        }, 2000);
-      }, 1500);
+      if (error) throw error;
+
+      setIsSubmitting(false);
+      setIsSuccess(true);
+      toast({
+        title: "Message sent!",
+        description: "We've received your message and will respond soon.",
+      });
+
+      // Reset form after successful submission
+      setTimeout(() => {
+        setFormData({
+          name: '',
+          email: '',
+          subject: '',
+          message: ''
+        });
+        setIsSuccess(false);
+      }, 2000);
     } catch (error) {
       console.error("Contact form error:", error);
       setIsSubmitting(false);

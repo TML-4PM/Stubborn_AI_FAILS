@@ -9,19 +9,20 @@ const corsHeaders = {
 };
 
 const getDonorLevel = (amount: number) => {
-  if (amount >= 100000000) return "Hall of Fame"; // $1M in cents
+  if (amount >= 99999900) return "Hall of Fame"; // $999,999 in cents
+  if (amount >= 10000000) return "Diamond"; // $100,000 in cents
+  if (amount >= 1000000) return "Platinum"; // $10,000 in cents
   if (amount >= 100000) return "Champion"; // $1000 in cents
-  if (amount >= 50000) return "Champion"; // $500 in cents
   if (amount >= 10000) return "Legend"; // $100 in cents
-  if (amount >= 2500) return "Super Fan"; // $25 in cents
   return "Supporter";
 };
 
 const getProductDescription = (amount: number, level: string) => {
   if (level === "Hall of Fame") return "🏆 Hall of Fame Donation - AI Oopsies Legend!";
+  if (level === "Diamond") return "💎 Diamond Level Donation - AI Oopsies Diamond Supporter!";
+  if (level === "Platinum") return "🌟 Platinum Level Donation - AI Oopsies Platinum Supporter!";
   if (level === "Champion") return "🥇 Champion Level Donation - AI Oopsies Champion!";
   if (level === "Legend") return "🏅 Legend Level Donation - AI Oopsies Legend!";
-  if (level === "Super Fan") return "⭐ Super Fan Donation - AI Oopsies Super Fan!";
   return "❤️ Supporter Donation - Keep AI Oopsies Running!";
 };
 

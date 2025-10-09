@@ -131,7 +131,7 @@ const Footer = () => {
           
           <div className="text-center mt-8 text-sm text-muted-foreground">
             <p>© {currentYear} AI Oopsies. All rights reserved.</p>
-            <p className="mt-1">Made with ❤️ by the AI Oopsies team.</p>
+            <p className="mt-1">Made with ❤️ by Tech 4 Humanity</p>
           </div>
         </div>
       </div>

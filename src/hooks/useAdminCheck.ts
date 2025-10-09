@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import { useUser } from '@/contexts/UserContext';
 import { supabase } from '@/integrations/supabase/client';
 
+// DEV MODE: Set to true to bypass admin checks during development
+const DEV_MODE = import.meta.env.DEV;
+
 /**
  * SECURITY: Admin status is enforced server-side via RLS policies using the user_roles table.
  * This client-side check is ONLY for UI/UX purposes. All sensitive operations are protected 
@@ -16,6 +19,14 @@ export const useAdminCheck = () => {
     const checkAdminStatus = async () => {
       if (!user) {
         setIsAdmin(false);
+        setCheckingPermissions(false);
+        return;
+      }
+
+      // DEV MODE: Skip admin check and grant access
+      if (DEV_MODE) {
+        console.log('DEV MODE: Bypassing admin check - granting admin access');
+        setIsAdmin(true);
         setCheckingPermissions(false);
         return;
       }

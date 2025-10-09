@@ -1,7 +1,6 @@
 
 import { useState } from 'react';
 import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
 import AdminAuthGuard from '@/components/admin/AdminAuthGuard';
 import { useUser } from '@/contexts/UserContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -47,7 +46,6 @@ const Admin = () => {
             </Card>
           </div>
         </main>
-        <Footer />
       </div>
     );
   }
@@ -152,7 +150,6 @@ const Admin = () => {
           </div>
         </AdminAuthGuard>
       </main>
-      <Footer />
     </div>
   );
 };

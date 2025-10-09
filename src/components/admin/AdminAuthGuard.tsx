@@ -10,6 +10,9 @@ interface AdminAuthGuardProps {
   children: React.ReactNode;
 }
 
+// DEV MODE: Set to true to bypass admin checks during development
+const DEV_MODE = import.meta.env.DEV;
+
 const AdminAuthGuard = ({ children }: AdminAuthGuardProps) => {
   const { user, isLoading } = useUser();
   const [isAdmin, setIsAdmin] = useState(false);
@@ -17,10 +20,18 @@ const AdminAuthGuard = ({ children }: AdminAuthGuardProps) => {
 
   useEffect(() => {
     const checkAdminStatus = async () => {
-      console.log('Checking admin status for user:', user?.id);
+      console.log('Checking admin status for user:', user?.id, 'DEV_MODE:', DEV_MODE);
       
       if (!user) {
         console.log('No user found');
+        setCheckingPermissions(false);
+        return;
+      }
+
+      // DEV MODE: Skip admin check and grant access
+      if (DEV_MODE) {
+        console.log('DEV MODE: Bypassing admin check - granting admin access');
+        setIsAdmin(true);
         setCheckingPermissions(false);
         return;
       }

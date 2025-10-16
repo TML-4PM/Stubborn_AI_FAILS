@@ -44,11 +44,12 @@ export const useDataInitialization = () => {
 
       if (checkError) {
         console.error('❌ Error checking existing data:', checkError);
-        logError(new Error(checkError.message), 'Database Check', user?.id);
-        throw new Error(`Database check failed: ${checkError.message}`);
+        // Don't fail completely on RLS permission errors - just log and continue
+        console.warn('⚠️ Could not check existing data, proceeding with initialization attempt...');
+        updateProgress('Warning: Could not check existing data, proceeding...');
       }
 
-      if (existingOopsies && existingOopsies.length > 0) {
+      if (!checkError && existingOopsies && existingOopsies.length > 0) {
         console.log('✅ Data already initialized');
         updateProgress('Data already exists');
         setIsInitialized(true);

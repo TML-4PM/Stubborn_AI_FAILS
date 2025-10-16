@@ -98,6 +98,10 @@ const FeaturedFails = ({ fails, isLoading }: FeaturedFailsProps) => {
               <img 
                 src={fail.image_url} 
                 alt={fail.title}
+                onError={(e) => {
+                  e.currentTarget.src = '/placeholder.svg';
+                  e.currentTarget.onerror = null;
+                }}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               />
             </div>

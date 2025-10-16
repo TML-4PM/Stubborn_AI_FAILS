@@ -100,6 +100,10 @@ const TrendingSection = ({ fails, isLoading }: TrendingSectionProps) => {
               <img 
                 src={fail.image_url} 
                 alt={fail.title}
+                onError={(e) => {
+                  e.currentTarget.src = '/placeholder.svg';
+                  e.currentTarget.onerror = null;
+                }}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               />
               <div className="absolute top-2 left-2 flex gap-1">

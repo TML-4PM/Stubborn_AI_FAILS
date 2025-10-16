@@ -1063,6 +1063,39 @@ export type Database = {
         }
         Relationships: []
       }
+      api_rate_limit_log: {
+        Row: {
+          blocked_until: string | null
+          created_at: string | null
+          endpoint: string
+          id: string
+          identifier: string
+          last_request: string | null
+          request_count: number | null
+          window_start: string | null
+        }
+        Insert: {
+          blocked_until?: string | null
+          created_at?: string | null
+          endpoint: string
+          id?: string
+          identifier: string
+          last_request?: string | null
+          request_count?: number | null
+          window_start?: string | null
+        }
+        Update: {
+          blocked_until?: string | null
+          created_at?: string | null
+          endpoint?: string
+          id?: string
+          identifier?: string
+          last_request?: string | null
+          request_count?: number | null
+          window_start?: string | null
+        }
+        Relationships: []
+      }
       api_rate_limits: {
         Row: {
           endpoint: string
@@ -5394,6 +5427,39 @@ export type Database = {
         }
         Relationships: []
       }
+      ip_blocklist: {
+        Row: {
+          blocked_at: string | null
+          blocked_by: string | null
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          ip_address: unknown
+          is_permanent: boolean | null
+          reason: string
+        }
+        Insert: {
+          blocked_at?: string | null
+          blocked_by?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          ip_address: unknown
+          is_permanent?: boolean | null
+          reason: string
+        }
+        Update: {
+          blocked_at?: string | null
+          blocked_by?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          ip_address?: unknown
+          is_permanent?: boolean | null
+          reason?: string
+        }
+        Relationships: []
+      }
       jd_story_matches: {
         Row: {
           created_at: string
@@ -8687,6 +8753,45 @@ export type Database = {
           question_text?: string
           theme?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      rate_limit_violations: {
+        Row: {
+          blocked_until: string | null
+          created_at: string | null
+          endpoint: string
+          first_violation_at: string | null
+          id: string
+          ip_address: unknown
+          is_blocked: boolean | null
+          last_violation_at: string | null
+          user_id: string | null
+          violation_count: number | null
+        }
+        Insert: {
+          blocked_until?: string | null
+          created_at?: string | null
+          endpoint: string
+          first_violation_at?: string | null
+          id?: string
+          ip_address: unknown
+          is_blocked?: boolean | null
+          last_violation_at?: string | null
+          user_id?: string | null
+          violation_count?: number | null
+        }
+        Update: {
+          blocked_until?: string | null
+          created_at?: string | null
+          endpoint?: string
+          first_violation_at?: string | null
+          id?: string
+          ip_address?: unknown
+          is_blocked?: boolean | null
+          last_violation_at?: string | null
+          user_id?: string | null
+          violation_count?: number | null
         }
         Relationships: []
       }
@@ -12886,6 +12991,16 @@ export type Database = {
         }
         Returns: boolean
       }
+      check_api_rate_limit_v2: {
+        Args: {
+          _block_minutes?: number
+          _endpoint: string
+          _identifier: string
+          _max_requests?: number
+          _window_minutes?: number
+        }
+        Returns: boolean
+      }
       check_expiring_consents: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -13091,6 +13206,10 @@ export type Database = {
         Args: { _conversation_id: string; _user_id: string }
         Returns: boolean
       }
+      is_ip_blocked: {
+        Args: { _ip: unknown }
+        Returns: boolean
+      }
       list_tasks: {
         Args: { filter_status?: string }
         Returns: {
@@ -13133,6 +13252,10 @@ export type Database = {
           p_resource_id?: string
           p_resource_type?: string
         }
+        Returns: undefined
+      }
+      log_rate_limit_violation: {
+        Args: { _endpoint: string; _ip: unknown; _user_id?: string }
         Returns: undefined
       }
       log_user_activity: {

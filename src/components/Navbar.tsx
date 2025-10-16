@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, X, Zap, Settings, Search, Users } from 'lucide-react';
+import { Menu, X, Settings, Search, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useUser } from '@/contexts/UserContext';
 import UserNavigation from './UserNavigation';
@@ -30,7 +30,11 @@ const Navbar = () => {
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link to="/" className="flex items-center space-x-2">
-              <Zap className="h-8 w-8 text-fail" />
+              <img 
+                src="https://lzfgigiyqpuuxslsygjt.supabase.co/storage/v1/object/public/images/AHC%20droid%20head.webp"
+                alt="AI Oopsies Logo"
+                className="h-8 w-8 object-contain"
+              />
               <span className="font-bold text-xl">AI Oopsies</span>
             </Link>
           </div>

@@ -13,51 +13,51 @@
   "categories": ["entertainment", "social", "photo"],
   "icons": [
     {
-      "src": "/icon-72x72.png",
+      "src": "https://lzfgigiyqpuuxslsygjt.supabase.co/storage/v1/object/public/images/AHC%20droid%20head.webp",
       "sizes": "72x72",
-      "type": "image/png",
+      "type": "image/webp",
       "purpose": "maskable any"
     },
     {
-      "src": "/icon-96x96.png",
+      "src": "https://lzfgigiyqpuuxslsygjt.supabase.co/storage/v1/object/public/images/AHC%20droid%20head.webp",
       "sizes": "96x96",
-      "type": "image/png",
+      "type": "image/webp",
       "purpose": "maskable any"
     },
     {
-      "src": "/icon-128x128.png",
+      "src": "https://lzfgigiyqpuuxslsygjt.supabase.co/storage/v1/object/public/images/AHC%20droid%20head.webp",
       "sizes": "128x128",
-      "type": "image/png",
+      "type": "image/webp",
       "purpose": "maskable any"
     },
     {
-      "src": "/icon-144x144.png",
+      "src": "https://lzfgigiyqpuuxslsygjt.supabase.co/storage/v1/object/public/images/AHC%20droid%20head.webp",
       "sizes": "144x144",
-      "type": "image/png",
+      "type": "image/webp",
       "purpose": "maskable any"
     },
     {
-      "src": "/icon-152x152.png",
+      "src": "https://lzfgigiyqpuuxslsygjt.supabase.co/storage/v1/object/public/images/AHC%20droid%20head.webp",
       "sizes": "152x152",
-      "type": "image/png",
+      "type": "image/webp",
       "purpose": "maskable any"
     },
     {
-      "src": "/icon-192x192.png",
+      "src": "https://lzfgigiyqpuuxslsygjt.supabase.co/storage/v1/object/public/images/AHC%20droid%20head.webp",
       "sizes": "192x192",
-      "type": "image/png",
+      "type": "image/webp",
       "purpose": "maskable any"
     },
     {
-      "src": "/icon-384x384.png",
+      "src": "https://lzfgigiyqpuuxslsygjt.supabase.co/storage/v1/object/public/images/AHC%20droid%20head.webp",
       "sizes": "384x384",
-      "type": "image/png",
+      "type": "image/webp",
       "purpose": "maskable any"
     },
     {
-      "src": "/icon-512x512.png",
+      "src": "https://lzfgigiyqpuuxslsygjt.supabase.co/storage/v1/object/public/images/AHC%20droid%20head.webp",
       "sizes": "512x512",
-      "type": "image/png",
+      "type": "image/webp",
       "purpose": "maskable any"
     }
   ],
@@ -67,14 +67,22 @@
       "short_name": "Gallery",
       "description": "Browse the AI fails gallery",
       "url": "/gallery",
-      "icons": [{ "src": "/icon-96x96.png", "sizes": "96x96" }]
+      "icons": [{ 
+        "src": "https://lzfgigiyqpuuxslsygjt.supabase.co/storage/v1/object/public/images/AHC%20droid%20head.webp", 
+        "sizes": "96x96",
+        "type": "image/webp"
+      }]
     },
     {
       "name": "Submit Fail",
       "short_name": "Submit",
       "description": "Submit your AI fail",
       "url": "/submit",
-      "icons": [{ "src": "/icon-96x96.png", "sizes": "96x96" }]
+      "icons": [{ 
+        "src": "https://lzfgigiyqpuuxslsygjt.supabase.co/storage/v1/object/public/images/AHC%20droid%20head.webp", 
+        "sizes": "96x96",
+        "type": "image/webp"
+      }]
     }
   ],
   "screenshots": [

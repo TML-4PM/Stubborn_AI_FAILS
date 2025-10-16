@@ -50,6 +50,8 @@ export const updateSEOMetadata = (metadata: SEOMetadata) => {
   
   if (metadata.image) {
     updateMetaTag('og:image', metadata.image);
+  } else {
+    updateMetaTag('og:image', 'https://lzfgigiyqpuuxslsygjt.supabase.co/storage/v1/object/public/images/AHC%20droid%20head.webp');
   }
   
   if (metadata.url) {
@@ -63,6 +65,8 @@ export const updateSEOMetadata = (metadata: SEOMetadata) => {
   
   if (metadata.image) {
     updateMetaTag('twitter:image', metadata.image);
+  } else {
+    updateMetaTag('twitter:image', 'https://lzfgigiyqpuuxslsygjt.supabase.co/storage/v1/object/public/images/AHC%20droid%20head.webp');
   }
 
   // Article-specific

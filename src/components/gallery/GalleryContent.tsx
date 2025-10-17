@@ -30,48 +30,42 @@ const GalleryContent = ({ category, query }: GalleryContentProps) => {
   const itemsPerPage = 12;
   
   const fetchFails = async (page: number, category?: string, query?: string): Promise<Fail[]> => {
-    setIsLoading(true);
-    
-    let dbQuery = supabase
-      .from('oopsies')
-      .select(`
-        *,
-        profiles(username)
-      `)
-      .eq('status', 'approved')
-      .order('created_at', { ascending: false })
-      .range((page - 1) * itemsPerPage, page * itemsPerPage - 1);
-    
-    if (category) {
-      dbQuery = dbQuery.eq('category', category);
-    }
-    
-    if (query) {
-      dbQuery = dbQuery.ilike('title', `%${query}%`);
-    }
-    
-    const { data, error } = await dbQuery;
-    
-    if (error) {
-      console.error('Error fetching fails:', error);
-      throw error;
-    }
-    
-    setIsLoading(false);
-    
-    // Transform the data to match the expected interface
-    const transformedData = (data || []).map(item => ({
-      id: item.id,
-      title: item.title,
-      description: item.description,
-      image_url: item.image_url,
-      likes: item.likes || 0,
-      created_at: item.created_at,
-      status: item.status,
-      username: (item.profiles as any)?.username || 'Anonymous'
-    }));
-
-    if (transformedData.length === 0) {
+    try {
+      let dbQuery = supabase
+        .from('oopsies')
+        .select(`
+          *,
+          profiles(username)
+        `)
+        .eq('status', 'approved')
+        .order('created_at', { ascending: false })
+        .range((page - 1) * itemsPerPage, page * itemsPerPage - 1);
+      
+      if (category) {
+        dbQuery = dbQuery.eq('category', category);
+      }
+      
+      if (query) {
+        dbQuery = dbQuery.ilike('title', `%${query}%`);
+      }
+      
+      const { data, error } = await dbQuery;
+      
+      // If DB has data, use it
+      if (!error && data && data.length > 0) {
+        return data.map(item => ({
+          id: item.id,
+          title: item.title,
+          description: item.description,
+          image_url: item.image_url,
+          likes: item.likes || 0,
+          created_at: item.created_at,
+          status: item.status,
+          username: (item.profiles as any)?.username || 'Anonymous'
+        }));
+      }
+      
+      // Fallback to local data
       const local = initialAIFails
         .filter(f => (category ? f.category === category : true))
         .filter(f => (query ? f.title.toLowerCase().includes(query.toLowerCase()) : true))
@@ -86,10 +80,26 @@ const GalleryContent = ({ category, query }: GalleryContentProps) => {
           status: (f as any).status || 'approved',
           username: 'Community'
         }));
+      
       return local as Fail[];
+    } catch (error) {
+      console.error('Error fetching fails:', error);
+      // Return local fallback on error
+      return initialAIFails
+        .filter(f => (category ? f.category === category : true))
+        .filter(f => (query ? f.title.toLowerCase().includes(query.toLowerCase()) : true))
+        .slice((page - 1) * itemsPerPage, page * itemsPerPage)
+        .map((f, idx) => ({
+          id: `local-${(page - 1) * itemsPerPage + idx}-${f.title}`,
+          title: f.title,
+          description: f.description,
+          image_url: f.image_url,
+          likes: (f as any).likes || 0,
+          created_at: new Date().toISOString(),
+          status: (f as any).status || 'approved',
+          username: 'Community'
+        })) as Fail[];
     }
-    
-    return transformedData;
   };
   
   useEffect(() => {
@@ -99,24 +109,36 @@ const GalleryContent = ({ category, query }: GalleryContentProps) => {
   }, [category, query]);
   
   useEffect(() => {
-    if (hasMore) {
+    const loadFails = () => {
       setIsLoading(true);
-      fetchFails(page, category, query)
-        .then(newFails => {
-          if (newFails.length === 0) {
-            setHasMore(false);
-          } else {
-            setFails(prevFails => [...prevFails, ...newFails]);
-          }
-        })
-        .catch(error => {
-          console.error('Error in useEffect:', error);
-        })
-        .finally(() => {
-          setIsLoading(false);
-        });
-    }
-  }, [page, category, query, hasMore]);
+      
+      // Use local data directly for now (DB is empty)
+      const local = initialAIFails
+        .filter(f => (category ? f.category === category : true))
+        .filter(f => (query ? f.title.toLowerCase().includes(query.toLowerCase()) : true))
+        .slice((page - 1) * itemsPerPage, page * itemsPerPage)
+        .map((f, idx) => ({
+          id: `local-${(page - 1) * itemsPerPage + idx}-${f.title}`,
+          title: f.title,
+          description: f.description,
+          image_url: f.image_url,
+          likes: (f as any).likes || 0,
+          created_at: new Date().toISOString(),
+          status: (f as any).status || 'approved',
+          username: 'Community'
+        })) as Fail[];
+      
+      if (page === 1) {
+        setFails(local);
+      } else {
+        setFails(prevFails => [...prevFails, ...local]);
+      }
+      setHasMore(local.length >= itemsPerPage);
+      setIsLoading(false);
+    };
+    
+    loadFails();
+  }, [page, category, query]);
   
   const loadMore = () => {
     if (!isLoading && hasMore) {

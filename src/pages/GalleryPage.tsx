@@ -13,7 +13,11 @@ const GalleryPage = () => {
     window.location.reload();
   };
 
-  const content = <GalleryContent />;
+  const content = (
+    <main className="flex-1 container mx-auto px-4 py-8">
+      <GalleryContent />
+    </main>
+  );
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -26,8 +30,6 @@ const GalleryPage = () => {
       ) : (
         content
       )}
-      
-      
     </div>
   );
 };

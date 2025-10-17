@@ -6,6 +6,7 @@ import { useRealTimeOptimized } from '@/hooks/useRealTimeOptimized';
 import FailCard from '@/components/FailCard';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { supabase } from '@/integrations/supabase/client';
+import { initialAIFails } from '@/data/initialAIFails';
 
 interface OptimizedGalleryProps {
   category?: string;
@@ -59,6 +60,24 @@ const OptimizedGallery = ({
         status: item.status,
         username: (item.profiles as any)?.username || 'Anonymous'
       }));
+
+      if (transformedData.length === 0) {
+        const local = initialAIFails
+          .filter(f => (category && category !== 'all' ? f.category === category : true))
+          .filter(f => (searchQuery ? f.title.toLowerCase().includes(searchQuery.toLowerCase()) : true))
+          .slice((page - 1) * 20, page * 20)
+          .map((f, idx) => ({
+            id: `local-${(page - 1) * 20 + idx}-${f.title}`,
+            title: f.title,
+            description: f.description,
+            image_url: f.image_url,
+            likes: (f as any).likes || 0,
+            created_at: new Date().toISOString(),
+            status: (f as any).status || 'approved',
+            username: 'Community'
+          }));
+        return local;
+      }
 
       return transformedData;
     },

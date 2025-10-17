@@ -4,6 +4,7 @@ import { Loader2 } from 'lucide-react';
 import FailCard from '@/components/FailCard';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
+import { initialAIFails } from '@/data/initialAIFails';
 
 interface Fail {
   id: string;
@@ -69,6 +70,24 @@ const GalleryContent = ({ category, query }: GalleryContentProps) => {
       status: item.status,
       username: (item.profiles as any)?.username || 'Anonymous'
     }));
+
+    if (transformedData.length === 0) {
+      const local = initialAIFails
+        .filter(f => (category ? f.category === category : true))
+        .filter(f => (query ? f.title.toLowerCase().includes(query.toLowerCase()) : true))
+        .slice((page - 1) * itemsPerPage, page * itemsPerPage)
+        .map((f, idx) => ({
+          id: `local-${(page - 1) * itemsPerPage + idx}-${f.title}`,
+          title: f.title,
+          description: f.description,
+          image_url: f.image_url,
+          likes: (f as any).likes || 0,
+          created_at: new Date().toISOString(),
+          status: (f as any).status || 'approved',
+          username: 'Community'
+        }));
+      return local as Fail[];
+    }
     
     return transformedData;
   };

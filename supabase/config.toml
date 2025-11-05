@@ -1,1 +1,25 @@
 project_id = "pflisxkcxbzboxwidywf"
+
+[functions.fetch-url-metadata]
+verify_jwt = false
+
+[functions.discover-ai-fails]
+verify_jwt = false
+
+[functions.schedule-discovery]
+verify_jwt = false
+
+[functions.website-audit]
+verify_jwt = false
+
+[functions.create-checkout]
+verify_jwt = false
+
+[functions.send-contact-email]
+verify_jwt = false
+
+[functions.verify-payment]
+verify_jwt = false
+
+[functions.printify-integration]
+verify_jwt = false

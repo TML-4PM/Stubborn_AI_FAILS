@@ -404,7 +404,7 @@ export type Database = {
           agent_name: string | null
           download_date: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           user_agent: string | null
           user_id: string | null
         }
@@ -413,7 +413,7 @@ export type Database = {
           agent_name?: string | null
           download_date?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           user_agent?: string | null
           user_id?: string | null
         }
@@ -422,7 +422,7 @@ export type Database = {
           agent_name?: string | null
           download_date?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           user_agent?: string | null
           user_id?: string | null
         }
@@ -823,7 +823,7 @@ export type Database = {
           question: string
           related_faqs: string[] | null
           related_papers: string[] | null
-          search_vector: unknown | null
+          search_vector: unknown
           see_also: string[] | null
           study_phase: string[] | null
           tags: string[] | null
@@ -846,7 +846,7 @@ export type Database = {
           question: string
           related_faqs?: string[] | null
           related_papers?: string[] | null
-          search_vector?: unknown | null
+          search_vector?: unknown
           see_also?: string[] | null
           study_phase?: string[] | null
           tags?: string[] | null
@@ -869,7 +869,7 @@ export type Database = {
           question?: string
           related_faqs?: string[] | null
           related_papers?: string[] | null
-          search_vector?: unknown | null
+          search_vector?: unknown
           see_also?: string[] | null
           study_phase?: string[] | null
           tags?: string[] | null
@@ -1493,7 +1493,7 @@ export type Database = {
         Row: {
           article_id: string | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           referrer: string | null
           user_agent: string | null
           user_id: string | null
@@ -1502,7 +1502,7 @@ export type Database = {
         Insert: {
           article_id?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           referrer?: string | null
           user_agent?: string | null
           user_id?: string | null
@@ -1511,7 +1511,7 @@ export type Database = {
         Update: {
           article_id?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           referrer?: string | null
           user_agent?: string | null
           user_id?: string | null
@@ -1685,6 +1685,53 @@ export type Database = {
           sub_percent?: number | null
         }
         Relationships: []
+      }
+      bookings: {
+        Row: {
+          class_id: string
+          created_at: string
+          id: string
+          notes: string | null
+          payment_status: string
+          status: string
+          updated_at: string
+          user_email: string
+          user_name: string
+          user_phone: string | null
+        }
+        Insert: {
+          class_id: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          payment_status?: string
+          status?: string
+          updated_at?: string
+          user_email: string
+          user_name: string
+          user_phone?: string | null
+        }
+        Update: {
+          class_id?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          payment_status?: string
+          status?: string
+          updated_at?: string
+          user_email?: string
+          user_name?: string
+          user_phone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       bundle_products: {
         Row: {
@@ -2201,6 +2248,66 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      classes: {
+        Row: {
+          capacity: number
+          class_type: string
+          created_at: string
+          description: string | null
+          end_time: string
+          enrolled_count: number
+          id: string
+          instructor: string
+          is_active: boolean
+          language: string
+          level: string | null
+          location: string | null
+          online_link: string | null
+          price: number
+          start_time: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          capacity?: number
+          class_type: string
+          created_at?: string
+          description?: string | null
+          end_time: string
+          enrolled_count?: number
+          id?: string
+          instructor?: string
+          is_active?: boolean
+          language: string
+          level?: string | null
+          location?: string | null
+          online_link?: string | null
+          price?: number
+          start_time: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          capacity?: number
+          class_type?: string
+          created_at?: string
+          description?: string | null
+          end_time?: string
+          enrolled_count?: number
+          id?: string
+          instructor?: string
+          is_active?: boolean
+          language?: string
+          level?: string | null
+          location?: string | null
+          online_link?: string | null
+          price?: number
+          start_time?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       coach_build_videos: {
         Row: {
@@ -3208,7 +3315,7 @@ export type Database = {
           license_id: string | null
           metadata: Json | null
           published_at: string | null
-          search_vector: unknown | null
+          search_vector: unknown
           slug: string
           source_name: string | null
           source_url: string | null
@@ -3233,7 +3340,7 @@ export type Database = {
           license_id?: string | null
           metadata?: Json | null
           published_at?: string | null
-          search_vector?: unknown | null
+          search_vector?: unknown
           slug: string
           source_name?: string | null
           source_url?: string | null
@@ -3258,7 +3365,7 @@ export type Database = {
           license_id?: string | null
           metadata?: Json | null
           published_at?: string | null
-          search_vector?: unknown | null
+          search_vector?: unknown
           slug?: string
           source_name?: string | null
           source_url?: string | null
@@ -4262,6 +4369,33 @@ export type Database = {
           stripe_session_id?: string | null
           updated_at?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      email_captures: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          metadata: Json | null
+          source: string
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          metadata?: Json | null
+          source: string
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          metadata?: Json | null
+          source?: string
+          user_agent?: string | null
         }
         Relationships: []
       }
@@ -5344,7 +5478,7 @@ export type Database = {
           result_score: number | null
           role: string | null
           score: number | null
-          search_vector: unknown | null
+          search_vector: unknown
           situation: string
           situation_score: number | null
           star_l_id: string | null
@@ -5377,7 +5511,7 @@ export type Database = {
           result_score?: number | null
           role?: string | null
           score?: number | null
-          search_vector?: unknown | null
+          search_vector?: unknown
           situation: string
           situation_score?: number | null
           star_l_id?: string | null
@@ -5410,7 +5544,7 @@ export type Database = {
           result_score?: number | null
           role?: string | null
           score?: number | null
-          search_vector?: unknown | null
+          search_vector?: unknown
           situation?: string
           situation_score?: number | null
           star_l_id?: string | null
@@ -6718,7 +6852,7 @@ export type Database = {
           id: string
           is_published: boolean | null
           question: string
-          search_vector: unknown | null
+          search_vector: unknown
           tags: string[] | null
           technical_level: string
           updated_at: string | null
@@ -6733,7 +6867,7 @@ export type Database = {
           id?: string
           is_published?: boolean | null
           question: string
-          search_vector?: unknown | null
+          search_vector?: unknown
           tags?: string[] | null
           technical_level: string
           updated_at?: string | null
@@ -6748,7 +6882,7 @@ export type Database = {
           id?: string
           is_published?: boolean | null
           question?: string
-          search_vector?: unknown | null
+          search_vector?: unknown
           tags?: string[] | null
           technical_level?: string
           updated_at?: string | null
@@ -6764,7 +6898,7 @@ export type Database = {
           created_at: string
           downloaded_by: string | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           user_agent: string | null
         }
         Insert: {
@@ -6774,7 +6908,7 @@ export type Database = {
           created_at?: string
           downloaded_by?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           user_agent?: string | null
         }
         Update: {
@@ -6784,7 +6918,7 @@ export type Database = {
           created_at?: string
           downloaded_by?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           user_agent?: string | null
         }
         Relationships: []
@@ -6802,7 +6936,7 @@ export type Database = {
           is_featured: boolean | null
           population_tags: string[] | null
           resource_type: string
-          search_vector: unknown | null
+          search_vector: unknown
           title: string
           updated_at: string | null
         }
@@ -6818,7 +6952,7 @@ export type Database = {
           is_featured?: boolean | null
           population_tags?: string[] | null
           resource_type: string
-          search_vector?: unknown | null
+          search_vector?: unknown
           title: string
           updated_at?: string | null
         }
@@ -6834,7 +6968,7 @@ export type Database = {
           is_featured?: boolean | null
           population_tags?: string[] | null
           resource_type?: string
-          search_vector?: unknown | null
+          search_vector?: unknown
           title?: string
           updated_at?: string | null
         }
@@ -6867,6 +7001,30 @@ export type Database = {
           search_query?: string
           session_id?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      newsletter_subscriptions: {
+        Row: {
+          email: string
+          id: string
+          is_active: boolean | null
+          language: string | null
+          subscribed_at: string
+        }
+        Insert: {
+          email: string
+          id?: string
+          is_active?: boolean | null
+          language?: string | null
+          subscribed_at?: string
+        }
+        Update: {
+          email?: string
+          id?: string
+          is_active?: boolean | null
+          language?: string | null
+          subscribed_at?: string
         }
         Relationships: []
       }
@@ -7333,7 +7491,7 @@ export type Database = {
           endpoint: string
           environment: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           method: string
           partner_org_id: string
           request_body: Json | null
@@ -7348,7 +7506,7 @@ export type Database = {
           endpoint: string
           environment: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           method: string
           partner_org_id: string
           request_body?: Json | null
@@ -7363,7 +7521,7 @@ export type Database = {
           endpoint?: string
           environment?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           method?: string
           partner_org_id?: string
           request_body?: Json | null
@@ -8834,7 +8992,7 @@ export type Database = {
           created_at: string
           destination_url: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           partner_id: string
           referrer_url: string | null
           user_agent: string | null
@@ -8845,7 +9003,7 @@ export type Database = {
           created_at?: string
           destination_url: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           partner_id: string
           referrer_url?: string | null
           user_agent?: string | null
@@ -8856,7 +9014,7 @@ export type Database = {
           created_at?: string
           destination_url?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           partner_id?: string
           referrer_url?: string | null
           user_agent?: string | null
@@ -10494,13 +10652,13 @@ export type Database = {
           endpoint: string | null
           event_type: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           metadata: Json | null
           new_data: Json | null
           old_data: Json | null
           record_id: string | null
           request_id: string | null
-          search_vector: unknown | null
+          search_vector: unknown
           severity: string | null
           table_name: string | null
           timestamp: string | null
@@ -10514,13 +10672,13 @@ export type Database = {
           endpoint?: string | null
           event_type: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           metadata?: Json | null
           new_data?: Json | null
           old_data?: Json | null
           record_id?: string | null
           request_id?: string | null
-          search_vector?: unknown | null
+          search_vector?: unknown
           severity?: string | null
           table_name?: string | null
           timestamp?: string | null
@@ -10534,13 +10692,13 @@ export type Database = {
           endpoint?: string | null
           event_type?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           metadata?: Json | null
           new_data?: Json | null
           old_data?: Json | null
           record_id?: string | null
           request_id?: string | null
-          search_vector?: unknown | null
+          search_vector?: unknown
           severity?: string | null
           table_name?: string | null
           timestamp?: string | null
@@ -10557,13 +10715,13 @@ export type Database = {
           endpoint: string | null
           event_type: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           metadata: Json | null
           new_data: Json | null
           old_data: Json | null
           record_id: string | null
           request_id: string | null
-          search_vector: unknown | null
+          search_vector: unknown
           severity: string | null
           table_name: string | null
           timestamp: string | null
@@ -10577,13 +10735,13 @@ export type Database = {
           endpoint?: string | null
           event_type: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           metadata?: Json | null
           new_data?: Json | null
           old_data?: Json | null
           record_id?: string | null
           request_id?: string | null
-          search_vector?: unknown | null
+          search_vector?: unknown
           severity?: string | null
           table_name?: string | null
           timestamp?: string | null
@@ -10597,13 +10755,13 @@ export type Database = {
           endpoint?: string | null
           event_type?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           metadata?: Json | null
           new_data?: Json | null
           old_data?: Json | null
           record_id?: string | null
           request_id?: string | null
-          search_vector?: unknown | null
+          search_vector?: unknown
           severity?: string | null
           table_name?: string | null
           timestamp?: string | null
@@ -12311,6 +12469,47 @@ export type Database = {
         }
         Relationships: []
       }
+      waitlist: {
+        Row: {
+          class_id: string
+          created_at: string
+          id: string
+          status: string
+          updated_at: string
+          user_email: string
+          user_name: string
+          user_phone: string | null
+        }
+        Insert: {
+          class_id: string
+          created_at?: string
+          id?: string
+          status?: string
+          updated_at?: string
+          user_email: string
+          user_name: string
+          user_phone?: string | null
+        }
+        Update: {
+          class_id?: string
+          created_at?: string
+          id?: string
+          status?: string
+          updated_at?: string
+          user_email?: string
+          user_name?: string
+          user_phone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "waitlist_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       wallet_passes: {
         Row: {
           authentication_token: string
@@ -12889,9 +13088,9 @@ export type Database = {
       }
     }
     Functions: {
-      add_file_entry: {
-        Args:
-          | {
+      add_file_entry:
+        | {
+            Args: {
               p_category: string
               p_direction: string
               p_file_ext: string
@@ -12901,7 +13100,10 @@ export type Database = {
               p_tags: string
               p_theme_title: string
             }
-          | {
+            Returns: undefined
+          }
+        | {
+            Args: {
               p_category: string
               p_file_ext: string
               p_file_name: string
@@ -12910,24 +13112,12 @@ export type Database = {
               p_tags: string
               p_theme_title: string
             }
-        Returns: undefined
-      }
-      add_task: {
-        Args: { task_desc: string }
-        Returns: number
-      }
-      aggregate_daily_partner_metrics: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      archive_old_audit_logs: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      auto_migrate_all_family_agents_v2: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+            Returns: undefined
+          }
+      add_task: { Args: { task_desc: string }; Returns: number }
+      aggregate_daily_partner_metrics: { Args: never; Returns: undefined }
+      archive_old_audit_logs: { Args: never; Returns: undefined }
+      auto_migrate_all_family_agents_v2: { Args: never; Returns: undefined }
       award_achievement: {
         Args: {
           achievement_name: string
@@ -12974,14 +13164,8 @@ export type Database = {
         Args: { _family_group_id: string; _user_id: string }
         Returns: boolean
       }
-      can_submit_build_video: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      capture_and_notify_snapshot: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      can_submit_build_video: { Args: never; Returns: boolean }
+      capture_and_notify_snapshot: { Args: never; Returns: undefined }
       check_api_rate_limit: {
         Args: {
           _endpoint: string
@@ -13002,7 +13186,7 @@ export type Database = {
         Returns: boolean
       }
       check_expiring_consents: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           consent_id: string
           consent_type: string
@@ -13028,62 +13212,38 @@ export type Database = {
         Args: { _limit_type: string; _user_id: string }
         Returns: boolean
       }
-      cleanup_old_sms_logs: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      complete_task: {
-        Args: { task_id: number }
-        Returns: undefined
-      }
-      decrement_likes: {
-        Args: { fail_id: string }
-        Returns: undefined
-      }
-      delete_task: {
-        Args: { task_id: number }
-        Returns: undefined
-      }
+      cleanup_old_sms_logs: { Args: never; Returns: undefined }
+      complete_task: { Args: { task_id: number }; Returns: undefined }
+      decrement_likes: { Args: { fail_id: string }; Returns: undefined }
+      delete_task: { Args: { task_id: number }; Returns: undefined }
       enqueue_slack: {
         Args: { p_blocks?: Json; p_text: string; p_type: string }
         Returns: string
       }
       ensure_rls_on_all_tables: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           has_policies: boolean
           rls_enabled: boolean
           table_name: string
         }[]
       }
-      file_library_purge: {
-        Args: { p_keep_days?: number }
-        Returns: undefined
-      }
+      file_library_purge: { Args: { p_keep_days?: number }; Returns: undefined }
       file_library_stats: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           generated: number
           total: number
           uploaded: number
         }[]
       }
-      generate_content_slug: {
-        Args: { title_text: string }
-        Returns: string
-      }
+      generate_content_slug: { Args: { title_text: string }; Returns: string }
       generate_daily_challenge: {
         Args: { challenge_date: string }
         Returns: string
       }
-      generate_qr_token: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      generate_study_key: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      generate_qr_token: { Args: never; Returns: string }
+      generate_study_key: { Args: never; Returns: string }
       get_category_analytics: {
         Args: { category_filter?: string }
         Returns: {
@@ -13096,10 +13256,7 @@ export type Database = {
           trending_agent_name: string
         }[]
       }
-      get_doc: {
-        Args: { doc_title: string }
-        Returns: string
-      }
+      get_doc: { Args: { doc_title: string }; Returns: string }
       get_doc_history: {
         Args: { doc_title: string }
         Returns: {
@@ -13159,14 +13316,8 @@ export type Database = {
           videos_count: number
         }[]
       }
-      get_user_plan: {
-        Args: { _user_id: string }
-        Returns: string
-      }
-      harvest_slack_responses: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      get_user_plan: { Args: { _user_id: string }; Returns: string }
+      harvest_slack_responses: { Args: never; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -13182,18 +13333,12 @@ export type Database = {
         Args: { p_video_id: string }
         Returns: undefined
       }
-      increment_likes: {
-        Args: { fail_id: string }
-        Returns: undefined
-      }
+      increment_likes: { Args: { fail_id: string }; Returns: undefined }
       increment_oopsie_likes: {
         Args: { oopsie_id: string }
         Returns: undefined
       }
-      increment_view_count: {
-        Args: { oopsie_id: string }
-        Returns: undefined
-      }
+      increment_view_count: { Args: { oopsie_id: string }; Returns: undefined }
       is_active_partner_member: {
         Args: { _partner_org_id: string; _user_id: string }
         Returns: boolean
@@ -13206,10 +13351,7 @@ export type Database = {
         Args: { _conversation_id: string; _user_id: string }
         Returns: boolean
       }
-      is_ip_blocked: {
-        Args: { _ip: unknown }
-        Returns: boolean
-      }
+      is_ip_blocked: { Args: { _ip: unknown }; Returns: boolean }
       list_tasks: {
         Args: { filter_status?: string }
         Returns: {
@@ -13269,53 +13411,32 @@ export type Database = {
         }
         Returns: undefined
       }
-      monthly_demo_refresh: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      notify_slack: {
-        Args:
-          | { payload: string }
-          | {
+      monthly_demo_refresh: { Args: never; Returns: undefined }
+      notify_slack:
+        | {
+            Args: {
               v_blocks?: Json
               v_channel: string
               v_text: string
               v_token: string
             }
-        Returns: undefined
-      }
+            Returns: undefined
+          }
+        | { Args: { payload: string }; Returns: undefined }
       pick_best_agent: {
         Args: { report_category: string; report_tags: string[] }
         Returns: string
       }
-      prime_exec_portal: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      prime_exec_portal: { Args: never; Returns: undefined }
       promote_contribution_to_agent: {
         Args: { _contribution_id: string; _moderator_id?: string }
         Returns: string
       }
-      remove_task: {
-        Args: { task_id: number }
-        Returns: undefined
-      }
-      reopen_task: {
-        Args: { task_id: number }
-        Returns: undefined
-      }
-      run_audit_check: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      run_simulation_test: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      run_system_check: {
-        Args: { mode: string }
-        Returns: undefined
-      }
+      remove_task: { Args: { task_id: number }; Returns: undefined }
+      reopen_task: { Args: { task_id: number }; Returns: undefined }
+      run_audit_check: { Args: never; Returns: undefined }
+      run_simulation_test: { Args: never; Returns: undefined }
+      run_system_check: { Args: { mode: string }; Returns: undefined }
       search_tasks: {
         Args: { keyword: string }
         Returns: {
@@ -13327,39 +13448,24 @@ export type Database = {
         }[]
       }
       security_audit_summary: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           category: string
           details: string
           status: string
         }[]
       }
-      seed_demo_data: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      slack_digest: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      slack_enrich_and_alert: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      snapshot_exec_briefing: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      snapshot_governance_report: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      seed_demo_data: { Args: never; Returns: undefined }
+      slack_digest: { Args: never; Returns: undefined }
+      slack_enrich_and_alert: { Args: never; Returns: undefined }
+      snapshot_exec_briefing: { Args: never; Returns: undefined }
+      snapshot_governance_report: { Args: never; Returns: undefined }
       sync_chapter_pct: {
         Args: { p_book: string; p_chapter: string }
         Returns: undefined
       }
       test_rls_policies: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           actual_result: string
           expected_result: string
@@ -13372,10 +13478,7 @@ export type Database = {
         Args: { p_action: string; p_user_id: string }
         Returns: undefined
       }
-      update_daily_analytics: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      update_daily_analytics: { Args: never; Returns: undefined }
       update_link_health: {
         Args: {
           check_url: string
@@ -13385,10 +13488,7 @@ export type Database = {
         }
         Returns: undefined
       }
-      update_trending_scores: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      update_trending_scores: { Args: never; Returns: undefined }
       update_usage_tracking: {
         Args: { _increment_type: string; _user_id: string }
         Returns: undefined
@@ -13397,10 +13497,7 @@ export type Database = {
         Args: { karma_type: string; points: number; target_user_id: string }
         Returns: undefined
       }
-      update_viral_scores: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      update_viral_scores: { Args: never; Returns: undefined }
       upsert_doc: {
         Args: {
           p_author?: string

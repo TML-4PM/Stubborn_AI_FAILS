@@ -1,60 +1,202 @@
-
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AI Oopsies - A Gallery of AI Fails</title>
-    <meta name="description" content="A curated collection of amusing AI failures and mistakes." />
-    <meta name="author" content="Tech 4 Humanity" />
-    
-    <!-- Favicon -->
-    <link rel="icon" type="image/webp" href="https://lzfgigiyqpuuxslsygjt.supabase.co/storage/v1/object/public/images/AHC%20droid%20head.webp" />
-    <link rel="shortcut icon" type="image/webp" href="https://lzfgigiyqpuuxslsygjt.supabase.co/storage/v1/object/public/images/AHC%20droid%20head.webp" />
-    
-    <!-- Apple Touch Icon -->
-    <link rel="apple-touch-icon" href="https://lzfgigiyqpuuxslsygjt.supabase.co/storage/v1/object/public/images/AHC%20droid%20head.webp" />
-    
-    <!-- OpenGraph Meta Tags -->
-    <meta property="og:title" content="AI Oopsies - A Gallery of AI Fails" />
-    <meta property="og:description" content="A curated collection of amusing AI failures and mistakes." />
-    <meta property="og:image" content="https://lzfgigiyqpuuxslsygjt.supabase.co/storage/v1/object/public/images/AHC%20droid%20head.webp" />
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://aioopsies.com" />
-    
-    <!-- Twitter Card Meta Tags -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="AI Oopsies - A Gallery of AI Fails" />
-    <meta name="twitter:description" content="A curated collection of amusing AI failures and mistakes." />
-    <meta name="twitter:image" content="https://lzfgigiyqpuuxslsygjt.supabase.co/storage/v1/object/public/images/AHC%20droid%20head.webp" />
-    
-    <!-- PWA -->
-    <link rel="manifest" href="/manifest.json" />
-    <meta name="theme-color" content="#4A90E2" />
-    
-    <base href="/" />
-  <!-- T4H-BRAND-INJECT v1 group=G5 -->
-<link rel="icon" type="image/png" sizes="32x32" href="https://lzfgigiyqpuuxslsygjt.supabase.co/storage/v1/object/public/images/t4h-icon.png">
-<link rel="icon" type="image/x-icon" href="https://lzfgigiyqpuuxslsygjt.supabase.co/storage/v1/object/public/images/t4h-icon.ico">
-<link rel="apple-touch-icon" href="https://lzfgigiyqpuuxslsygjt.supabase.co/storage/v1/object/public/images/t4h-icon.png">
-<meta property="og:image" content="https://lzfgigiyqpuuxslsygjt.supabase.co/storage/v1/object/public/images/t4h-icon.png">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://lzfgigiyqpuuxslsygjt.supabase.co/storage/v1/object/public/images/t4h-icon.png">
-<!-- /T4H-BRAND-INJECT -->
-</head>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>AI Oopsies — When AI Gets It Hilariously Wrong</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --primary:#d4220a;
+      --deep:#7a1306;
+      --light:#e84b2e;
+      --accent:#f5d700;
+      --bg:#fffbf0;
+      --white:#ffffff;
+      --text:#1a1a2e;
+      --muted:#666;
+    }
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+    a{color:var(--accent);text-decoration:none}
 
-  <body>
-    <div id="root"></div>
-    <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS VERY COMMENT! -->
-    <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
-    <script type="module" src="/src/main.tsx"></script>
-  <!-- T4H-BRAND-INJECT-FOOTER v1 -->
-<footer style="background:#0f0f0f;color:#888;padding:32px 20px;text-align:center;font-size:13px;margin-top:40px;border-top:1px solid #222">
-  <a href="https://tech4humanity.com.au" style="color:#f59e0b;margin:0 12px;text-decoration:none">More T4H Projects</a>
-  <div style="margin-top:16px;font-size:11px;opacity:0.6">© 2026 Tech 4 Humanity Ltd</div>
+    /* NAV */
+    nav{background:var(--deep);padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+    .nav-logo{color:var(--white);font-weight:700;font-size:1.1rem;letter-spacing:-0.02em}
+    .nav-logo span{color:var(--accent)}
+    .nav-cta{background:var(--accent);color:var(--deep)!important;padding:0.5rem 1.2rem;border-radius:4px;font-weight:600;font-size:0.85rem}
+
+    /* HERO */
+    .hero{background:linear-gradient(135deg,var(--deep) 0%,var(--primary) 100%);color:var(--white);padding:5rem 2rem 4rem;text-align:center}
+    .hero-tag{background:var(--accent);color:var(--deep);font-size:0.7rem;font-weight:700;letter-spacing:0.1em;padding:0.3rem 0.8rem;border-radius:20px;display:inline-block;margin-bottom:1.5rem;text-transform:uppercase}
+    .hero h1{font-size:clamp(2rem,5vw,3.5rem);font-weight:800;letter-spacing:-0.03em;line-height:1.1;margin-bottom:1rem}
+    .hero h1 em{color:var(--accent);font-style:normal}
+    .hero-desc{font-size:1.1rem;opacity:0.85;max-width:680px;margin:0 auto 2.5rem}
+    .btn-primary{background:var(--accent);color:var(--deep);padding:0.9rem 2.2rem;border-radius:6px;font-weight:700;font-size:0.95rem;border:none;cursor:pointer;letter-spacing:0.02em;display:inline-block;transition:opacity 0.2s}
+    .btn-primary:hover{opacity:0.85}
+    .btn-outline{background:transparent;color:var(--white);padding:0.9rem 2.2rem;border-radius:6px;font-weight:600;font-size:0.95rem;border:2px solid rgba(255,255,255,0.3);cursor:pointer;margin-left:1rem}
+    .hero-btns{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap}
+
+    /* STATS */
+    .stats{background:var(--white);padding:2rem;display:flex;justify-content:center;gap:3rem;flex-wrap:wrap;box-shadow:0 2px 12px rgba(0,0,0,0.06)}
+    .stat{text-align:center}
+    .stat-num{font-size:1.8rem;font-weight:800;color:var(--primary)}
+    .stat-label{font-size:0.75rem;color:var(--muted);letter-spacing:0.05em;text-transform:uppercase}
+
+    /* SERVICES */
+    .section{padding:4rem 2rem;max-width:1100px;margin:0 auto}
+    .section-tag{font-size:0.7rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--accent);margin-bottom:0.5rem}
+    .section-title{font-size:clamp(1.5rem,3vw,2.2rem);font-weight:800;letter-spacing:-0.02em;color:var(--deep);margin-bottom:0.5rem}
+    .section-sub{color:var(--muted);margin-bottom:3rem;max-width:600px}
+    .svc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1.5rem}
+    .svc-card{background:var(--white);border-radius:12px;padding:1.8rem;box-shadow:0 2px 12px rgba(0,0,0,0.06);transition:transform 0.2s,box-shadow 0.2s}
+    .svc-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,0.1)}
+    .svc-icon{font-size:2rem;margin-bottom:0.8rem}
+    .svc-name{font-weight:700;font-size:1rem;color:var(--deep);margin-bottom:0.4rem}
+    .svc-desc{font-size:0.875rem;color:var(--muted);line-height:1.5}
+
+    /* CTA BAND */
+    .cta-band{background:linear-gradient(135deg,var(--primary),var(--light));color:var(--white);padding:4rem 2rem;text-align:center}
+    .cta-band h2{font-size:1.8rem;font-weight:800;margin-bottom:0.8rem}
+    .cta-band p{opacity:0.85;margin-bottom:2rem;max-width:500px;margin-left:auto;margin-right:auto}
+
+    /* CONTACT */
+    .contact-wrap{display:grid;grid-template-columns:1fr 1fr;gap:3rem;max-width:900px;margin:0 auto}
+    @media(max-width:640px){.contact-wrap{grid-template-columns:1fr}}
+    .form-group{margin-bottom:1rem}
+    .form-group label{display:block;font-size:0.8rem;font-weight:600;color:var(--deep);margin-bottom:0.3rem;text-transform:uppercase;letter-spacing:0.05em}
+    .form-group input,.form-group select,.form-group textarea{width:100%;padding:0.75rem;border:1px solid #ddd;border-radius:6px;font-size:0.9rem;outline:none;transition:border 0.2s}
+    .form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--primary)}
+    .form-group textarea{height:100px;resize:vertical}
+    .form-submit{width:100%;background:var(--primary);color:var(--white);padding:1rem;border:none;border-radius:6px;font-weight:700;cursor:pointer;font-size:0.95rem}
+    .contact-info h3{font-size:1.2rem;font-weight:700;color:var(--deep);margin-bottom:1.5rem}
+    .contact-item{display:flex;gap:0.8rem;margin-bottom:1rem;align-items:flex-start}
+    .contact-item-icon{font-size:1.2rem;margin-top:0.1rem}
+    .contact-item-text{font-size:0.9rem;color:var(--muted)}
+    .contact-item-label{font-weight:600;color:var(--deep);font-size:0.85rem}
+
+    /* FOOTER */
+    footer{background:var(--deep);color:rgba(255,255,255,0.6);padding:2rem;text-align:center;font-size:0.8rem}
+    footer strong{color:var(--white)}
+
+    /* SUCCESS */
+    .success-banner{display:none;background:#d4edda;border:1px solid #c3e6cb;color:#155724;padding:1rem 1.5rem;border-radius:8px;margin-bottom:1rem;font-weight:600}
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">AI <span>Oopsies</span></div>
+  <a href="#contact" class="nav-cta">See the Latest Oopsies</a>
+</nav>
+
+<section class="hero">
+  <div class="hero-tag">T4H Portfolio · FUN</div>
+  <h1>AI Oopsies<br><em>When AI Gets It Hilariously Wrong</em></h1>
+  <p class="hero-desc">AI Oopsies is the internet's best collection of AI failures, hallucinations, and spectacular blunders. A signal-rich brand built on the funniest, most instructive AI errors — curated, categorised, and...</p>
+  <div class="hero-btns">
+    <a href="#contact" class="btn-primary">See the Latest Oopsies</a>
+    <a href="#services" class="btn-outline">Learn More</a>
+  </div>
+</section>
+
+<div class="stats">
+  <div class="stat"><div class="stat-num">T4H</div><div class="stat-label">Portfolio Company</div></div>
+  <div class="stat"><div class="stat-num">FUN</div><div class="stat-label">Business Group</div></div>
+  <div class="stat"><div class="stat-num">AU</div><div class="stat-label">Based in Australia</div></div>
+  <div class="stat"><div class="stat-num">2025</div><div class="stat-label">Active</div></div>
+</div>
+
+<section class="section" id="services">
+  <div class="section-tag">What We Do</div>
+  <h2 class="section-title">Our Services</h2>
+  <p class="section-sub">AI Oopsies is the internet's best collection of AI failures, hallucinations, and spectacular blunders. A signal-rich brand built on the funniest, most instructive AI errors — curated, categorised, and celebrated.</p>
+  <div class="svc-grid">
+        <div class="svc-card">
+          <div class="svc-icon">🤦</div>
+          <div class="svc-name">Oopsie Database</div>
+          <div class="svc-desc">Browse thousands of AI failures — from minor hallucinations to spectacular meltdowns — all categorised and searchable.</div>
+        </div>
+        <div class="svc-card">
+          <div class="svc-icon">📰</div>
+          <div class="svc-name">Weekly Oopsie Report</div>
+          <div class="svc-desc">Subscribe to the weekly AI Oopsies newsletter — the best AI failures from the past week, with context and commentary.</div>
+        </div>
+        <div class="svc-card">
+          <div class="svc-icon">📤</div>
+          <div class="svc-name">Submit Your Oopsie</div>
+          <div class="svc-desc">Found an amazing AI fail? Submit it to the database and join the community of AI error collectors.</div>
+        </div>
+        <div class="svc-card">
+          <div class="svc-icon">💼</div>
+          <div class="svc-name">Enterprise Insights</div>
+          <div class="svc-desc">For AI teams: analysis of failure patterns that actually improve your AI products. Oopsies with a purpose.</div>
+        </div></div>
+</section>
+
+<div class="cta-band">
+  <h2>Ready to get started?</h2>
+  <p>Talk to the AI Oopsies team today. We'll respond within 24 hours.</p>
+  <a href="#contact" class="btn-primary" style="color:var(--deep)">See the Latest Oopsies</a>
+</div>
+
+<section class="section" id="contact">
+  <div class="section-tag">Get in Touch</div>
+  <h2 class="section-title">Contact Us</h2>
+  <p class="section-sub">Fill in the form and we'll be in touch within 24 hours.</p>
+  <div class="contact-wrap">
+    <div>
+      <div class="success-banner" id="success-msg">✓ Thanks! We'll be in touch within 24 hours.</div>
+      <div class="form-group"><label>Your Name</label><input type="text" id="cf-name" placeholder="Jane Smith"></div>
+      <div class="form-group"><label>Email</label><input type="email" id="cf-email" placeholder="jane@example.com"></div>
+      <div class="form-group"><label>Phone</label><input type="tel" id="cf-phone" placeholder="+61 4xx xxx xxx"></div>
+      <div class="form-group"><label>Message</label><textarea id="cf-msg" placeholder="Tell us what you need..."></textarea></div>
+      <button class="form-submit" onclick="submitContact()">Send Message</button>
+    </div>
+    <div class="contact-info">
+      <h3>Get in Touch</h3>
+      <div class="contact-item"><div class="contact-item-icon">📧</div><div><div class="contact-item-label">Email</div><div class="contact-item-text">hello@aioopsies.com.au</div></div></div>
+      <div class="contact-item"><div class="contact-item-icon">📍</div><div><div class="contact-item-label">Location</div><div class="contact-item-text">Sydney, Australia</div></div></div>
+      <div class="contact-item"><div class="contact-item-icon">🏢</div><div><div class="contact-item-label">ABN</div><div class="contact-item-text">61 605 746 618</div></div></div>
+      <div class="contact-item"><div class="contact-item-icon">🌐</div><div><div class="contact-item-label">Part of T4H Portfolio</div><div class="contact-item-text">tech4humanity.com.au</div></div></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <strong>AI Oopsies</strong> · A Tech for Humanity Company · ABN 61 605 746 618 · Sydney, Australia
 </footer>
-<!-- /T4H-BRAND-INJECT-FOOTER -->
+
+<script>
+  const BRIDGE = 'https://m5oqj21chd.execute-api.ap-southeast-2.amazonaws.com/lambda/invoke';
+  const SOURCE = 'ai-oopsies';
+
+  async function saveLead(data) {
+    try {
+      const meta = JSON.stringify(data.metadata || {});
+      const sql = `INSERT INTO cap_leads (email, name, phone, source, status, metadata) VALUES ('${(data.email||'').replace(/'/g,"''")}',' ${(data.name||'').replace(/'/g,"''")}',' ${(data.phone||'').replace(/'/g,"''")}',' ${SOURCE}','new','${meta.replace(/'/g,"''")}'::jsonb) RETURNING id`;
+      const r = await fetch(BRIDGE, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fn:'troy-sql-executor',sql})});
+      const d = await r.json();
+      return d.rows?.[0]?.id || null;
+    } catch(e) { return null; }
+  }
+
+  async function submitContact() {
+    const name  = document.getElementById('cf-name').value.trim();
+    const email = document.getElementById('cf-email').value.trim();
+    const phone = document.getElementById('cf-phone').value.trim();
+    const msg   = document.getElementById('cf-msg').value.trim();
+    if (!name) { alert('Please enter your name.'); return; }
+    if (!email && !phone) { alert('Please enter an email or phone number.'); return; }
+    const btn = document.querySelector('.form-submit');
+    btn.textContent = 'Sending...'; btn.disabled = true;
+    await saveLead({ name, email, phone, metadata: { type:'enquiry', message: msg } });
+    btn.textContent = 'Send Message'; btn.disabled = false;
+    document.getElementById('success-msg').style.display = 'block';
+    document.getElementById('cf-name').value = '';
+    document.getElementById('cf-email').value = '';
+    document.getElementById('cf-phone').value = '';
+    document.getElementById('cf-msg').value = '';
+  }
+</script>
 </body>
 </html>

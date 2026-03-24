@@ -17,6 +17,7 @@ const Navbar = () => {
     { name: 'Shop', href: '/shop', icon: null },
     { name: 'Submit', href: '/submit', icon: null },
     { name: 'Donate', href: '/donate', icon: null },
+    { name: 'Blog', href: '/blog', icon: null },
   ];
 
   // Add admin link for authenticated users

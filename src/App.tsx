@@ -96,6 +96,8 @@ function App() {
                     <Route path="/privacy" element={<Privacy />} />
                     <Route path="/youtube" element={<YouTubePage />} />
                     <Route path="/feed" element={<Feed />} />
+                    <Route path="/blog" element={<Blog />} />
+                    <Route path="/blog/:slug" element={<BlogPost />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </Suspense>

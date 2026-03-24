@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ArrowRight, Bot, Sparkles } from 'lucide-react';
+import { ArrowRight, Bot } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const Hero = () => {
@@ -7,93 +7,58 @@ const Hero = () => {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsVisible(true);
-    }, 100);
-
+    const timer = setTimeout(() => setIsVisible(true), 100);
     return () => clearTimeout(timer);
   }, []);
 
   return (
-    <div className="relative min-h-[90vh] flex items-center justify-center overflow-hidden gradient-mesh">
-      {/* Background pattern */}
-      <div className="absolute inset-0 bg-grid opacity-[0.02]"></div>
-      
-      {/* Floating elements animation */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-32 h-32 opacity-20 animate-float1">
-          <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-            <path fill="#4A90E2" d="M42.8,-68.7C54.9,-61.3,64.2,-48.7,71.1,-34.6C78,-20.6,82.5,-5.1,79.2,8.9C75.9,22.9,64.7,35.6,52.8,47.1C40.9,58.7,28.2,69.2,13.6,73.8C-1,78.3,-17.6,76.9,-31.9,70.1C-46.3,63.3,-58.5,51.2,-66.9,36.5C-75.3,21.8,-79.9,4.5,-76.6,-11.1C-73.3,-26.8,-62.2,-40.8,-49.2,-48.2C-36.1,-55.6,-21.1,-56.3,-6.4,-58.7C8.3,-61.1,16.6,-65.1,27,-64.7C37.5,-64.3,50.1,-59.3,58.3,-50.9C66.5,-42.5,70.4,-30.7,74.5,-18C78.6,-5.3,82.8,8.2,81.5,21.2C80.2,34.2,73.3,46.6,62.9,56C52.5,65.5,38.6,71.9,24.6,74C10.7,76.1,-3.4,73.9,-15.6,69.1C-27.9,64.3,-38.3,57,-45.9,47.2C-53.5,37.5,-58.4,25.4,-61.8,12.7C-65.2,0,-67.1,-13.2,-64.7,-25.9C-62.2,-38.6,-55.5,-50.8,-45.1,-58.6C-34.8,-66.4,-20.8,-69.8,-7,-70.1C6.9,-70.4,20.6,-67.7,30.7,-76.1C40.8,-84.5,47.3,-104.2,50.1,-106.1C52.9,-108.1,52,-92.4,51.1,-79C50.2,-65.7,49.2,-54.7,42.8,-68.7Z" transform="translate(100 100)" />
-          </svg>
-        </div>
-        <div className="absolute top-3/4 right-1/4 w-24 h-24 opacity-20 animate-float2">
-          <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-            <path fill="#4A90E2" d="M46.2,-63.3C58.3,-54.1,65.8,-39,71.1,-22.9C76.3,-6.9,79.3,10.2,74.6,25.1C69.9,40,57.4,52.7,43.1,61.5C28.7,70.3,12.7,75.2,-3.2,74.4C-19,73.6,-34.7,67.1,-48,57C-61.2,46.8,-72,32.9,-74.7,17.6C-77.3,2.3,-71.8,-14.4,-64.2,-30.3C-56.6,-46.1,-46.8,-61.1,-33.7,-69.7C-20.5,-78.4,-3.9,-80.8,10.1,-75.6C24.1,-70.5,36.5,-57.9,46.2,-63.3Z" transform="translate(100 100)" />
-          </svg>
-        </div>
-        <div className="absolute bottom-1/4 left-1/3 w-40 h-40 opacity-10 animate-float3">
-          <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-            <path fill="#4A90E2" d="M43.9,-68.2C57.9,-62.5,71.2,-52.9,76.6,-39.7C82,-26.5,79.5,-9.6,77.4,7.4C75.3,24.5,73.5,41.7,64.8,54.8C56.1,67.9,40.6,76.8,24.9,78.9C9.2,80.9,-6.7,76,-24.4,73C-42.1,70,-61.6,68.9,-73.2,58.2C-84.8,47.5,-88.4,27.1,-85.6,9.4C-82.8,-8.2,-73.6,-23.1,-62.8,-33.8C-52,-44.5,-39.6,-50.9,-27.7,-57.8C-15.8,-64.7,-4.4,-72,7.5,-73.6C19.4,-75.3,29.9,-74,43.9,-68.2Z" transform="translate(100 100)" />
-          </svg>
-        </div>
-      </div>
+    <div className="relative min-h-[85vh] flex items-center justify-center overflow-hidden bg-background">
+      {/* Simple subtle background */}
+      <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent" />
       
       <div className="container px-4 mx-auto z-10">
         <div className="max-w-3xl mx-auto text-center space-y-8">
           <div 
-            className={`transition-all duration-1000 transform ${
-              isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+            className={`transition-all duration-700 transform ${
+              isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
             }`}
           >
-            <span className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium glass rounded-full mb-6">
-              <Sparkles className="w-4 h-4 text-accent-foreground" />
-              AI Fails Collection
-            </span>
+            <div className="flex justify-center mb-6">
+              <img 
+                src="https://lzfgigiyqpuuxslsygjt.supabase.co/storage/v1/object/public/images/AHC%20droid%20head.webp"
+                alt="AI Oopsies mascot"
+                className="h-20 w-20 object-contain"
+              />
+            </div>
             <h1 className="text-5xl md:text-7xl font-extrabold mb-6 leading-tight">
-              When AI Goes <span className="gradient-text">
-                Off the Rails
-              </span>
+              AI Did <span className="text-primary">What</span> Now?
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto leading-relaxed">
-              AI is smart, but sometimes it's hilariously wrong! Post your best AI fails here and share the laughs.
+              Sometimes AI nails it. Sometimes it draws hands with 9 fingers. We collect the second kind.
             </p>
           </div>
           
           <div 
-            className={`flex flex-col sm:flex-row items-center justify-center gap-4 transition-all duration-1000 delay-300 transform ${
-              isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+            className={`flex flex-col sm:flex-row items-center justify-center gap-4 transition-all duration-700 delay-200 transform ${
+              isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
             }`}
           >
             <button 
               onClick={() => navigate('/submit')}
-              className="group relative px-8 py-4 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl flex items-center justify-center font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-xl w-full sm:w-auto overflow-hidden"
+              className="group px-8 py-4 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl flex items-center justify-center font-semibold transition-all duration-200 hover:scale-105 w-full sm:w-auto"
             >
-              <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></span>
               <Bot className="mr-2 h-5 w-5" />
-              Submit Your AI Fail
+              Post Your AI Fail
               <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
             </button>
             <button 
               onClick={() => navigate('/gallery')}
-              className="px-8 py-4 glass hover:bg-accent/80 text-foreground rounded-xl flex items-center justify-center font-semibold transition-all duration-300 hover:shadow-lg w-full sm:w-auto"
+              className="px-8 py-4 border border-border hover:bg-accent text-foreground rounded-xl flex items-center justify-center font-semibold transition-all duration-200 w-full sm:w-auto"
             >
-              Browse Gallery
+              Browse the Gallery
             </button>
           </div>
         </div>
-      </div>
-      
-      {/* Abstract shapes */}
-      <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-primary/5 rounded-full blur-3xl"></div>
-      <div className="absolute top-20 -right-20 w-80 h-80 bg-accent/5 rounded-full blur-3xl"></div>
-      
-      {/* Animated particle effects */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="particle particle-1"></div>
-        <div className="particle particle-2"></div>
-        <div className="particle particle-3"></div>
-        <div className="particle particle-4"></div>
-        <div className="particle particle-5"></div>
       </div>
     </div>
   );

@@ -34,6 +34,8 @@ const Terms = lazy(() => import('@/pages/Terms'));
 const Privacy = lazy(() => import('@/pages/Privacy'));
 const YouTubePage = lazy(() => import('@/pages/YouTubePage'));
 const Feed = lazy(() => import('@/pages/Feed'));
+const Blog = lazy(() => import('@/pages/Blog'));
+const BlogPost = lazy(() => import('@/pages/BlogPost'));
 const NotFound = lazy(() => import('@/pages/NotFound'));
 
 // Create query client with optimized settings

@@ -98,25 +98,6 @@ const QuickActions = () => {
             </Button>
           </div>
 
-          {/* Quick stats */}
-          <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-            <div>
-              <div className="text-2xl font-bold text-fail">12.5K+</div>
-              <div className="text-sm text-muted-foreground">AI Fails</div>
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-purple-500">84K+</div>
-              <div className="text-sm text-muted-foreground">Laughs Shared</div>
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-blue-500">3.2K+</div>
-              <div className="text-sm text-muted-foreground">Contributors</div>
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-green-500">247</div>
-              <div className="text-sm text-muted-foreground">Online Now</div>
-            </div>
-          </div>
         </GlassCard>
       </div>
     </section>

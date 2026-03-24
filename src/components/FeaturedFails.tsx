@@ -32,9 +32,9 @@ const FeaturedFails = ({ fails, isLoading }: FeaturedFailsProps) => {
             <Sparkles className="h-5 w-5 text-fail" />
             <span className="text-fail font-medium">Featured AI Fails</span>
           </div>
-          <h2 className="text-3xl font-bold mb-4">The Most Epic AI Mishaps</h2>
+          <h2 className="text-3xl font-bold mb-4">Fresh Fails</h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Our community's favorite AI failures that will make you laugh, cry, and question the future of technology.
+            The latest and greatest screw-ups, voted by you.
           </p>
         </div>
         
@@ -85,9 +85,9 @@ const FeaturedFails = ({ fails, isLoading }: FeaturedFailsProps) => {
           <Sparkles className="h-5 w-5 text-fail" />
           <span className="text-fail font-medium">Featured AI Fails</span>
         </div>
-        <h2 className="text-3xl font-bold mb-4">The Most Epic AI Mishaps</h2>
+        <h2 className="text-3xl font-bold mb-4">Fresh Fails</h2>
         <p className="text-muted-foreground max-w-2xl mx-auto">
-          Our community's favorite AI failures that will make you laugh, cry, and question the future of technology.
+          The latest and greatest screw-ups, voted by you.
         </p>
       </div>
       

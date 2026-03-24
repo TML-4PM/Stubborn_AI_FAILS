@@ -42,9 +42,9 @@ const TrendingSection = ({ fails, isLoading }: TrendingSectionProps) => {
             <TrendingUp className="h-5 w-5 text-primary" />
             <span className="text-primary font-medium">Trending Now</span>
           </div>
-          <h2 className="text-3xl font-bold mb-4">Rising AI Disasters</h2>
+          <h2 className="text-3xl font-bold mb-4">Trending Right Now</h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Fresh fails that are gaining traction in our community.
+            The ones picking up steam this week.
           </p>
         </div>
         
@@ -87,9 +87,9 @@ const TrendingSection = ({ fails, isLoading }: TrendingSectionProps) => {
           <TrendingUp className="h-5 w-5 text-primary" />
           <span className="text-primary font-medium">Trending Now</span>
         </div>
-        <h2 className="text-3xl font-bold mb-4">Rising AI Disasters</h2>
+        <h2 className="text-3xl font-bold mb-4">Trending Right Now</h2>
         <p className="text-muted-foreground max-w-2xl mx-auto">
-          Fresh fails that are gaining traction in our community.
+          The ones picking up steam this week.
         </p>
       </div>
       
